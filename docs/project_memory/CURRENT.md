@@ -1,7 +1,7 @@
 ---
 document: project-memory-current
 status: active
-last-reviewed: 2026-08-27
+last-reviewed: 2026-08-28
 source-of-truth: true
 owners:
   - project
@@ -15,16 +15,16 @@ Keep this file short. Move older detail to `archive/YYYY-MM.md` and add quarterl
 
 ## Current Project Status
 
-- Phase 1 backend is implemented and locally verified. External test-service configuration and public end-to-end verification remain.
+- Phase 1 backend is deployed on Railway with Supabase and VectorEngine configured. Twilio, Google, Stripe, and public end-to-end verification remain.
 
 ## Recently Completed
 
-- Single Express service, fixed clinic content, safety handover, Supabase schema, Meta/OpenAI/Google/Stripe adapters, Railway config, README, and 6 passing tests.
+- Added a signed Twilio Sandbox webhook and sender while retaining the optional Meta adapter; 7 focused tests pass.
 
 ## Current Blockers
 
-- User-owned Supabase, Meta, Google, Stripe, and Railway configuration is not present.
-- VectorEngine Chat Completions is locally verified through `api.vectorengine.cn`; Railway verification remains.
+- A newly generated Twilio Auth Token and Sandbox webhook must be configured in Railway.
+- Google Calendar and Stripe Test Mode are not yet configured.
 
 ## Active Work
 
@@ -32,9 +32,10 @@ Keep this file short. Move older detail to `archive/YYYY-MM.md` and add quarterl
 
 ## Immediate Next Steps
 
-- Deploy the VectorEngine Chat Completions update to Railway, verify the LLM there, then complete the remaining external test services and acceptance journey.
+- Deploy the Twilio adapter, configure its Railway variables and inbound webhook, then send one signed WhatsApp test message.
 
 ## Recent Important Decisions
 
 - ADR-001 selects one Railway Express service plus Supabase and deterministic safety checks before constrained LLM classification.
 - ADR-002 routes constrained classification through VectorEngine Chat Completions with a configurable Base URL.
+- ADR-003 uses Twilio Sandbox for the no-Meta Phase 1 demonstration while retaining the Meta adapter.

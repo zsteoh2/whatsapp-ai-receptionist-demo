@@ -7,7 +7,10 @@ import { createOAuthState, googleOAuthClient, verifyOAuthState } from "./google-
 import { OpenAiIntentClassifier, type IntentClassifier, type LlmDecision } from "./llm.js";
 import { MemoryStore, SupabaseStore, type Store } from "./store.js";
 import { StripeCheckoutGateway, type CheckoutGateway } from "./stripe.js";
-import { extractIncomingMessages, verifyMetaSignature, WhatsAppSender, type MessageSender } from "./whatsapp.js";
+import {
+  extractIncomingMessages, extractTwilioIncomingMessage, TwilioWhatsAppSender,
+  verifyMetaSignature, verifyTwilioSignature, WhatsAppSender, type MessageSender,
+} from "./whatsapp.js";
 
 interface AppRequest extends Request { rawBody?: Buffer }
 
@@ -48,7 +51,9 @@ export function createDependencies(): AppDependencies {
     checkout = stripe;
     stripeClient = stripe.client;
   }
-  const sender: MessageSender = config.meta.accessToken && config.meta.phoneNumberId ? new WhatsAppSender() : new UnavailableSender();
+  const sender: MessageSender = config.twilio.accountSid && config.twilio.authToken && config.twilio.whatsappFrom
+    ? new TwilioWhatsAppSender()
+    : config.meta.accessToken && config.meta.phoneNumberId ? new WhatsAppSender() : new UnavailableSender();
   return {
     store,
     engine: new ConversationEngine(store, classifier, calendar, checkout, sender),
@@ -95,6 +100,25 @@ export function createApp(deps = createDependencies()) {
       console.error("stripe_webhook_failed", error instanceof Error ? error.name : "unknown_error");
       return res.sendStatus(400);
     }
+  });
+
+  app.post("/webhooks/twilio/whatsapp", express.urlencoded({ extended: false, limit: "64kb" }), (req, res) => {
+    const params = Object.fromEntries(Object.entries(req.body as Record<string, unknown>)
+      .filter((entry): entry is [string, string] => typeof entry[1] === "string"));
+    const url = `${config.appBaseUrl.replace(/\/$/, "")}${req.originalUrl}`;
+    if (!verifyTwilioSignature(url, params, req.header("x-twilio-signature"))) return res.sendStatus(401);
+    const message = extractTwilioIncomingMessage(params);
+    res.sendStatus(200);
+    if (!message) return;
+    queueMicrotask(async () => {
+      try {
+        const reply = await deps.engine.handleMessage(message);
+        if (reply) await deps.sender.sendText(message.from, reply);
+      } catch (error) {
+        await deps.store.forgetEvent("meta", message.id).catch(() => undefined);
+        console.error("twilio_whatsapp_message_failed", error instanceof Error ? error.name : "unknown_error");
+      }
+    });
   });
 
   app.use(express.json({ limit: "256kb", verify: (req, _res, buffer) => { (req as AppRequest).rawBody = Buffer.from(buffer); } }));

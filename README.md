@@ -7,8 +7,8 @@ This is not a production clinic system. Use synthetic test data only. It does no
 ## What is implemented
 
 - `GET /health`
-- Meta webhook verification and signed WhatsApp message ingestion
-- WhatsApp Cloud API text replies
+- Signed Twilio Sandbox and Meta webhook ingestion
+- Twilio Sandbox or WhatsApp Cloud API text replies
 - 20 fixed approved FAQ answers
 - Deterministic emergency, medical, complaint, under-18, and human-request handover
 - OpenAI-compatible Chat Completions classification with structured output
@@ -16,7 +16,7 @@ This is not a production clinic system. Use synthetic test data only. It does no
 - Google Calendar free/busy lookup, alternatives, and event creation
 - Google OAuth with signed state and service-only refresh-token storage
 - Stripe Test Checkout and signed webhook confirmation
-- Meta and Stripe webhook idempotency
+- WhatsApp and Stripe webhook idempotency
 - Supabase persistence with an in-memory local fallback
 
 ## Local setup
@@ -78,7 +78,19 @@ Any three-digit CVC
 
 A successful Checkout webhook rechecks Calendar availability before creating the event. A payment return page alone never confirms a booking.
 
-## Meta WhatsApp test number
+## Twilio WhatsApp Sandbox (recommended for Phase 1)
+
+1. In Twilio Console, open **Messaging → Try it out → Send a WhatsApp message**.
+2. Join the testing environment from the WhatsApp account used for the demo.
+3. Set `TWILIO_ACCOUNT_SID`, a newly generated `TWILIO_AUTH_TOKEN`, and `TWILIO_WHATSAPP_FROM` in Railway.
+4. Set `APP_BASE_URL` to the Railway HTTPS origin with no trailing slash.
+5. Set the inbound message webhook to `<APP_BASE_URL>/webhooks/twilio/whatsapp` using `POST`.
+
+The webhook validates `X-Twilio-Signature`. Never paste the Auth Token into chat, source control, screenshots, or commands that will be shared.
+
+Twilio's current free **Try out WhatsApp** flow accepts pre-approved `ContentSid` templates. This bot sends dynamic reply text through `Body`, so live AI replies may require an upgraded Twilio account or a Sandbox mode that permits free-form replies within the customer-service window.
+
+## Meta WhatsApp test number (optional alternative)
 
 1. Create a new Meta App and add the WhatsApp product.
 2. Use Meta's provided test number; no new SIM or production number is needed for Phase 1.

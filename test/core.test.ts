@@ -11,7 +11,10 @@ import { detectSafety } from "../src/safety.js";
 import { MemoryStore } from "../src/store.js";
 import type { CheckoutGateway } from "../src/stripe.js";
 import type { Booking, PackageId } from "../src/types.js";
-import { extractIncomingMessages, verifyMetaSignature, type MessageSender } from "../src/whatsapp.js";
+import {
+  extractIncomingMessages, extractTwilioIncomingMessage, verifyMetaSignature,
+  verifyTwilioSignature, type MessageSender,
+} from "../src/whatsapp.js";
 
 test("all 20 approved FAQ questions match their fixed answers", () => {
   assert.equal(FAQS.length, 20);
@@ -111,4 +114,17 @@ test("Meta signature and payload parsing accept only signed text messages", () =
     { id: "wamid.2", from: "4477", type: "image" },
   ] } }] }] });
   assert.deepEqual(messages, [{ id: "wamid.1", from: "4477", text: "hello" }]);
+});
+
+test("Twilio signature and payload parsing accept signed text messages", () => {
+  const url = "https://example.test/webhooks/twilio/whatsapp";
+  const token = "test-token";
+  const params = { Body: " hello ", From: "whatsapp:+60123456789", MessageSid: "SM123" };
+  const data = Object.keys(params).sort().reduce((value, key) => value + key + params[key as keyof typeof params], url);
+  const signature = createHmac("sha1", token).update(data).digest("base64");
+  assert.equal(verifyTwilioSignature(url, params, signature, token), true);
+  assert.equal(verifyTwilioSignature(url, params, "bad", token), false);
+  assert.deepEqual(extractTwilioIncomingMessage(params), {
+    id: "SM123", from: "whatsapp:+60123456789", text: "hello",
+  });
 });

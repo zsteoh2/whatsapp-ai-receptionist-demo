@@ -24,6 +24,11 @@ export const config = {
     phoneNumberId: env("WHATSAPP_PHONE_NUMBER_ID"),
     apiVersion: env("WHATSAPP_API_VERSION") ?? "v23.0",
   },
+  twilio: {
+    accountSid: env("TWILIO_ACCOUNT_SID"),
+    authToken: env("TWILIO_AUTH_TOKEN"),
+    whatsappFrom: env("TWILIO_WHATSAPP_FROM"),
+  },
   supabase: {
     url: env("SUPABASE_URL"),
     serviceRoleKey: env("SUPABASE_SERVICE_ROLE_KEY"),
@@ -42,9 +47,11 @@ export const config = {
 } as const;
 
 export function readiness() {
+  const twilio = Boolean(config.twilio.accountSid && config.twilio.authToken && config.twilio.whatsappFrom);
+  const meta = Boolean(config.meta.appSecret && config.meta.verifyToken && config.meta.accessToken && config.meta.phoneNumberId);
   return {
     openai: Boolean(config.openai.apiKey && config.openai.baseUrl),
-    whatsapp: Boolean(config.meta.appSecret && config.meta.verifyToken && config.meta.accessToken && config.meta.phoneNumberId),
+    whatsapp: twilio || meta,
     supabase: Boolean(config.supabase.url && config.supabase.serviceRoleKey),
     google: Boolean(config.google.clientId && config.google.clientSecret && config.google.calendarId),
     stripe: Boolean(config.stripe.secretKey?.startsWith("sk_test_") && config.stripe.webhookSecret),
