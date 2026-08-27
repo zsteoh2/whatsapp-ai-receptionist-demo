@@ -108,7 +108,7 @@ export function createApp(deps = createDependencies()) {
     const url = `${config.appBaseUrl.replace(/\/$/, "")}${req.originalUrl}`;
     if (!verifyTwilioSignature(url, params, req.header("x-twilio-signature"))) return res.sendStatus(401);
     const message = extractTwilioIncomingMessage(params);
-    res.sendStatus(200);
+    res.status(204).end();
     if (!message) return;
     queueMicrotask(async () => {
       try {

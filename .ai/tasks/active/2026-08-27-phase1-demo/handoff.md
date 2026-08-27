@@ -4,10 +4,11 @@
 
 - Implemented the single-service TypeScript backend, approved content, safety-first state machine, Supabase schema, Meta/OpenAI/Google/Stripe adapters, Railway config, documentation, and tests.
 - Added Twilio WhatsApp Sandbox as the preferred Phase 1 channel: signed inbound form webhooks, dynamic text replies, configuration readiness, and a focused test. The Meta adapter remains available.
+- Fixed the Twilio webhook acknowledgement so it returns an empty `204` instead of surfacing `OK` in the WhatsApp chat.
 
 ## Current Status
 
-- The Railway deployment, Supabase, and VectorEngine are working. The Twilio code is locally verified but not yet deployed or tested against the user's Trial account.
+- The Railway deployment, Supabase, VectorEngine, and signed Twilio inbound webhook are working. The empty-response fix is locally verified and awaiting deployment/live retry.
 
 ## Verification
 
@@ -42,4 +43,4 @@
 
 ## Next Recommended Action
 
-- Push/deploy the Twilio adapter, set `<APP_BASE_URL>/webhooks/twilio/whatsapp` as the POST inbound webhook, and send one inbound message to test whether dynamic replies are allowed.
+- Deploy the empty `204` acknowledgement fix and send a new inbound message to verify the dynamic clinic reply.

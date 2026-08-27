@@ -18,3 +18,5 @@
 - Blocked: the supplied Twilio Trial example uses a pre-approved `ContentSid`; live dynamic `Body` replies must be tested and may require an account upgrade.
 - Passed: project-context validation completed with 0 errors; three pre-existing review recommendations remain for undated session files and an ungenerated graph.
 - Passed: changed-file scan found no populated Twilio, OpenAI, or Supabase secret assignment.
+- Passed: `npm run check` still builds and passes 7/7 tests after changing the Twilio acknowledgement to an empty `204`.
+- Not run: live WhatsApp retry after deploying the empty-response fix.
