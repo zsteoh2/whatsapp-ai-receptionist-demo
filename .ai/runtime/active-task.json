@@ -1,0 +1,9 @@
+{
+  "$schema": "../schemas/active-task.schema.json",
+  "taskId": "2026-08-27-phase1-demo",
+  "stage": "blocked",
+  "lastUpdated": "2026-08-27T18:00:00+08:00",
+  "currentGoal": "Configure and verify the implemented Phase 1 demo against live external test services.",
+  "nextAction": "Provide Meta, Supabase, Google, Stripe, and Railway account configuration, then run the end-to-end acceptance journey.",
+  "blocked": true
+}

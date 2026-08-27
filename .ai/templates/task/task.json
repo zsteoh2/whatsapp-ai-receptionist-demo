@@ -1,0 +1,13 @@
+{
+  "$schema": "../../schemas/task.schema.json",
+  "id": "YYYY-MM-DD-task-slug",
+  "title": "Task title",
+  "status": "discovery",
+  "priority": "medium",
+  "created": "YYYY-MM-DD",
+  "updated": "YYYY-MM-DD",
+  "affectedModules": [],
+  "relatedRequirements": [],
+  "relatedBusinessRules": [],
+  "relatedADRs": []
+}

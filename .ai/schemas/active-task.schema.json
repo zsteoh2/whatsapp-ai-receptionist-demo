@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "active-task.schema.json",
+  "title": "Primary Active Task State",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "taskId",
+    "stage",
+    "lastUpdated",
+    "currentGoal",
+    "nextAction",
+    "blocked"
+  ],
+  "properties": {
+    "$schema": { "type": "string" },
+    "taskId": {
+      "type": ["string", "null"],
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}-[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "stage": {
+      "type": ["string", "null"],
+      "enum": [
+        null,
+        "discovery",
+        "planning",
+        "approved",
+        "implementation",
+        "verification",
+        "documentation",
+        "completed",
+        "blocked"
+      ]
+    },
+    "lastUpdated": { "type": ["string", "null"], "format": "date-time" },
+    "currentGoal": { "type": ["string", "null"] },
+    "nextAction": { "type": ["string", "null"] },
+    "blocked": { "type": "boolean" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "taskId": { "type": "null" } } },
+      "then": {
+        "properties": {
+          "stage": { "type": "null" },
+          "lastUpdated": { "type": "null" },
+          "currentGoal": { "type": "null" },
+          "nextAction": { "type": "null" },
+          "blocked": { "const": false }
+        }
+      },
+      "else": {
+        "properties": {
+          "stage": { "type": "string" },
+          "lastUpdated": { "type": "string" },
+          "currentGoal": { "type": "string", "minLength": 1 },
+          "nextAction": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  ]
+}

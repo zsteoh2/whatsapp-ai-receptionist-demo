@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "task.schema.json",
+  "title": "AI Project Task",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "title",
+    "status",
+    "priority",
+    "created",
+    "updated",
+    "affectedModules",
+    "relatedRequirements",
+    "relatedBusinessRules",
+    "relatedADRs"
+  ],
+  "properties": {
+    "$schema": { "type": "string" },
+    "id": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}-[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "title": { "type": "string", "minLength": 1 },
+    "status": {
+      "enum": [
+        "discovery",
+        "planning",
+        "approved",
+        "implementation",
+        "verification",
+        "documentation",
+        "completed",
+        "blocked"
+      ]
+    },
+    "priority": { "enum": ["low", "medium", "high", "urgent"] },
+    "created": { "type": "string", "format": "date" },
+    "updated": { "type": "string", "format": "date" },
+    "affectedModules": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true
+    },
+    "relatedRequirements": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^REQ-[A-Z0-9-]+$" },
+      "uniqueItems": true
+    },
+    "relatedBusinessRules": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^BR-[A-Z0-9-]+$" },
+      "uniqueItems": true
+    },
+    "relatedADRs": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^ADR-[0-9]{3,}$" },
+      "uniqueItems": true
+    }
+  }
+}

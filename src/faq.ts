@@ -1,0 +1,33 @@
+export interface Faq {
+  id: number;
+  question: string;
+  answer: string;
+  patterns: RegExp[];
+}
+
+export const FAQS: Faq[] = [
+  { id: 1, question: "What services do you offer?", answer: "We currently offer three demonstration packages: a Hair & Scalp Consultation, a Personalised Skin Consultation, and an Anti-Wrinkle Consultation.", patterns: [/what (services|packages)/i, /services.*offer/i] },
+  { id: 2, question: "What is Package 1?", answer: "Package 1 is a Hair & Scalp Consultation for customers who would like to discuss hair thinning or scalp concerns. It lasts approximately 15 minutes and costs £50.", patterns: [/what is package\s*1/i, /package\s*1.*(include|about)/i] },
+  { id: 3, question: "What is Package 2?", answer: "Package 2 is a Personalised Skin Consultation. A practitioner will discuss your skin concerns and suitable next steps. It lasts approximately 30 minutes and costs £100.", patterns: [/what is package\s*2/i, /package\s*2.*(include|about)/i] },
+  { id: 4, question: "What is Package 3?", answer: "Package 3 is an Anti-Wrinkle Consultation. A qualified practitioner will discuss your concerns and assess whether a treatment may be suitable. It lasts up to 60 minutes and costs £150.", patterns: [/what is package\s*3/i, /package\s*3.*(include|about)/i] },
+  { id: 5, question: "How much do the packages cost?", answer: "Package 1 is £50, Package 2 is £100, and Package 3 is £150.", patterns: [/(how much|price|cost).*(package|service)/i, /package.*(price|cost)/i] },
+  { id: 6, question: "How long are the appointments?", answer: "Package 1 is 15 minutes, Package 2 is 30 minutes, and Package 3 is up to 60 minutes.", patterns: [/(how long|duration).*(appointment|package)/i] },
+  { id: 7, question: "Is a deposit required?", answer: "Yes. The test deposits are £10 for Package 1, £20 for Package 2, and £30 for Package 3.", patterns: [/deposit/i] },
+  { id: 8, question: "How can I pay?", answer: "After you select an available appointment, I’ll send you a secure Stripe Test Checkout link. This demonstration does not process real money.", patterns: [/(how|where|can).*(pay|payment)/i, /payment method/i] },
+  { id: 9, question: "Can I book for today?", answer: "Yes, same-day booking is available when a suitable slot is free and the appointment is at least two hours away.", patterns: [/(book|appointment).*(today|same day)/i, /same[- ]day/i] },
+  { id: 10, question: "When are appointments available?", answer: "Appointments are available Monday 10am–4pm, Tuesday to Thursday 10am–7pm, Friday and Saturday 10am–4pm. The clinic is closed on Sunday.", patterns: [/(opening|appointment|available).*(hours|times)/i, /when.*(open|appointment.*available)/i] },
+  { id: 11, question: "Where is the clinic?", answer: "This demonstration represents an aesthetic clinic located in Leeds, United Kingdom. Exact directions would be provided by the reception team for a real booking.", patterns: [/(where|location|address).*(clinic|you)/i] },
+  { id: 12, question: "What is the cancellation policy?", answer: "You can cancel free of charge with at least 24 hours’ notice. With less than 24 hours’ notice, the deposit may be retained.", patterns: [/cancel(lation)?/i] },
+  { id: 13, question: "Can I reschedule?", answer: "Yes. You can reschedule free of charge with at least 24 hours’ notice, subject to availability.", patterns: [/reschedul|change.*appointment/i] },
+  { id: 14, question: "What should I bring to my appointment?", answer: "Please bring any information your practitioner has specifically requested. Do not send medical records, identification documents, or sensitive health information through this demonstration chat.", patterns: [/what.*bring/i, /prepare.*appointment/i] },
+  { id: 15, question: "Am I suitable for a treatment?", answer: "Suitability depends on your individual health and circumstances. I can provide general information, but only a qualified practitioner can assess whether a treatment is appropriate for you.", patterns: [/am i suitable/i, /is .* suitable for me/i] },
+  { id: 16, question: "What is an anti-wrinkle treatment?", answer: "Anti-wrinkle treatments may temporarily reduce muscle activity in selected areas and soften the appearance of certain lines. A qualified practitioner must discuss suitability, expected results, and risks with you.", patterns: [/what (is|are).*(anti[- ]?wrinkle|botox)/i] },
+  { id: 17, question: "Are there risks or side effects?", answer: "Aesthetic treatments can involve risks and side effects. These depend on the treatment and the individual. A qualified practitioner will explain them before any treatment; I cannot assess personal risk through chat.", patterns: [/risks? or side effects/i, /general (risks?|side effects?)/i] },
+  { id: 18, question: "How long will results last?", answer: "Results vary by treatment and individual. The practitioner can discuss realistic expectations during your consultation, but no result can be guaranteed.", patterns: [/how long.*(result|last)/i] },
+  { id: 19, question: "Can I have treatment while pregnant or breastfeeding?", answer: "This requires advice from a qualified practitioner. I’ll pass your question to the Clinic Reception Team rather than make a suitability recommendation.", patterns: [/pregnan|breastfeed/i] },
+  { id: 20, question: "Can I speak to a person?", answer: "Of course. I’ll log your request for the Clinic Reception Team. In this demonstration, a team member is not automatically monitoring the chat, so the request will be shown as a handover.", patterns: [/(speak|talk).*(person|human|someone)/i, /human (please|agent|support)/i] },
+];
+
+export function matchFaq(text: string): Faq | undefined {
+  return FAQS.find((faq) => faq.patterns.some((pattern) => pattern.test(text)));
+}
