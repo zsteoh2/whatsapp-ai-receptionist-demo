@@ -12,3 +12,4 @@
 - Passed: `npm run check` after the Chat Completions migration compiles the service and passes all 6 focused tests.
 - Passed: `OPENAI_BASE_URL` is passed to the OpenAI-compatible client and `OPENAI_MODEL` defaults to `gpt-5.6-luna`.
 - Passed: DNS, ICMP, and TCP 443 checks reached `api.vectorengine.cn`; the previously supplied `.ai` endpoint was not used after `.cn` was verified.
+- Failed then fixed: Railway Node.js 20 exited while constructing the Supabase client because native WebSocket was unavailable; the project now requires Node.js 22 or newer.

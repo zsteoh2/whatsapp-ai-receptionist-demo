@@ -21,7 +21,7 @@ This is not a production clinic system. Use synthetic test data only. It does no
 
 ## Local setup
 
-Requirements: Node.js 20 or newer.
+Requirements: Node.js 22 or newer.
 
 ```bash
 npm install

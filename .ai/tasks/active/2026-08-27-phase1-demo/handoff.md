@@ -13,6 +13,7 @@
 - `npm run check`: passed (build plus 6/6 tests).
 - Compiled local HTTP smoke test: passed.
 - VectorEngine `gpt-5.6-luna` Chat Completions: live classification passed through the `.cn` endpoint.
+- Railway healthcheck failure was traced to Node.js 20 lacking the native WebSocket required by the current Supabase SDK; the runtime requirement is now Node.js 22+.
 
 ## Documentation Updated
 
