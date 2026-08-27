@@ -6,6 +6,10 @@ export interface MessageSender {
   sendText(to: string, text: string): Promise<void>;
 }
 
+export const twilioErrorCode = (payload: unknown) =>
+  typeof (payload as { code?: unknown } | undefined)?.code === "number"
+    ? (payload as { code: number }).code : "unknown";
+
 export class WhatsAppSender implements MessageSender {
   async sendText(to: string, text: string) {
     const { accessToken, phoneNumberId, apiVersion } = config.meta;
@@ -32,7 +36,11 @@ export class TwilioWhatsAppSender implements MessageSender {
       },
       body,
     });
-    if (!response.ok) throw new Error(`Twilio WhatsApp send failed with status ${response.status}`);
+    if (!response.ok) {
+      const code = twilioErrorCode(await response.json().catch(() => undefined));
+      console.error("twilio_send_rejected", `status=${response.status}`, `code=${code}`);
+      throw new Error("Twilio WhatsApp send rejected");
+    }
   }
 }
 

@@ -20,3 +20,5 @@
 - Passed: changed-file scan found no populated Twilio, OpenAI, or Supabase secret assignment.
 - Passed: `npm run check` still builds and passes 7/7 tests after changing the Twilio acknowledgement to an empty `204`.
 - Not run: live WhatsApp retry after deploying the empty-response fix.
+- Passed: safe Twilio error-code extraction is covered by the focused test and `npm run check` passes 7/7 tests.
+- Not run: live retry needed to capture the outbound Twilio status/error code.

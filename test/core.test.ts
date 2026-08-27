@@ -13,7 +13,7 @@ import type { CheckoutGateway } from "../src/stripe.js";
 import type { Booking, PackageId } from "../src/types.js";
 import {
   extractIncomingMessages, extractTwilioIncomingMessage, verifyMetaSignature,
-  verifyTwilioSignature, type MessageSender,
+  twilioErrorCode, verifyTwilioSignature, type MessageSender,
 } from "../src/whatsapp.js";
 
 test("all 20 approved FAQ questions match their fixed answers", () => {
@@ -127,4 +127,6 @@ test("Twilio signature and payload parsing accept signed text messages", () => {
   assert.deepEqual(extractTwilioIncomingMessage(params), {
     id: "SM123", from: "whatsapp:+60123456789", text: "hello",
   });
+  assert.equal(twilioErrorCode({ code: 63007 }), 63007);
+  assert.equal(twilioErrorCode({ message: "unknown" }), "unknown");
 });

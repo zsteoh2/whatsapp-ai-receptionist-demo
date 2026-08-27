@@ -4,6 +4,6 @@
   "stage": "verification",
   "lastUpdated": "2026-08-28T02:15:00+08:00",
   "currentGoal": "Connect the deployed Phase 1 demo to Twilio WhatsApp Sandbox.",
-  "nextAction": "Deploy the empty Twilio webhook acknowledgement fix, then send a new live message and verify the dynamic clinic reply.",
+  "nextAction": "Deploy safe Twilio outbound diagnostics, send a new message, and inspect the logged HTTP status/error code.",
   "blocked": false
 }
