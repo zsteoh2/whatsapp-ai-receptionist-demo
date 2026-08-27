@@ -24,7 +24,7 @@ Keep this file short. Move older detail to `archive/YYYY-MM.md` and add quarterl
 ## Current Blockers
 
 - User-owned Supabase, Meta, Google, Stripe, and Railway configuration is not present.
-- This machine cannot currently connect to `api.openai.com`; no API response was received during two live checks.
+- VectorEngine Chat Completions is locally verified through `api.vectorengine.cn`; Railway verification remains.
 
 ## Active Work
 
@@ -32,8 +32,9 @@ Keep this file short. Move older detail to `archive/YYYY-MM.md` and add quarterl
 
 ## Immediate Next Steps
 
-- Configure the external test services using `README.md`, deploy to Railway, and run the full acceptance journey.
+- Deploy the VectorEngine Chat Completions update to Railway, verify the LLM there, then complete the remaining external test services and acceptance journey.
 
 ## Recent Important Decisions
 
 - ADR-001 selects one Railway Express service plus Supabase and deterministic safety checks before constrained LLM classification.
+- ADR-002 routes constrained classification through VectorEngine Chat Completions with a configurable Base URL.

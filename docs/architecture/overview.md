@@ -5,7 +5,9 @@ last-reviewed: 2026-08-27
 source-of-truth: true
 owners:
   - engineering
-related: []
+related:
+  - docs/adr/ADR-001-phase1-single-service.md
+  - docs/adr/ADR-002-vectorengine-chat-completions.md
 ---
 
 # Architecture Overview
@@ -30,7 +32,7 @@ Use stable component IDs such as `COMP-AUTH-SERVICE`.
 | Caller | Callee | Protocol |
 |---|---|---|
 | HTTP service | Meta WhatsApp Cloud API | HTTPS/JSON |
-| Conversation engine | OpenAI Responses API | HTTPS/JSON |
+| Conversation engine | OpenAI-compatible Chat Completions API | HTTPS/JSON |
 | HTTP service | Stripe | SDK/HTTPS |
 | HTTP service | Google Calendar | OAuth 2.0/HTTPS |
 | Store | Supabase | HTTPS/PostgREST |
@@ -43,7 +45,7 @@ Use stable component IDs such as `COMP-AUTH-SERVICE`.
 
 ## External Services
 
-- Meta WhatsApp Cloud API, OpenAI Responses API, Google Calendar API, Stripe Test Mode, Supabase.
+- Meta WhatsApp Cloud API, VectorEngine's OpenAI-compatible Chat Completions API, Google Calendar API, Stripe Test Mode, Supabase.
 
 ## Constraints
 

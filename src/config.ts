@@ -14,7 +14,8 @@ export const config = {
   appBaseUrl: env("APP_BASE_URL") ?? "http://localhost:3000",
   openai: {
     apiKey: env("OPENAI_API_KEY"),
-    model: env("OPENAI_MODEL") ?? "gpt-5.4-mini",
+    baseUrl: env("OPENAI_BASE_URL"),
+    model: env("OPENAI_MODEL") ?? "gpt-5.6-luna",
   },
   meta: {
     appSecret: env("META_APP_SECRET"),
@@ -42,7 +43,7 @@ export const config = {
 
 export function readiness() {
   return {
-    openai: Boolean(config.openai.apiKey),
+    openai: Boolean(config.openai.apiKey && config.openai.baseUrl),
     whatsapp: Boolean(config.meta.appSecret && config.meta.verifyToken && config.meta.accessToken && config.meta.phoneNumberId),
     supabase: Boolean(config.supabase.url && config.supabase.serviceRoleKey),
     google: Boolean(config.google.clientId && config.google.clientSecret && config.google.calendarId),

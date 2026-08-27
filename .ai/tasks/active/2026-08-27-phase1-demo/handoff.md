@@ -12,7 +12,7 @@
 
 - `npm run check`: passed (build plus 6/6 tests).
 - Compiled local HTTP smoke test: passed.
-- OpenAI live connection: blocked by connection timeout before API response.
+- VectorEngine `gpt-5.6-luna` Chat Completions: live classification passed through the `.cn` endpoint.
 
 ## Documentation Updated
 
@@ -27,13 +27,13 @@
 ## Remaining Work
 
 - Create/configure Supabase, Meta test number, Google test calendar/OAuth, Stripe Test webhooks, and Railway variables/domain.
-- Re-test OpenAI from Railway or a network that can reach `api.openai.com`.
+- Re-test `gpt-5.6-luna` Chat Completions from Railway after deployment.
 - Run and record the public end-to-end acceptance journey.
 
 ## Blocker
 
-- User-owned external service credentials/configuration and outbound access to OpenAI.
+- Remaining Meta, Google, Stripe, Railway, and public webhook configuration.
 
 ## Next Recommended Action
 
-- Follow `README.md` in order, beginning with Supabase schema setup, then deploy Railway and configure provider callback URLs.
+- Deploy the pushed Chat Completions update to Railway, call `/health`, and send a WhatsApp test message before configuring the remaining provider callbacks.

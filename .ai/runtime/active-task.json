@@ -2,8 +2,8 @@
   "$schema": "../schemas/active-task.schema.json",
   "taskId": "2026-08-27-phase1-demo",
   "stage": "blocked",
-  "lastUpdated": "2026-08-27T18:00:00+08:00",
-  "currentGoal": "Configure and verify the implemented Phase 1 demo against live external test services.",
-  "nextAction": "Provide Meta, Supabase, Google, Stripe, and Railway account configuration, then run the end-to-end acceptance journey.",
+  "lastUpdated": "2026-08-28T01:32:03+08:00",
+  "currentGoal": "Verify the VectorEngine Chat Completions configuration and deploy the Phase 1 demo.",
+  "nextAction": "Deploy the pushed update from GitHub, change Railway OPENAI_BASE_URL to https://api.vectorengine.cn/v1, and verify /health plus one live message.",
   "blocked": true
 }

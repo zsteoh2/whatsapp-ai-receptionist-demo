@@ -28,26 +28,31 @@ const schema = {
 export class OpenAiIntentClassifier implements IntentClassifier {
   private readonly client: OpenAI;
 
-  constructor(apiKey = config.openai.apiKey) {
+  constructor(apiKey = config.openai.apiKey, baseURL = config.openai.baseUrl) {
     if (!apiKey) throw new Error("OPENAI_API_KEY is not configured");
-    this.client = new OpenAI({ apiKey, timeout: 10_000, maxRetries: 0 });
+    this.client = new OpenAI({ apiKey, baseURL, timeout: 30_000, maxRetries: 0 });
   }
 
   async classify(text: string, state: string): Promise<LlmDecision> {
-    const response = await this.client.responses.create({
+    const response = await this.client.chat.completions.create({
       model: config.openai.model,
-      store: false,
-      instructions: [
-        "Classify a message for a fictional aesthetic clinic booking demo.",
-        "Never answer the user and never add medical advice.",
-        "faqId must refer to one of the 20 approved FAQs; otherwise use unknown.",
-        "Extract a date/time only when the user clearly provides one. Interpret it in Europe/London.",
-        `Current conversation state: ${state}. Current date/time: ${new Date().toISOString()}.`,
-      ].join(" "),
-      input: text.slice(0, 500),
-      text: {
-        format: {
-          type: "json_schema",
+      messages: [
+        {
+          role: "system",
+          content: [
+            "Classify a message for a fictional aesthetic clinic booking demo.",
+            "Never answer the user and never add medical advice.",
+            "faqId must refer to one of the 20 approved FAQs; otherwise use unknown.",
+            "Package mapping: package_1 is hair and scalp, package_2 is skin, package_3 is anti-wrinkle.",
+            "Extract a date/time only when the user clearly provides one. Interpret it in Europe/London.",
+            `Current conversation state: ${state}. Current date/time: ${new Date().toISOString()}.`,
+          ].join(" "),
+        },
+        { role: "user", content: text.slice(0, 500) },
+      ],
+      response_format: {
+        type: "json_schema",
+        json_schema: {
           name: "clinic_message_decision",
           strict: true,
           schema,
@@ -55,7 +60,9 @@ export class OpenAiIntentClassifier implements IntentClassifier {
       },
     });
 
-    const parsed = JSON.parse(response.output_text) as LlmDecision;
+    const content = response.choices[0]?.message.content;
+    if (!content) throw new Error("The LLM returned no classification");
+    const parsed = JSON.parse(content) as LlmDecision;
     if (parsed.faqId !== null && (parsed.faqId < 1 || parsed.faqId > 20)) {
       return { intent: "unknown", faqId: null, packageId: null, localDateTime: null };
     }

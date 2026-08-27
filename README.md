@@ -11,7 +11,7 @@ This is not a production clinic system. Use synthetic test data only. It does no
 - WhatsApp Cloud API text replies
 - 20 fixed approved FAQ answers
 - Deterministic emergency, medical, complaint, under-18, and human-request handover
-- OpenAI Responses API classification with structured output and `store: false`
+- OpenAI-compatible Chat Completions classification with structured output
 - Stateful booking flow with a two-hour minimum notice
 - Google Calendar free/busy lookup, alternatives, and event creation
 - Google OAuth with signed state and service-only refresh-token storage
@@ -30,7 +30,9 @@ npm run check
 
 Copy the non-secret settings from `.env.example` into `.env.local` and fill the provider values. `.env.local`, `Key.txt`, build output, logs, and dependencies are ignored by Git.
 
-The existing OpenAI key has already been placed in `.env.local`. `Key.txt` still contains the original copy and is ignored; delete that file manually after you have confirmed the application works if you no longer need the duplicate.
+The demo uses the OpenAI-compatible VectorEngine endpoint at `https://api.vectorengine.cn/v1` through `OPENAI_BASE_URL`. Keep the API key only in `.env.local` or Railway Variables; the configured model is `gpt-5.6-luna`.
+
+The existing intermediary API key has already been placed in `.env.local`. `Key.txt` still contains the original copy and is ignored; delete that file manually after you have confirmed the application works if you no longer need the duplicate.
 
 Start locally:
 

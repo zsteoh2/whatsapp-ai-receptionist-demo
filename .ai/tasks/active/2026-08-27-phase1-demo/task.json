@@ -5,9 +5,9 @@
   "status": "blocked",
   "priority": "high",
   "created": "2026-08-27",
-  "updated": "2026-08-27",
+  "updated": "2026-08-28",
   "affectedModules": ["http", "conversation", "integrations", "persistence"],
   "relatedRequirements": ["REQ-WA-001", "REQ-FAQ-001", "REQ-BOOK-001", "REQ-CAL-001", "REQ-PAY-001", "REQ-HO-001", "REQ-DEPLOY-001"],
   "relatedBusinessRules": ["BR-DEMO-001", "BR-MED-001", "BR-BOOK-001", "BR-PAY-001", "BR-CANCEL-001"],
-  "relatedADRs": ["ADR-001"]
+  "relatedADRs": ["ADR-001", "ADR-002"]
 }
