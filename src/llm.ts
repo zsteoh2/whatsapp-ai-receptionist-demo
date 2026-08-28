@@ -39,6 +39,7 @@ export class OpenAiIntentClassifier implements IntentClassifier {
   async classify(text: string, context: IntentContext): Promise<LlmDecision> {
     const response = await this.client.chat.completions.create({
       model: config.openai.model,
+      reasoning_effort: "medium",
       messages: [
         {
           role: "system",

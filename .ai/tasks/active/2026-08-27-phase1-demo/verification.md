@@ -36,3 +36,5 @@
 - Passed: a live VectorEngine `.cn` Chat Completions probe accepted the expanded strict schema and classified `Are there side effects for skin treatment?` as FAQ 17 with Package 2 context.
 - Not available: the first local probe used the default OpenAI host because the local environment did not supply the Railway Base URL and timed out; the configured Railway environment is not affected.
 - Not run: live WhatsApp multi-turn verification after deploying the structured-memory upgrade.
+- Passed: live Google OAuth completed and a WhatsApp Package 2 request correctly rejected a deliberately occupied Google Calendar slot and returned alternatives.
+- Passed: `reasoning_effort: "medium"` compiles, all 10 focused tests pass, and a live VectorEngine `.cn` Chat Completions probe accepted the parameter and returned the expected Package 2 booking decision with a London-local date/time.

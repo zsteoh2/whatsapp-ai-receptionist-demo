@@ -1,7 +1,7 @@
 ---
 document: project-memory-current
 status: active
-last-reviewed: 2026-08-28
+last-reviewed: 2026-08-29
 source-of-truth: true
 owners:
   - project
@@ -15,15 +15,15 @@ Keep this file short. Move older detail to `archive/YYYY-MM.md` and add quarterl
 
 ## Current Project Status
 
-- Phase 1 backend is deployed on Railway with Supabase, VectorEngine, and live Twilio Sandbox replies working. A structured-memory upgrade is awaiting live verification; Google, Stripe, and the full public booking journey remain.
+- Phase 1 backend is deployed on Railway with Supabase, VectorEngine, live Twilio Sandbox replies, structured memory, Google OAuth, and Google Calendar occupied-slot checks working. Stripe and the full paid booking journey remain.
 
 ## Recently Completed
 
-- Added bounded 24-hour structured conversation memory, natural service exploration, contextual confirmation, FAQ-aware question routing, and third-failure handoff without storing transcripts; 10 focused tests pass.
+- Verified live Google Calendar availability checking and set Luna reasoning effort explicitly to `medium`; build, 10 focused tests, and a live VectorEngine classification pass.
 
 ## Current Blockers
 
-- Google Calendar and Stripe Test Mode are not yet configured.
+- Stripe Test Mode is not yet configured; greeting priority still allows a greeting to be consumed as a pending customer name.
 
 ## Active Work
 
@@ -31,7 +31,7 @@ Keep this file short. Move older detail to `archive/YYYY-MM.md` and add quarterl
 
 ## Immediate Next Steps
 
-- Deploy the structured-memory upgrade, send `RESTART`, then verify `I want something for wrinkle` followed by `Yes please` in WhatsApp.
+- Deploy the Luna medium-effort update, configure Stripe Test Checkout/webhooks, and then run the complete booking confirmation journey.
 
 ## Recent Important Decisions
 

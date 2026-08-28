@@ -12,11 +12,13 @@
 
 ## Current Status
 
-- The Railway deployment, Supabase, VectorEngine, signed Twilio inbound webhook, and synchronous TwiML replies are working. Structured multi-turn memory is locally verified and awaiting deployment/live retry.
+- The Railway deployment, Supabase, VectorEngine, signed Twilio inbound webhook, synchronous TwiML replies, and Google Calendar availability checks are working. Structured multi-turn memory is live; greeting priority still needs correction so a greeting cannot be consumed as a pending customer name.
 
 ## Verification
 
 - `npm run check`: passed (build plus 10/10 tests).
+- Live Google OAuth and an occupied-slot WhatsApp check passed against the configured demo calendar.
+- Live VectorEngine classification accepted explicit Luna `reasoning_effort: medium`.
 - Compiled local HTTP smoke test: passed.
 - VectorEngine `gpt-5.6-luna` Chat Completions: live classification passed through the `.cn` endpoint.
 - Railway healthcheck failure was traced to Node.js 20 lacking the native WebSocket required by the current Supabase SDK; the runtime requirement is now Node.js 22+.
@@ -44,8 +46,8 @@
 
 ## Blocker
 
-- Google Calendar and Stripe Test configuration are still required for the complete booking journey.
+- Stripe Test configuration is still required for the complete booking journey.
 
 ## Next Recommended Action
 
-- Deploy this upgrade, send `RESTART`, then send `I want something for wrinkle` followed by `Yes please` and verify that the bot explains Package 3 before asking for the booking name.
+- Deploy the explicit Luna medium-effort update, then configure Stripe Test Checkout/webhooks and run the complete WhatsApp-to-Calendar confirmation journey.
