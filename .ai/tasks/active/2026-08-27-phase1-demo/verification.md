@@ -29,3 +29,10 @@
 - Passed: unknown non-sensitive text now returns navigation help without creating a handoff; `I want something for wrinkle` selects Package 3 and asks for the booking name.
 - Passed: `npm run check` builds and passes 8/8 tests after the conversation recovery fix.
 - Not run: live WhatsApp verification of the Package 3 phrase after deploying this fix.
+- Passed: structured memory carries Package 3 and the safe `wrinkle` category into a following `Yes please`, which continues the booking flow.
+- Passed: the first two unrecognized messages clarify, the third creates one safe handoff without storing raw input, and memory older than 24 hours resets.
+- Passed: service-related questions are routed through approved FAQ intent classification instead of being mistaken for a service-exploration keyword.
+- Passed: `npm run check` builds and passes 10/10 tests after the structured-memory upgrade.
+- Passed: a live VectorEngine `.cn` Chat Completions probe accepted the expanded strict schema and classified `Are there side effects for skin treatment?` as FAQ 17 with Package 2 context.
+- Not available: the first local probe used the default OpenAI host because the local environment did not supply the Railway Base URL and timed out; the configured Railway environment is not affected.
+- Not run: live WhatsApp multi-turn verification after deploying the structured-memory upgrade.

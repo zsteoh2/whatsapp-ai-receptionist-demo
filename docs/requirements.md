@@ -17,8 +17,9 @@ Use stable IDs such as `REQ-AUTH-001`. Do not reuse retired IDs.
 | ID | Priority | Requirement | Acceptance Criteria | Status |
 |---|---|---|---|---|
 | REQ-WA-001 | Must | Verify the configured WhatsApp provider webhook and receive/send text messages. | Twilio or Meta signature verification succeeds; duplicate message IDs are ignored. | approved |
-| REQ-FAQ-001 | Must | Answer only the 20 approved English FAQs. | Approved variants return fixed facts; unknown non-sensitive messages show navigation help without inventing facts; sensitive or explicitly human-directed questions hand over. | approved |
+| REQ-FAQ-001 | Must | Answer only the 20 approved English FAQs. | Approved variants return fixed facts; unknown non-sensitive messages receive two clarification attempts without invented facts, then hand over on the third failure. | approved |
 | REQ-BOOK-001 | Must | Collect name, package, preferred date/time, and policy consent. | Bot never requests prohibited medical data. | approved |
+| REQ-MEM-001 | Must | Maintain bounded structured context per WhatsApp conversation. | A discussed package and concern carry into the next turn; natural confirmation continues the intended flow; inactive context resets after 24 hours; raw transcripts are not stored. | approved |
 | REQ-CAL-001 | Must | Check Google Calendar before offering or confirming a slot. | Busy slots cannot be confirmed; events use Europe/London. | approved |
 | REQ-PAY-001 | Must | Use Stripe Test Checkout deposits before confirmation. | Only completed test checkout can create an event. | approved |
 | REQ-HO-001 | Must | Stop automation and log medical, emergency, complaint, under-18, or human requests. | Emergency response gives 999/111 guidance; other triggers create a handoff. | approved |
@@ -30,4 +31,4 @@ Use stable IDs such as `REQ-AUTH-001`. Do not reuse retired IDs.
 |---|---|---|---|---|
 | REQ-NFR-001 | Security | Verify WhatsApp-provider and Stripe signatures; keep credentials and sensitive content out of logs. | Automated signature tests and source review. | approved |
 | REQ-NFR-002 | Reliability | WhatsApp and Stripe processing is idempotent. | Replayed event tests create one result. | approved |
-| REQ-NFR-003 | Privacy | Store only minimum booking fields and safe handoff summaries. | Schema and conversation tests. | approved |
+| REQ-NFR-003 | Privacy | Store only minimum booking fields, bounded structured conversation context, and safe handoff summaries. | Schema and conversation tests confirm raw chat content is not stored. | approved |

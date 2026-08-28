@@ -1,23 +1,26 @@
 import OpenAI from "openai";
 import { config } from "./config.js";
-import type { PackageId } from "./types.js";
+import { FAQS } from "./faq.js";
+import type { Conversation, PackageId } from "./types.js";
+
+export type IntentContext = Pick<Conversation, "state" | "packageId" | "concernCategory">;
 
 export interface LlmDecision {
-  intent: "faq" | "book" | "provide_datetime" | "unknown";
+  intent: "faq" | "explore_service" | "book" | "provide_datetime" | "unknown";
   faqId: number | null;
   packageId: PackageId | null;
   localDateTime: string | null;
 }
 
 export interface IntentClassifier {
-  classify(text: string, state: string): Promise<LlmDecision>;
+  classify(text: string, context: IntentContext): Promise<LlmDecision>;
 }
 
 const schema = {
   type: "object",
   additionalProperties: false,
   properties: {
-    intent: { type: "string", enum: ["faq", "book", "provide_datetime", "unknown"] },
+    intent: { type: "string", enum: ["faq", "explore_service", "book", "provide_datetime", "unknown"] },
     faqId: { type: ["integer", "null"], minimum: 1, maximum: 20 },
     packageId: { type: ["string", "null"], enum: ["package_1", "package_2", "package_3", null] },
     localDateTime: { type: ["string", "null"], description: "Europe/London local ISO date and time without timezone, YYYY-MM-DDTHH:mm" },
@@ -33,7 +36,7 @@ export class OpenAiIntentClassifier implements IntentClassifier {
     this.client = new OpenAI({ apiKey, baseURL, timeout: 30_000, maxRetries: 0 });
   }
 
-  async classify(text: string, state: string): Promise<LlmDecision> {
+  async classify(text: string, context: IntentContext): Promise<LlmDecision> {
     const response = await this.client.chat.completions.create({
       model: config.openai.model,
       messages: [
@@ -43,9 +46,12 @@ export class OpenAiIntentClassifier implements IntentClassifier {
             "Classify a message for a fictional aesthetic clinic booking demo.",
             "Never answer the user and never add medical advice.",
             "faqId must refer to one of the 20 approved FAQs; otherwise use unknown.",
+            `Approved FAQs: ${FAQS.map((faq) => `${faq.id}=${faq.question}`).join(" | ")}.`,
             "Package mapping: package_1 is hair and scalp, package_2 is skin, package_3 is anti-wrinkle.",
+            "Use book only when the user explicitly asks to book or make an appointment.",
+            "Use explore_service when the user mentions a service or concern without explicitly asking to book.",
             "Extract a date/time only when the user clearly provides one. Interpret it in Europe/London.",
-            `Current conversation state: ${state}. Current date/time: ${new Date().toISOString()}.`,
+            `Structured conversation memory: ${JSON.stringify(context)}. Current date/time: ${new Date().toISOString()}.`,
           ].join(" "),
         },
         { role: "user", content: text.slice(0, 500) },

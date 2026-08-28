@@ -11,6 +11,7 @@ Ship the smallest reliable single-service Phase 1 implementation.
 3. Implement WhatsApp, OpenAI, Calendar, and Stripe adapters.
 4. Expose health, Meta webhook, Google OAuth, and Stripe webhook endpoints.
 5. Add focused automated tests, SQL schema, Railway configuration, and setup documentation.
+6. Add bounded structured conversation memory, natural service exploration, and clarification before handoff without storing transcripts.
 
 ## Risks
 

@@ -6,7 +6,7 @@ import { validateBusinessSlot, type CalendarGateway } from "../src/calendar.js";
 import { ConversationEngine } from "../src/conversation.js";
 import { FAQS, matchFaq } from "../src/faq.js";
 import type { IntentClassifier } from "../src/llm.js";
-import { EMERGENCY_MESSAGE, MEDICAL_HANDOVER_MESSAGE } from "../src/messages.js";
+import { EMERGENCY_MESSAGE, GENERAL_HANDOVER_MESSAGE, MEDICAL_HANDOVER_MESSAGE } from "../src/messages.js";
 import { detectSafety } from "../src/safety.js";
 import { MemoryStore } from "../src/store.js";
 import type { CheckoutGateway } from "../src/stripe.js";
@@ -103,17 +103,48 @@ test("personal medical and emergency messages hand over without storing raw cont
   assert.ok(store.handoffs.every((item) => !item.summary.includes("pregnant") && !item.summary.includes("breathe")));
 });
 
-test("unknown messages stay conversational and wrinkle requests select Package 3", async () => {
+test("structured memory explores a concern and continues booking from a natural yes", async () => {
   const store = new MemoryStore();
   const engine = new ConversationEngine(store, new FakeClassifier(), new FakeCalendar(), new FakeCheckout(), new FakeSender());
   const unknown = await engine.handleMessage({ id: "unknown-1", from: "3", text: "something else" });
   assert.match(unknown ?? "", /Package 1, 2 or 3/i);
   assert.equal(store.handoffs.length, 0);
+  assert.equal((await store.getConversation("3"))?.state, "clarifying_once");
 
   const wrinkle = await engine.handleMessage({ id: "wrinkle-1", from: "3", text: "I want something for wrinkle" });
   assert.match(wrinkle ?? "", /Anti-Wrinkle Consultation/i);
-  assert.match(wrinkle ?? "", /What name/i);
+  assert.match(wrinkle ?? "", /Would you like to make a test booking/i);
+  assert.equal((await store.getConversation("3"))?.state, "offering_booking");
+  assert.equal((await store.getConversation("3"))?.concernCategory, "wrinkle");
+
+  assert.match(await engine.handleMessage({ id: "yes-1", from: "3", text: "Yes please" }) ?? "", /What name/i);
   assert.equal((await store.getConversation("3"))?.state, "awaiting_name");
+});
+
+test("service questions use approved FAQ intent instead of keyword routing", async () => {
+  const classifier: IntentClassifier = {
+    async classify() { return { intent: "faq", faqId: 17, packageId: "package_2", localDateTime: null }; },
+  };
+  const engine = new ConversationEngine(new MemoryStore(), classifier, new FakeCalendar(), new FakeCheckout(), new FakeSender());
+  const reply = await engine.handleMessage({ id: "faq-intent-1", from: "6", text: "Are there side effects for skin treatment?" });
+  assert.equal(reply?.endsWith(FAQS[16]!.answer), true);
+  assert.doesNotMatch(reply ?? "", /Would you like to make a test booking/i);
+});
+
+test("three unrecognized messages hand over, while stale memory expires", async () => {
+  const store = new MemoryStore();
+  const engine = new ConversationEngine(store, new FakeClassifier(), new FakeCalendar(), new FakeCheckout(), new FakeSender());
+  assert.match(await engine.handleMessage({ id: "u1", from: "4", text: "one unclear thing" }) ?? "", /not sure/i);
+  assert.match(await engine.handleMessage({ id: "u2", from: "4", text: "another unclear thing" }) ?? "", /still not sure/i);
+  assert.equal(await engine.handleMessage({ id: "u3", from: "4", text: "third unclear thing" }), GENERAL_HANDOVER_MESSAGE);
+  assert.equal(store.handoffs.length, 1);
+  assert.ok(!store.handoffs[0]?.summary.includes("unclear thing"));
+
+  await store.saveConversation({
+    waId: "5", state: "handover", updatedAt: new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString(),
+  });
+  assert.match(await engine.handleMessage({ id: "fresh-1", from: "5", text: "hello" }) ?? "", /Welcome/i);
+  assert.equal((await store.getConversation("5"))?.state, "new");
 });
 
 test("Meta signature and payload parsing accept only signed text messages", () => {

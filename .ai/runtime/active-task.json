@@ -2,8 +2,8 @@
   "$schema": "../schemas/active-task.schema.json",
   "taskId": "2026-08-27-phase1-demo",
   "stage": "verification",
-  "lastUpdated": "2026-08-28T04:45:00+08:00",
-  "currentGoal": "Verify resilient package recognition through the live Twilio WhatsApp Sandbox.",
-  "nextAction": "Deploy the recovery fix, send RESTART once, then verify that 'I want something for wrinkle' selects Package 3.",
+  "lastUpdated": "2026-08-28T05:20:00+08:00",
+  "currentGoal": "Verify structured multi-turn memory through the live Twilio WhatsApp Sandbox.",
+  "nextAction": "Deploy, send RESTART, then test 'I want something for wrinkle' followed by 'Yes please'.",
   "blocked": false
 }

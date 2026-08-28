@@ -8,14 +8,15 @@
 - Added safe outbound failure diagnostics that log only Twilio HTTP status and error code.
 - Switched interactive Sandbox replies to synchronous, XML-escaped TwiML after live error 21654 confirmed the Trial blocks dynamic REST `Body` sends.
 - Fixed the conversation dead end: unknown non-sensitive messages now show navigation help without locking the session, and `wrinkle`/`wrinkles` deterministically selects Package 3.
+- Added bounded structured memory using the existing conversation row: package/concern context, service exploration versus explicit booking, contextual confirmation, two clarification attempts before handoff, and 24-hour inactivity expiry. Raw transcripts are not stored.
 
 ## Current Status
 
-- The Railway deployment, Supabase, VectorEngine, signed Twilio inbound webhook, and synchronous TwiML replies are working. The Package 3 recognition fix is locally verified and awaiting deployment/live retry.
+- The Railway deployment, Supabase, VectorEngine, signed Twilio inbound webhook, and synchronous TwiML replies are working. Structured multi-turn memory is locally verified and awaiting deployment/live retry.
 
 ## Verification
 
-- `npm run check`: passed (build plus 8/8 tests).
+- `npm run check`: passed (build plus 10/10 tests).
 - Compiled local HTTP smoke test: passed.
 - VectorEngine `gpt-5.6-luna` Chat Completions: live classification passed through the `.cn` endpoint.
 - Railway healthcheck failure was traced to Node.js 20 lacking the native WebSocket required by the current Supabase SDK; the runtime requirement is now Node.js 22+.
@@ -32,11 +33,12 @@
 - Background WhatsApp processing uses the Railway process rather than a durable queue.
 - Twilio's free Try out flow may reject dynamic `Body` replies because the supplied example is restricted to a pre-approved `ContentSid`; this requires a live test and may require upgrading Twilio.
 - Interactive inbound replies now use TwiML, but later asynchronous Stripe confirmation still uses the restricted REST API and may require a Twilio upgrade.
+- Structured memory deliberately stores no raw transcript and supports one active package/concern context per WhatsApp sender.
 - The original ignored `Key.txt` still exists; remove it manually after confirming `.env.local` works.
 
 ## Remaining Work
 
-- Deploy the conversation recovery fix and retry the Package 3 phrase after one final `RESTART` to clear the old stored handover state.
+- Deploy the structured-memory upgrade and test the Package 3 exploration/confirmation flow after one final `RESTART` to clear old state.
 - Configure Google test calendar/OAuth and Stripe Test webhooks.
 - Run and record the public end-to-end acceptance journey.
 
@@ -46,4 +48,4 @@
 
 ## Next Recommended Action
 
-- Deploy this fix, send `RESTART` once, then send `I want something for wrinkle` and verify that the bot selects the Anti-Wrinkle Consultation.
+- Deploy this upgrade, send `RESTART`, then send `I want something for wrinkle` followed by `Yes please` and verify that the bot explains Package 3 before asking for the booking name.

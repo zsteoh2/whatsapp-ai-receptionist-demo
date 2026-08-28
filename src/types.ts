@@ -7,6 +7,9 @@ export type ConversationState =
   | "awaiting_datetime"
   | "awaiting_policy"
   | "awaiting_payment"
+  | "offering_booking"
+  | "clarifying_once"
+  | "clarifying_twice"
   | "confirmed"
   | "handover";
 

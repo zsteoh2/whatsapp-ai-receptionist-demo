@@ -8,7 +8,8 @@ import { FAQS, matchFaq } from "./faq.js";
 import type { IntentClassifier, LlmDecision } from "./llm.js";
 import {
   EMERGENCY_MESSAGE, GENERAL_HANDOVER_MESSAGE, INTEGRATION_FAILURE_MESSAGE,
-  MEDICAL_HANDOVER_MESSAGE, POLICY_MESSAGE, UNKNOWN_HELP_MESSAGE, WELCOME_MESSAGE,
+  MEDICAL_HANDOVER_MESSAGE, POLICY_MESSAGE, UNKNOWN_HELP_MESSAGE, UNKNOWN_RETRY_MESSAGE,
+  WELCOME_MESSAGE,
 } from "./messages.js";
 import { detectSafety, type SafetyDecision } from "./safety.js";
 import type { Store } from "./store.js";
@@ -16,11 +17,21 @@ import type { Booking, Conversation, IncomingMessage, PackageId } from "./types.
 import type { MessageSender } from "./whatsapp.js";
 
 const nowIso = () => new Date().toISOString();
+const sessionTtlMs = 24 * 60 * 60 * 1000;
 const greetingPattern = /^\s*(hi|hello|hey|start|menu)\s*[!.?]*\s*$/i;
 const bookingPattern = /\b(book|booking|appointment|make an appointment)\b/i;
+const questionPattern = /^\s*(what|how|when|where|why|which|is|are|can|could|do|does|will|would)\b/i;
 const acceptPattern = /^\s*(yes|y|accept|agree|i agree)\s*[!.]*\s*$/i;
 const declinePattern = /^\s*(no|n|decline|cancel)\s*[!.]*\s*$/i;
+const conversationalYesPattern = /^\s*(yes(?: please)?|y|sure|ok(?:ay)?|please do)\s*[!.]*\s*$/i;
+const conversationalNoPattern = /^\s*(no(?: thanks)?|not now)\s*[!.]*\s*$/i;
 const namePattern = /^[\p{L}][\p{L} '\-]{1,59}$/u;
+
+const packageContext = {
+  package_1: { faqId: 2, concern: "hair" },
+  package_2: { faqId: 3, concern: "skin" },
+  package_3: { faqId: 4, concern: "wrinkle" },
+} as const;
 
 const formatSlot = (iso: string) => DateTime.fromISO(iso, { setZone: true }).setZone(CLINIC.timezone).toFormat("cccc, d LLLL 'at' h:mm a");
 
@@ -42,9 +53,9 @@ export class ConversationEngine {
     await this.store.saveConversation(conversation);
   }
 
-  private async handover(conversation: Conversation, decision: Exclude<SafetyDecision, undefined>) {
+  private async handover(conversation: Conversation, decision: Exclude<SafetyDecision, undefined>, summary?: string) {
     const category = decision === "emergency" ? "emergency" : decision === "medical" ? "medical" : "general";
-    await this.store.createHandoff({ waId: conversation.waId, category, summary: `${category} handover triggered by automated safety rules.` });
+    await this.store.createHandoff({ waId: conversation.waId, category, summary: summary ?? `${category} handover triggered by automated safety rules.` });
     conversation.state = "handover";
     await this.save(conversation);
     if (decision === "emergency") return EMERGENCY_MESSAGE;
@@ -60,9 +71,13 @@ export class ConversationEngine {
     return INTEGRATION_FAILURE_MESSAGE;
   }
 
-  private async classify(text: string, state: string): Promise<LlmDecision> {
+  private async classify(text: string, conversation: Conversation): Promise<LlmDecision> {
     try {
-      return await this.classifier.classify(text, state);
+      return await this.classifier.classify(text, {
+        state: conversation.state,
+        packageId: conversation.packageId,
+        concernCategory: conversation.concernCategory,
+      });
     } catch {
       return { intent: "unknown", faqId: null, packageId: null, localDateTime: null };
     }
@@ -75,16 +90,47 @@ export class ConversationEngine {
       return "Which package would you like to book? Reply 1 for Hair & Scalp, 2 for Personalised Skin, or 3 for Anti-Wrinkle Consultation.";
     }
     conversation.packageId = packageId;
+    conversation.concernCategory = packageContext[packageId].concern;
     conversation.state = "awaiting_name";
     await this.save(conversation);
     return `You selected ${PACKAGES[packageId].name}. What name would you like on the test booking?`;
   }
 
-  private async requestedDateTime(text: string, state: string) {
+  private async explorePackage(conversation: Conversation, packageId: PackageId) {
+    conversation.packageId = packageId;
+    conversation.concernCategory = packageContext[packageId].concern;
+    conversation.state = "offering_booking";
+    await this.save(conversation);
+    const answer = FAQS.find((item) => item.id === packageContext[packageId].faqId)!.answer;
+    return `${answer}\n\nWould you like to make a test booking for this package?`;
+  }
+
+  private async rememberFaq(conversation: Conversation, faqId: number) {
+    const packageEntry = Object.entries(packageContext).find(([, context]) => context.faqId === faqId);
+    if (packageEntry) {
+      conversation.packageId = packageEntry[0] as PackageId;
+      conversation.concernCategory = packageEntry[1].concern;
+    }
+    if (conversation.state === "clarifying_once" || conversation.state === "clarifying_twice") conversation.state = "new";
+    await this.save(conversation);
+  }
+
+  private async requestedDateTime(text: string, conversation: Conversation) {
     const strict = text.match(/\b(20\d{2}-\d{2}-\d{2})[ T](\d{2}:\d{2})\b/);
     if (strict) return `${strict[1]}T${strict[2]}`;
-    const decision = await this.classify(text, state);
+    const decision = await this.classify(text, conversation);
     return decision.localDateTime ?? undefined;
+  }
+
+  private async unknown(conversation: Conversation, firstMessage: boolean) {
+    if (conversation.state === "clarifying_twice") {
+      return this.handover(conversation, "general", "General handover after three unrecognized non-sensitive messages.");
+    }
+    const secondAttempt = conversation.state === "clarifying_once";
+    conversation.state = secondAttempt ? "clarifying_twice" : "clarifying_once";
+    await this.save(conversation);
+    const reply = secondAttempt ? UNKNOWN_RETRY_MESSAGE : UNKNOWN_HELP_MESSAGE;
+    return firstMessage ? `${WELCOME_MESSAGE}\n\n${reply}` : reply;
   }
 
   private async offerAlternatives(packageId: PackageId, reason: string) {
@@ -96,8 +142,11 @@ export class ConversationEngine {
   async handleMessage(message: IncomingMessage): Promise<string | undefined> {
     if (!await this.store.markEventProcessed("meta", message.id)) return undefined;
     const storedConversation = await this.store.getConversation(message.from);
-    let conversation = storedConversation ?? { waId: message.from, state: "new", updatedAt: nowIso() } as Conversation;
-    const firstMessage = !storedConversation;
+    const expired = storedConversation && Date.now() - Date.parse(storedConversation.updatedAt) >= sessionTtlMs;
+    let conversation = !storedConversation || expired
+      ? { waId: message.from, state: "new", updatedAt: nowIso() } as Conversation
+      : storedConversation;
+    const firstMessage = !storedConversation || Boolean(expired);
     const text = message.text.trim();
 
     if (/^\s*(restart|start over)\s*$/i.test(text)) {
@@ -109,17 +158,34 @@ export class ConversationEngine {
     const safety = detectSafety(text);
     if (safety) return this.handover(conversation, safety);
 
-    const faq = matchFaq(text);
-    if (faq) return firstMessage ? `${WELCOME_MESSAGE}\n\n${faq.answer}` : faq.answer;
-
     if (conversation.state === "handover") return GENERAL_HANDOVER_MESSAGE;
-    if (conversation.state === "new" && greetingPattern.test(text)) {
+
+    const faq = matchFaq(text);
+    if (faq) {
+      await this.rememberFaq(conversation, faq.id);
+      return firstMessage ? `${WELCOME_MESSAGE}\n\n${faq.answer}` : faq.answer;
+    }
+
+    if (["new", "clarifying_once", "clarifying_twice"].includes(conversation.state) && greetingPattern.test(text)) {
+      conversation.state = "new";
       await this.save(conversation);
       return WELCOME_MESSAGE;
     }
 
+    if (conversation.state === "offering_booking") {
+      if (conversationalYesPattern.test(text)) return this.choosePackage(conversation, conversation.packageId);
+      if (conversationalNoPattern.test(text)) {
+        conversation.state = "new";
+        await this.save(conversation);
+        return "No problem. I can still explain another package or answer one of the approved clinic FAQs.";
+      }
+    }
+
     if (conversation.state === "awaiting_name") {
-      if (!namePattern.test(text)) return "Please provide a preferred name using letters, spaces, apostrophes, or hyphens only (2–60 characters).";
+      if (!namePattern.test(text)) {
+        await this.save(conversation);
+        return "Please provide a preferred name using letters, spaces, apostrophes, or hyphens only (2–60 characters).";
+      }
       conversation.customerName = text;
       conversation.state = "awaiting_datetime";
       await this.save(conversation);
@@ -127,9 +193,12 @@ export class ConversationEngine {
     }
 
     if (conversation.state === "awaiting_datetime") {
-      const localValue = await this.requestedDateTime(text, conversation.state);
+      const localValue = await this.requestedDateTime(text, conversation);
       const local = localValue ? parseLocalDateTime(localValue) : undefined;
-      if (!local || !conversation.packageId) return "I couldn’t identify a valid date and time. Please use YYYY-MM-DD HH:mm, for example 2026-09-02 14:30.";
+      if (!local || !conversation.packageId) {
+        await this.save(conversation);
+        return "I couldn’t identify a valid date and time. Please use YYYY-MM-DD HH:mm, for example 2026-09-02 14:30.";
+      }
       const requestedStart = local.toUTC().toISO()!;
       try {
         const availability = await this.calendar.validateSlot(requestedStart, conversation.packageId);
@@ -150,6 +219,7 @@ export class ConversationEngine {
         return "No problem. No booking or payment has been created. Send BOOK whenever you want to start again.";
       }
       if (!acceptPattern.test(text) || !conversation.customerName || !conversation.packageId || !conversation.requestedStart) {
+        await this.save(conversation);
         return "Please reply YES to accept the demonstration cancellation policy, or NO to stop without creating a booking.";
       }
       const pack = PACKAGES[conversation.packageId];
@@ -177,21 +247,32 @@ export class ConversationEngine {
 
     const packageId = parsePackage(text);
     if (conversation.state === "awaiting_package") return this.choosePackage(conversation, packageId);
-    if (bookingPattern.test(text) || packageId) {
-      const reply = await this.choosePackage(conversation, packageId);
+    if (bookingPattern.test(text)) {
+      const reply = await this.choosePackage(conversation, packageId ?? conversation.packageId);
+      return firstMessage ? `${WELCOME_MESSAGE}\n\n${reply}` : reply;
+    }
+    if (packageId && !questionPattern.test(text)) {
+      const reply = await this.explorePackage(conversation, packageId);
       return firstMessage ? `${WELCOME_MESSAGE}\n\n${reply}` : reply;
     }
 
-    const decision = await this.classify(text, conversation.state);
+    const decision = await this.classify(text, conversation);
     if (decision.intent === "faq" && decision.faqId) {
       const approved = FAQS.find((item) => item.id === decision.faqId);
-      if (approved) return firstMessage ? `${WELCOME_MESSAGE}\n\n${approved.answer}` : approved.answer;
+      if (approved) {
+        await this.rememberFaq(conversation, approved.id);
+        return firstMessage ? `${WELCOME_MESSAGE}\n\n${approved.answer}` : approved.answer;
+      }
     }
     if (decision.intent === "book") {
-      const reply = await this.choosePackage(conversation, decision.packageId ?? undefined);
+      const reply = await this.choosePackage(conversation, decision.packageId ?? conversation.packageId);
       return firstMessage ? `${WELCOME_MESSAGE}\n\n${reply}` : reply;
     }
-    return firstMessage ? `${WELCOME_MESSAGE}\n\n${UNKNOWN_HELP_MESSAGE}` : UNKNOWN_HELP_MESSAGE;
+    if (decision.intent === "explore_service" && decision.packageId) {
+      const reply = await this.explorePackage(conversation, decision.packageId);
+      return firstMessage ? `${WELCOME_MESSAGE}\n\n${reply}` : reply;
+    }
+    return this.unknown(conversation, firstMessage);
   }
 
   async confirmPaidBooking(bookingId: string) {

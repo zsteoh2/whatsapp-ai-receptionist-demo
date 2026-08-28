@@ -15,11 +15,11 @@ Keep this file short. Move older detail to `archive/YYYY-MM.md` and add quarterl
 
 ## Current Project Status
 
-- Phase 1 backend is deployed on Railway with Supabase, VectorEngine, and live Twilio Sandbox replies working. Google, Stripe, and full public end-to-end verification remain.
+- Phase 1 backend is deployed on Railway with Supabase, VectorEngine, and live Twilio Sandbox replies working. A structured-memory upgrade is awaiting live verification; Google, Stripe, and the full public booking journey remain.
 
 ## Recently Completed
 
-- Added a signed Twilio Sandbox webhook and synchronous TwiML replies while retaining the optional Meta adapter; fixed unknown-message recovery and Package 3 wrinkle recognition; 8 focused tests pass.
+- Added bounded 24-hour structured conversation memory, natural service exploration, contextual confirmation, FAQ-aware question routing, and third-failure handoff without storing transcripts; 10 focused tests pass.
 
 ## Current Blockers
 
@@ -31,7 +31,7 @@ Keep this file short. Move older detail to `archive/YYYY-MM.md` and add quarterl
 
 ## Immediate Next Steps
 
-- Deploy the conversation recovery fix, clear the old handover state with `RESTART`, and verify the Package 3 phrase in WhatsApp.
+- Deploy the structured-memory upgrade, send `RESTART`, then verify `I want something for wrinkle` followed by `Yes please` in WhatsApp.
 
 ## Recent Important Decisions
 

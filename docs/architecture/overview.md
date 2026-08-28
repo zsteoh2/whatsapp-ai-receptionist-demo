@@ -24,7 +24,7 @@ Use stable component IDs such as `COMP-AUTH-SERVICE`.
 | ID | Component | Responsibility | Input | Output |
 |---|---|---|---|---|
 | COMP-HTTP | Express API | Health, OAuth, WhatsApp-provider and Stripe endpoints | HTTPS requests | HTTP responses/background processing |
-| COMP-CONVERSATION | Conversation engine | Safety-first intent and booking state machine | Text and stored state | Approved reply/action |
+| COMP-CONVERSATION | Conversation engine | Safety-first intent routing, bounded structured memory, clarification, and booking state machine | Text and stored state/package/concern context | Approved reply/action |
 | COMP-INTEGRATIONS | External adapters | WhatsApp, OpenAI, Google Calendar, Stripe | Typed application calls | Provider responses |
 | COMP-STORE | Persistence | Conversations, bookings, idempotency, handoffs, OAuth token | Application records | Supabase rows |
 
@@ -42,7 +42,7 @@ Use stable component IDs such as `COMP-AUTH-SERVICE`.
 
 | Store | Purpose | Owner |
 |---|---|---|
-| Supabase Postgres | Conversation state, bookings, processed events, handoffs, Google OAuth token | Application |
+| Supabase Postgres | Bounded structured conversation context, bookings, processed events, handoffs, Google OAuth token | Application |
 
 ## External Services
 
@@ -51,3 +51,4 @@ Use stable component IDs such as `COMP-AUTH-SERVICE`.
 ## Constraints
 
 - One process, one clinic, one calendar, no queue or dashboard; free-tier services may sleep.
+- Conversation context reuses the existing conversation row, stores no raw transcript, and expires after 24 hours of inactivity.

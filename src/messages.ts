@@ -7,6 +7,9 @@ export const GENERAL_HANDOVER_MESSAGE =
 export const UNKNOWN_HELP_MESSAGE =
   "I’m not sure what you’d like help with yet. I can explain Package 1, 2 or 3, answer questions about prices and opening hours, or help you make a test booking. What would you like to do?";
 
+export const UNKNOWN_RETRY_MESSAGE =
+  "I’m still not sure what you need. Reply PACKAGE 1, PACKAGE 2, or PACKAGE 3 to explore a service; reply BOOK to make a test booking; or reply HUMAN to request the Clinic Reception Team.";
+
 export const MEDICAL_HANDOVER_MESSAGE =
   "I can provide general information, but I can’t assess symptoms, medical history, personal risk, or treatment suitability through WhatsApp. I’ve paused the automated conversation and logged this for the Clinic Reception Team.";
 
