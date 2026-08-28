@@ -22,3 +22,6 @@
 - Not run: live WhatsApp retry after deploying the empty-response fix.
 - Passed: safe Twilio error-code extraction is covered by the focused test and `npm run check` passes 7/7 tests.
 - Not run: live retry needed to capture the outbound Twilio status/error code.
+- Passed: live diagnostics identified Twilio `status=400 code=21654`, confirming the Trial's outbound `ContentSid` restriction.
+- Passed: TwiML generation escapes XML content and is covered by the focused test; `npm run check` passes 7/7 tests.
+- Not run: live WhatsApp reply through the synchronous TwiML path.

@@ -9,7 +9,7 @@ import { MemoryStore, SupabaseStore, type Store } from "./store.js";
 import { StripeCheckoutGateway, type CheckoutGateway } from "./stripe.js";
 import {
   extractIncomingMessages, extractTwilioIncomingMessage, TwilioWhatsAppSender,
-  verifyMetaSignature, verifyTwilioSignature, WhatsAppSender, type MessageSender,
+  twimlResponse, verifyMetaSignature, verifyTwilioSignature, WhatsAppSender, type MessageSender,
 } from "./whatsapp.js";
 
 interface AppRequest extends Request { rawBody?: Buffer }
@@ -102,23 +102,21 @@ export function createApp(deps = createDependencies()) {
     }
   });
 
-  app.post("/webhooks/twilio/whatsapp", express.urlencoded({ extended: false, limit: "64kb" }), (req, res) => {
+  app.post("/webhooks/twilio/whatsapp", express.urlencoded({ extended: false, limit: "64kb" }), async (req, res) => {
     const params = Object.fromEntries(Object.entries(req.body as Record<string, unknown>)
       .filter((entry): entry is [string, string] => typeof entry[1] === "string"));
     const url = `${config.appBaseUrl.replace(/\/$/, "")}${req.originalUrl}`;
     if (!verifyTwilioSignature(url, params, req.header("x-twilio-signature"))) return res.sendStatus(401);
     const message = extractTwilioIncomingMessage(params);
-    res.status(204).end();
-    if (!message) return;
-    queueMicrotask(async () => {
-      try {
-        const reply = await deps.engine.handleMessage(message);
-        if (reply) await deps.sender.sendText(message.from, reply);
-      } catch (error) {
-        await deps.store.forgetEvent("meta", message.id).catch(() => undefined);
-        console.error("twilio_whatsapp_message_failed", error instanceof Error ? error.name : "unknown_error");
-      }
-    });
+    if (!message) return res.status(200).type("text/xml").send(twimlResponse());
+    try {
+      const reply = await deps.engine.handleMessage(message);
+      return res.status(200).type("text/xml").send(twimlResponse(reply));
+    } catch (error) {
+      await deps.store.forgetEvent("meta", message.id).catch(() => undefined);
+      console.error("twilio_whatsapp_message_failed", error instanceof Error ? error.name : "unknown_error");
+      return res.status(200).type("text/xml").send(twimlResponse());
+    }
   });
 
   app.use(express.json({ limit: "256kb", verify: (req, _res, buffer) => { (req as AppRequest).rawBody = Buffer.from(buffer); } }));

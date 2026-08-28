@@ -13,7 +13,7 @@ import type { CheckoutGateway } from "../src/stripe.js";
 import type { Booking, PackageId } from "../src/types.js";
 import {
   extractIncomingMessages, extractTwilioIncomingMessage, verifyMetaSignature,
-  twilioErrorCode, verifyTwilioSignature, type MessageSender,
+  twilioErrorCode, twimlResponse, verifyTwilioSignature, type MessageSender,
 } from "../src/whatsapp.js";
 
 test("all 20 approved FAQ questions match their fixed answers", () => {
@@ -129,4 +129,7 @@ test("Twilio signature and payload parsing accept signed text messages", () => {
   });
   assert.equal(twilioErrorCode({ code: 63007 }), 63007);
   assert.equal(twilioErrorCode({ message: "unknown" }), "unknown");
+  assert.equal(twimlResponse("Hair & Skin <Demo>"),
+    '<?xml version="1.0" encoding="UTF-8"?><Response><Message>Hair &amp; Skin &lt;Demo&gt;</Message></Response>');
+  assert.equal(twimlResponse(), '<?xml version="1.0" encoding="UTF-8"?><Response></Response>');
 });

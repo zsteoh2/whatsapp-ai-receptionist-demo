@@ -6,10 +6,11 @@
 - Added Twilio WhatsApp Sandbox as the preferred Phase 1 channel: signed inbound form webhooks, dynamic text replies, configuration readiness, and a focused test. The Meta adapter remains available.
 - Fixed the Twilio webhook acknowledgement so it returns an empty `204` instead of surfacing `OK` in the WhatsApp chat.
 - Added safe outbound failure diagnostics that log only Twilio HTTP status and error code.
+- Switched interactive Sandbox replies to synchronous, XML-escaped TwiML after live error 21654 confirmed the Trial blocks dynamic REST `Body` sends.
 
 ## Current Status
 
-- The Railway deployment, Supabase, VectorEngine, and signed Twilio inbound webhook are working. Dynamic outbound delivery is failing; the safe diagnostic update is locally verified and awaiting deployment/live retry.
+- The Railway deployment, Supabase, VectorEngine, and signed Twilio inbound webhook are working. The TwiML workaround is locally verified and awaiting deployment/live retry.
 
 ## Verification
 
@@ -29,6 +30,7 @@
 - Free tiers may sleep; a pre-demo wake-up is required.
 - Background WhatsApp processing uses the Railway process rather than a durable queue.
 - Twilio's free Try out flow may reject dynamic `Body` replies because the supplied example is restricted to a pre-approved `ContentSid`; this requires a live test and may require upgrading Twilio.
+- Interactive inbound replies now use TwiML, but later asynchronous Stripe confirmation still uses the restricted REST API and may require a Twilio upgrade.
 - The original ignored `Key.txt` still exists; remove it manually after confirming `.env.local` works.
 
 ## Remaining Work
@@ -44,4 +46,4 @@
 
 ## Next Recommended Action
 
-- Deploy the safe outbound diagnostic update, send a new inbound message, and inspect `twilio_send_rejected` for the exact status/error code.
+- Deploy the TwiML reply path and send a new inbound message to verify the free Sandbox response.

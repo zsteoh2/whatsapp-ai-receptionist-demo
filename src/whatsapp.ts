@@ -10,6 +10,11 @@ export const twilioErrorCode = (payload: unknown) =>
   typeof (payload as { code?: unknown } | undefined)?.code === "number"
     ? (payload as { code: number }).code : "unknown";
 
+export const twimlResponse = (text?: string) => {
+  const escaped = text?.replace(/[&<>]/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[character]!);
+  return `<?xml version="1.0" encoding="UTF-8"?><Response>${escaped ? `<Message>${escaped}</Message>` : ""}</Response>`;
+};
+
 export class WhatsAppSender implements MessageSender {
   async sendText(to: string, text: string) {
     const { accessToken, phoneNumberId, apiVersion } = config.meta;

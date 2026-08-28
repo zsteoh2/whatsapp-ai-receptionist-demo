@@ -86,9 +86,9 @@ A successful Checkout webhook rechecks Calendar availability before creating the
 4. Set `APP_BASE_URL` to the Railway HTTPS origin with no trailing slash.
 5. Set the inbound message webhook to `<APP_BASE_URL>/webhooks/twilio/whatsapp` using `POST`.
 
-The webhook validates `X-Twilio-Signature`. Never paste the Auth Token into chat, source control, screenshots, or commands that will be shared.
+The webhook validates `X-Twilio-Signature`. Never paste the Auth Token into chat, source control, screenshots, or commands that will be shared. Incoming Sandbox conversations reply synchronously with TwiML so the trial can return free-form text without using the restricted outbound Messages API.
 
-Twilio's current free **Try out WhatsApp** flow accepts pre-approved `ContentSid` templates. This bot sends dynamic reply text through `Body`, so live AI replies may require an upgraded Twilio account or a Sandbox mode that permits free-form replies within the customer-service window.
+Twilio's current free **Try out WhatsApp** flow accepts only pre-approved `ContentSid` templates for outbound API sends. Asynchronous messages such as a later Stripe confirmation still use that API and may require an upgraded Twilio account; the interactive inbound demo uses TwiML instead.
 
 ## Meta WhatsApp test number (optional alternative)
 
