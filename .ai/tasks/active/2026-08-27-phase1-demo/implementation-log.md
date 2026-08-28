@@ -9,3 +9,4 @@
 - 2026-08-28: Changed the Twilio webhook acknowledgement from a plain-text `200 OK` body to an empty `204` so Twilio does not surface the transport acknowledgement as a chat reply.
 - 2026-08-28: Added safe outbound Twilio diagnostics that record only HTTP status and Twilio error code after a live reply failed without actionable log detail.
 - 2026-08-28: Changed interactive Twilio Sandbox replies to synchronous, XML-escaped TwiML after live error 21654 confirmed that the Trial rejects dynamic REST `Body` sends without `ContentSid`.
+- 2026-08-28: Kept unknown non-sensitive messages conversational instead of locking the session in handover, and added deterministic `wrinkle`/`wrinkles` recognition for Package 3.

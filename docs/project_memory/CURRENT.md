@@ -15,15 +15,14 @@ Keep this file short. Move older detail to `archive/YYYY-MM.md` and add quarterl
 
 ## Current Project Status
 
-- Phase 1 backend is deployed on Railway with Supabase and VectorEngine configured. Twilio, Google, Stripe, and public end-to-end verification remain.
+- Phase 1 backend is deployed on Railway with Supabase, VectorEngine, and live Twilio Sandbox replies working. Google, Stripe, and full public end-to-end verification remain.
 
 ## Recently Completed
 
-- Added a signed Twilio Sandbox webhook and sender while retaining the optional Meta adapter; 7 focused tests pass.
+- Added a signed Twilio Sandbox webhook and synchronous TwiML replies while retaining the optional Meta adapter; fixed unknown-message recovery and Package 3 wrinkle recognition; 8 focused tests pass.
 
 ## Current Blockers
 
-- A newly generated Twilio Auth Token and Sandbox webhook must be configured in Railway.
 - Google Calendar and Stripe Test Mode are not yet configured.
 
 ## Active Work
@@ -32,7 +31,7 @@ Keep this file short. Move older detail to `archive/YYYY-MM.md` and add quarterl
 
 ## Immediate Next Steps
 
-- Deploy the Twilio adapter, configure its Railway variables and inbound webhook, then send one signed WhatsApp test message.
+- Deploy the conversation recovery fix, clear the old handover state with `RESTART`, and verify the Package 3 phrase in WhatsApp.
 
 ## Recent Important Decisions
 

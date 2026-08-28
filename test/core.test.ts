@@ -103,6 +103,19 @@ test("personal medical and emergency messages hand over without storing raw cont
   assert.ok(store.handoffs.every((item) => !item.summary.includes("pregnant") && !item.summary.includes("breathe")));
 });
 
+test("unknown messages stay conversational and wrinkle requests select Package 3", async () => {
+  const store = new MemoryStore();
+  const engine = new ConversationEngine(store, new FakeClassifier(), new FakeCalendar(), new FakeCheckout(), new FakeSender());
+  const unknown = await engine.handleMessage({ id: "unknown-1", from: "3", text: "something else" });
+  assert.match(unknown ?? "", /Package 1, 2 or 3/i);
+  assert.equal(store.handoffs.length, 0);
+
+  const wrinkle = await engine.handleMessage({ id: "wrinkle-1", from: "3", text: "I want something for wrinkle" });
+  assert.match(wrinkle ?? "", /Anti-Wrinkle Consultation/i);
+  assert.match(wrinkle ?? "", /What name/i);
+  assert.equal((await store.getConversation("3"))?.state, "awaiting_name");
+});
+
 test("Meta signature and payload parsing accept only signed text messages", () => {
   const raw = Buffer.from('{"object":"whatsapp_business_account"}');
   const secret = "test-secret";

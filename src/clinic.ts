@@ -57,6 +57,6 @@ export function parsePackage(text: string): PackageId | undefined {
   if (/^\s*3\s*$/.test(normalized)) return "package_3";
   if (/\b(package\s*1|hair|scalp)\b/.test(normalized)) return "package_1";
   if (/\b(package\s*2|skin)\b/.test(normalized)) return "package_2";
-  if (/\b(package\s*3|anti[- ]?wrinkle|botox)\b/.test(normalized)) return "package_3";
+  if (/\b(package\s*3|anti[- ]?wrinkle|wrinkles?|botox)\b/.test(normalized)) return "package_3";
   return undefined;
 }

@@ -8,7 +8,7 @@ import { FAQS, matchFaq } from "./faq.js";
 import type { IntentClassifier, LlmDecision } from "./llm.js";
 import {
   EMERGENCY_MESSAGE, GENERAL_HANDOVER_MESSAGE, INTEGRATION_FAILURE_MESSAGE,
-  MEDICAL_HANDOVER_MESSAGE, POLICY_MESSAGE, WELCOME_MESSAGE,
+  MEDICAL_HANDOVER_MESSAGE, POLICY_MESSAGE, UNKNOWN_HELP_MESSAGE, WELCOME_MESSAGE,
 } from "./messages.js";
 import { detectSafety, type SafetyDecision } from "./safety.js";
 import type { Store } from "./store.js";
@@ -191,7 +191,7 @@ export class ConversationEngine {
       const reply = await this.choosePackage(conversation, decision.packageId ?? undefined);
       return firstMessage ? `${WELCOME_MESSAGE}\n\n${reply}` : reply;
     }
-    return this.handover(conversation, "general");
+    return firstMessage ? `${WELCOME_MESSAGE}\n\n${UNKNOWN_HELP_MESSAGE}` : UNKNOWN_HELP_MESSAGE;
   }
 
   async confirmPaidBooking(bookingId: string) {

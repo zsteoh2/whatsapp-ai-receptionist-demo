@@ -25,3 +25,7 @@
 - Passed: live diagnostics identified Twilio `status=400 code=21654`, confirming the Trial's outbound `ContentSid` restriction.
 - Passed: TwiML generation escapes XML content and is covered by the focused test; `npm run check` passes 7/7 tests.
 - Not run: live WhatsApp reply through the synchronous TwiML path.
+- Passed: the user received a live synchronous TwiML reply through Twilio Sandbox.
+- Passed: unknown non-sensitive text now returns navigation help without creating a handoff; `I want something for wrinkle` selects Package 3 and asks for the booking name.
+- Passed: `npm run check` builds and passes 8/8 tests after the conversation recovery fix.
+- Not run: live WhatsApp verification of the Package 3 phrase after deploying this fix.

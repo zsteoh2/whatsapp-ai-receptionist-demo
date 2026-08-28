@@ -7,14 +7,15 @@
 - Fixed the Twilio webhook acknowledgement so it returns an empty `204` instead of surfacing `OK` in the WhatsApp chat.
 - Added safe outbound failure diagnostics that log only Twilio HTTP status and error code.
 - Switched interactive Sandbox replies to synchronous, XML-escaped TwiML after live error 21654 confirmed the Trial blocks dynamic REST `Body` sends.
+- Fixed the conversation dead end: unknown non-sensitive messages now show navigation help without locking the session, and `wrinkle`/`wrinkles` deterministically selects Package 3.
 
 ## Current Status
 
-- The Railway deployment, Supabase, VectorEngine, and signed Twilio inbound webhook are working. The TwiML workaround is locally verified and awaiting deployment/live retry.
+- The Railway deployment, Supabase, VectorEngine, signed Twilio inbound webhook, and synchronous TwiML replies are working. The Package 3 recognition fix is locally verified and awaiting deployment/live retry.
 
 ## Verification
 
-- `npm run check`: passed (build plus 7/7 tests).
+- `npm run check`: passed (build plus 8/8 tests).
 - Compiled local HTTP smoke test: passed.
 - VectorEngine `gpt-5.6-luna` Chat Completions: live classification passed through the `.cn` endpoint.
 - Railway healthcheck failure was traced to Node.js 20 lacking the native WebSocket required by the current Supabase SDK; the runtime requirement is now Node.js 22+.
@@ -35,15 +36,14 @@
 
 ## Remaining Work
 
-- Rotate the exposed Twilio Auth Token, configure the new token, Account SID, sender, and Railway `APP_BASE_URL`.
-- Deploy the Twilio adapter and configure the Twilio inbound webhook.
+- Deploy the conversation recovery fix and retry the Package 3 phrase after one final `RESTART` to clear the old stored handover state.
 - Configure Google test calendar/OAuth and Stripe Test webhooks.
 - Run and record the public end-to-end acceptance journey.
 
 ## Blocker
 
-- A rotated Twilio token and dashboard configuration are required. Dynamic replies may be blocked by the free Trial product restriction.
+- Google Calendar and Stripe Test configuration are still required for the complete booking journey.
 
 ## Next Recommended Action
 
-- Deploy the TwiML reply path and send a new inbound message to verify the free Sandbox response.
+- Deploy this fix, send `RESTART` once, then send `I want something for wrinkle` and verify that the bot selects the Anti-Wrinkle Consultation.

@@ -17,7 +17,7 @@ Use stable IDs such as `REQ-AUTH-001`. Do not reuse retired IDs.
 | ID | Priority | Requirement | Acceptance Criteria | Status |
 |---|---|---|---|---|
 | REQ-WA-001 | Must | Verify the configured WhatsApp provider webhook and receive/send text messages. | Twilio or Meta signature verification succeeds; duplicate message IDs are ignored. | approved |
-| REQ-FAQ-001 | Must | Answer only the 20 approved English FAQs. | Approved variants return fixed facts; unsupported questions hand over. | approved |
+| REQ-FAQ-001 | Must | Answer only the 20 approved English FAQs. | Approved variants return fixed facts; unknown non-sensitive messages show navigation help without inventing facts; sensitive or explicitly human-directed questions hand over. | approved |
 | REQ-BOOK-001 | Must | Collect name, package, preferred date/time, and policy consent. | Bot never requests prohibited medical data. | approved |
 | REQ-CAL-001 | Must | Check Google Calendar before offering or confirming a slot. | Busy slots cannot be confirmed; events use Europe/London. | approved |
 | REQ-PAY-001 | Must | Use Stripe Test Checkout deposits before confirmation. | Only completed test checkout can create an event. | approved |

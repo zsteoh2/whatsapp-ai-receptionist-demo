@@ -4,6 +4,9 @@ export const WELCOME_MESSAGE =
 export const GENERAL_HANDOVER_MESSAGE =
   "Thanks for explaining. This needs help from the Clinic Reception Team, so I won’t try to answer it automatically. I’ve logged a handover request with the information you’ve provided. For this demonstration, no human reply is guaranteed unless the demo operator is monitoring the conversation.";
 
+export const UNKNOWN_HELP_MESSAGE =
+  "I’m not sure what you’d like help with yet. I can explain Package 1, 2 or 3, answer questions about prices and opening hours, or help you make a test booking. What would you like to do?";
+
 export const MEDICAL_HANDOVER_MESSAGE =
   "I can provide general information, but I can’t assess symptoms, medical history, personal risk, or treatment suitability through WhatsApp. I’ve paused the automated conversation and logged this for the Clinic Reception Team.";
 
