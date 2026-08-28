@@ -13,3 +13,4 @@
 - 2026-08-28: Reused the existing conversation row for 24-hour structured memory, separated service exploration from explicit booking, added contextual yes/no handling, and delayed ordinary fallback handover until the third unrecognized message.
 - 2026-08-29: Explicitly set Luna reasoning effort to `medium`; the live VectorEngine Chat Completions probe accepted it and returned the expected structured booking decision.
 - 2026-08-29: Ignored downloaded Google OAuth client JSON files to prevent accidental commits without modifying the local credential file.
+- 2026-08-29: Kept Calendar-confirmed bookings confirmed when asynchronous WhatsApp notification fails and added a synchronous `STATUS` recovery path for Twilio Trial.

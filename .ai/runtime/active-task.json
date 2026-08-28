@@ -2,8 +2,8 @@
   "$schema": "../schemas/active-task.schema.json",
   "taskId": "2026-08-27-phase1-demo",
   "stage": "verification",
-  "lastUpdated": "2026-08-29T00:20:00+08:00",
-  "currentGoal": "Complete Phase 1 external integration verification after the live Google Calendar availability check passed.",
-  "nextAction": "Deploy explicit Luna medium reasoning effort, then configure Stripe Test Checkout and its webhook.",
+  "lastUpdated": "2026-08-29T01:34:30+08:00",
+  "currentGoal": "Deploy and live-verify the Twilio Trial STATUS fallback after Stripe and Calendar succeeded.",
+  "nextAction": "Push the fallback, wait for Railway, then send STATUS in the existing WhatsApp conversation.",
   "blocked": false
 }

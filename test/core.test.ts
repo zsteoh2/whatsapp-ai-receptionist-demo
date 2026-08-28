@@ -63,6 +63,10 @@ class FakeSender implements MessageSender {
   async sendText(to: string, text: string) { this.sent.push({ to, text }); }
 }
 
+class FailingSender implements MessageSender {
+  async sendText() { throw new Error("Twilio Trial blocked asynchronous Body send"); }
+}
+
 test("booking flow creates test checkout then confirms exactly one calendar event", async () => {
   const store = new MemoryStore();
   const calendar = new FakeCalendar();
@@ -90,6 +94,30 @@ test("booking flow creates test checkout then confirms exactly one calendar even
   assert.equal(calendar.events.length, 1);
   assert.equal(sender.sent.length, 1);
   assert.equal(await send("m5", "YES"), undefined, "duplicate Meta message is ignored");
+});
+
+test("confirmed booking survives async WhatsApp failure and STATUS returns confirmation", async () => {
+  const store = new MemoryStore();
+  const calendar = new FakeCalendar();
+  const engine = new ConversationEngine(store, new FakeClassifier(), calendar, new FakeCheckout(), new FailingSender());
+  const booking: Booking = {
+    id: "booking-status-1", waId: "447700900002", customerName: "Alex", packageId: "package_2",
+    requestedStart: "2026-09-02T12:00:00.000Z", depositPence: 2000, status: "awaiting_payment",
+    createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+  };
+  await store.createBooking(booking);
+  await store.saveConversation({ waId: booking.waId, state: "awaiting_payment", bookingId: booking.id, updatedAt: new Date().toISOString() });
+
+  await engine.confirmPaidBooking(booking.id);
+  assert.equal((await store.getBooking(booking.id))?.status, "confirmed");
+  assert.equal(calendar.events.length, 1);
+
+  await store.updateBooking(booking.id, { status: "failed" });
+  await store.saveConversation({ waId: booking.waId, state: "handover", bookingId: booking.id, updatedAt: new Date().toISOString() });
+  const reply = await engine.handleMessage({ id: "status-1", from: booking.waId, text: "STATUS" });
+  assert.match(reply ?? "", /confirmed/i);
+  assert.match(reply ?? "", /Personalised Skin Consultation/i);
+  assert.equal((await store.getBooking(booking.id))?.status, "confirmed");
 });
 
 test("personal medical and emergency messages hand over without storing raw content", async () => {

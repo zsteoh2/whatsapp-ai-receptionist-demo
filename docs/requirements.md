@@ -21,7 +21,7 @@ Use stable IDs such as `REQ-AUTH-001`. Do not reuse retired IDs.
 | REQ-BOOK-001 | Must | Collect name, package, preferred date/time, and policy consent. | Bot never requests prohibited medical data. | approved |
 | REQ-MEM-001 | Must | Maintain bounded structured context per WhatsApp conversation. | A discussed package and concern carry into the next turn; natural confirmation continues the intended flow; inactive context resets after 24 hours; raw transcripts are not stored. | approved |
 | REQ-CAL-001 | Must | Check Google Calendar before offering or confirming a slot. | Busy slots cannot be confirmed; events use Europe/London. | approved |
-| REQ-PAY-001 | Must | Use Stripe Test Checkout deposits before confirmation. | Only completed test checkout can create an event. | approved |
+| REQ-PAY-001 | Must | Use Stripe Test Checkout deposits before confirmation. | Only completed test checkout can create an event; a confirmed booking remains confirmed if outbound notification fails and can be retrieved with `STATUS`. | approved |
 | REQ-HO-001 | Must | Stop automation and log medical, emergency, complaint, under-18, or human requests. | Emergency response gives 999/111 guidance; other triggers create a handoff. | approved |
 | REQ-DEPLOY-001 | Must | Run as one Railway-hosted Node service with Supabase persistence. | `/health` reports configuration readiness without revealing secrets. | approved |
 

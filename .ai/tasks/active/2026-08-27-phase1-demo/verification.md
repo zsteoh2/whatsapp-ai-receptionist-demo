@@ -38,3 +38,6 @@
 - Not run: live WhatsApp multi-turn verification after deploying the structured-memory upgrade.
 - Passed: live Google OAuth completed and a WhatsApp Package 2 request correctly rejected a deliberately occupied Google Calendar slot and returned alternatives.
 - Passed: `reasoning_effort: "medium"` compiles, all 10 focused tests pass, and a live VectorEngine `.cn` Chat Completions probe accepted the parameter and returned the expected Package 2 booking decision with a London-local date/time.
+- Passed: live Stripe Test Checkout and `checkout.session.completed` processing created the expected Package 2 Google Calendar event; final asynchronous WhatsApp delivery was unavailable on Twilio Trial as anticipated.
+- Passed: `npm run check` builds and passes 11/11 tests after separating booking confirmation from best-effort notification and adding `STATUS` recovery, including self-healing the previously downgraded record when a Calendar event ID exists.
+- Not run: live WhatsApp `STATUS` recovery after deploying the fallback.

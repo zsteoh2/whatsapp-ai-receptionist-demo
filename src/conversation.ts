@@ -19,6 +19,7 @@ import type { MessageSender } from "./whatsapp.js";
 const nowIso = () => new Date().toISOString();
 const sessionTtlMs = 24 * 60 * 60 * 1000;
 const greetingPattern = /^\s*(hi|hello|hey|start|menu)\s*[!.?]*\s*$/i;
+const statusPattern = /^\s*(status|booking status|check booking|check my booking)\s*[!.?]*\s*$/i;
 const bookingPattern = /\b(book|booking|appointment|make an appointment)\b/i;
 const questionPattern = /^\s*(what|how|when|where|why|which|is|are|can|could|do|does|will|would)\b/i;
 const acceptPattern = /^\s*(yes|y|accept|agree|i agree)\s*[!.]*\s*$/i;
@@ -34,6 +35,7 @@ const packageContext = {
 } as const;
 
 const formatSlot = (iso: string) => DateTime.fromISO(iso, { setZone: true }).setZone(CLINIC.timezone).toFormat("cccc, d LLLL 'at' h:mm a");
+const confirmationMessage = (booking: Booking) => `Your test booking is confirmed ✅\n${PACKAGES[booking.packageId].name}\n${formatSlot(booking.confirmedStart ?? booking.requestedStart)}\nA Google Calendar event has been created. This is a demonstration and no real treatment is booked.`;
 
 export class ConversationEngine {
   constructor(
@@ -51,6 +53,29 @@ export class ConversationEngine {
   private async save(conversation: Conversation) {
     conversation.updatedAt = nowIso();
     await this.store.saveConversation(conversation);
+  }
+
+  private async notify(waId: string, text: string) {
+    try {
+      await this.sender.sendText(waId, text);
+    } catch {
+      console.error("async_whatsapp_notification_failed");
+    }
+  }
+
+  private async bookingStatus(conversation: Conversation) {
+    if (!conversation.bookingId) return "I can’t find an active test booking in this conversation. Reply BOOK to start one.";
+    const booking = await this.store.getBooking(conversation.bookingId);
+    if (!booking) return "I can’t find that test booking. Please ask the Clinic Reception Team for help.";
+    if (booking.status === "confirmed" || booking.calendarEventId) {
+      if (booking.status !== "confirmed") await this.store.updateBooking(booking.id, { status: "confirmed" });
+      conversation.state = "confirmed";
+      await this.save(conversation);
+      return confirmationMessage(booking);
+    }
+    if (booking.status === "awaiting_payment") return "Your test booking is still waiting for Stripe Test Checkout and is not confirmed yet.";
+    if (booking.status === "paid") return "Your test payment was received and Calendar confirmation is still processing. Please try STATUS again shortly.";
+    return INTEGRATION_FAILURE_MESSAGE;
   }
 
   private async handover(conversation: Conversation, decision: Exclude<SafetyDecision, undefined>, summary?: string) {
@@ -157,6 +182,8 @@ export class ConversationEngine {
 
     const safety = detectSafety(text);
     if (safety) return this.handover(conversation, safety);
+
+    if (statusPattern.test(text)) return this.bookingStatus(conversation);
 
     if (conversation.state === "handover") return GENERAL_HANDOVER_MESSAGE;
 
@@ -288,17 +315,18 @@ export class ConversationEngine {
         await this.store.createHandoff({ waId: booking.waId, category: "integration", summary: "The selected slot became unavailable after test payment." });
         conversation.state = "handover";
         await this.save(conversation);
-        await this.sender.sendText(booking.waId, INTEGRATION_FAILURE_MESSAGE);
+        await this.notify(booking.waId, INTEGRATION_FAILURE_MESSAGE);
         return;
       }
       const eventId = await this.calendar.createBookingEvent(booking);
       await this.store.updateBooking(booking.id, { status: "confirmed", calendarEventId: eventId, confirmedStart: booking.requestedStart });
       conversation.state = "confirmed";
       await this.save(conversation);
-      await this.sender.sendText(booking.waId, `Your test booking is confirmed ✅\n${PACKAGES[booking.packageId].name}\n${formatSlot(booking.requestedStart)}\nA Google Calendar event has been created. This is a demonstration and no real treatment is booked.`);
     } catch {
       await this.integrationFailure(conversation, booking.id);
-      await this.sender.sendText(booking.waId, INTEGRATION_FAILURE_MESSAGE);
+      await this.notify(booking.waId, INTEGRATION_FAILURE_MESSAGE);
+      return;
     }
+    await this.notify(booking.waId, confirmationMessage(booking));
   }
 }

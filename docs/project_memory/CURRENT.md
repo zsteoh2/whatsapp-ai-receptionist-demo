@@ -15,15 +15,15 @@ Keep this file short. Move older detail to `archive/YYYY-MM.md` and add quarterl
 
 ## Current Project Status
 
-- Phase 1 backend is deployed on Railway with Supabase, VectorEngine, live Twilio Sandbox replies, structured memory, Google OAuth, and Google Calendar occupied-slot checks working. Stripe and the full paid booking journey remain.
+- Phase 1 backend is deployed with Supabase, VectorEngine, Twilio Sandbox, Google Calendar, and Stripe Test Checkout working through Calendar event creation. A synchronous `STATUS` fallback for Trial confirmation is locally verified and awaiting deployment.
 
 ## Recently Completed
 
-- Verified live Google Calendar availability checking and set Luna reasoning effort explicitly to `medium`; build, 10 focused tests, and a live VectorEngine classification pass.
+- Verified a live paid test booking through Calendar event creation and added `STATUS` recovery that preserves confirmation when Twilio Trial blocks asynchronous notification; 11 focused tests pass.
 
 ## Current Blockers
 
-- Stripe Test Mode is not yet configured; greeting priority still allows a greeting to be consumed as a pending customer name.
+- Automatic outbound confirmation requires a Twilio upgrade; the free Trial fallback awaits live verification. Greeting priority still allows a greeting to be consumed as a pending customer name.
 
 ## Active Work
 
@@ -31,7 +31,7 @@ Keep this file short. Move older detail to `archive/YYYY-MM.md` and add quarterl
 
 ## Immediate Next Steps
 
-- Deploy the Luna medium-effort update, configure Stripe Test Checkout/webhooks, and then run the complete booking confirmation journey.
+- Deploy the fallback, send `STATUS` in the existing WhatsApp conversation, then fix greeting priority.
 
 ## Recent Important Decisions
 

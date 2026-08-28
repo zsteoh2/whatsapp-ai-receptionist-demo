@@ -76,7 +76,7 @@ Any future expiry
 Any three-digit CVC
 ```
 
-A successful Checkout webhook rechecks Calendar availability before creating the event. A payment return page alone never confirms a booking.
+A successful Checkout webhook rechecks Calendar availability before creating the event. A payment return page alone never confirms a booking. In the Twilio Trial demo, return to WhatsApp and send `STATUS` after payment to retrieve the confirmed Calendar booking synchronously.
 
 ## Twilio WhatsApp Sandbox (recommended for Phase 1)
 
@@ -88,7 +88,7 @@ A successful Checkout webhook rechecks Calendar availability before creating the
 
 The webhook validates `X-Twilio-Signature`. Never paste the Auth Token into chat, source control, screenshots, or commands that will be shared. Incoming Sandbox conversations reply synchronously with TwiML so the trial can return free-form text without using the restricted outbound Messages API.
 
-Twilio's current free **Try out WhatsApp** flow accepts only pre-approved `ContentSid` templates for outbound API sends. Asynchronous messages such as a later Stripe confirmation still use that API and may require an upgraded Twilio account; the interactive inbound demo uses TwiML instead.
+Twilio's current free **Try out WhatsApp** flow accepts only pre-approved `ContentSid` templates for outbound API sends. Asynchronous confirmation is therefore best-effort on Trial; the payment return page tells the tester to send `STATUS`, which retrieves the confirmed booking through the working synchronous TwiML path. Upgrade Twilio when automatic outbound confirmation is required.
 
 ## Meta WhatsApp test number (optional alternative)
 
