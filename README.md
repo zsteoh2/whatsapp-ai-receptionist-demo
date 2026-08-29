@@ -129,8 +129,11 @@ npm run dev       # local development
 npm run build     # compile to dist/
 npm test          # focused automated checks
 npm run check     # build plus tests
+npm run test:dialogue:live # real LLM + in-memory bot; no WhatsApp/provider traffic
 npm start         # run compiled service
 ```
+
+The live dialogue command uses synthetic unusual phrasing and the configured LLM, while replacing WhatsApp/Twilio, Supabase, Google Calendar, and Stripe with in-memory test doubles. It reports scenario labels and outcomes without printing API keys or raw medical test messages.
 
 ## Known Phase 1 limits
 

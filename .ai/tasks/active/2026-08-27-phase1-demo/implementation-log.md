@@ -15,3 +15,5 @@
 - 2026-08-29: Ignored downloaded Google OAuth client JSON files to prevent accidental commits without modifying the local credential file.
 - 2026-08-29: Kept Calendar-confirmed bookings confirmed when asynchronous WhatsApp notification fails and added a synchronous `STATUS` recovery path for Twilio Trial.
 - 2026-08-29: Upgraded the conversation layer with global greeting priority, strict multi-field extraction, natural schedule/reserve recognition, persistent partial booking slots, and missing-field-only prompts without storing raw chat text.
+- 2026-08-29: Added a direct live dialogue harness with 20 synthetic adversarial scenarios and no WhatsApp/provider traffic; 12 passed and 8 exposed greeting, shorthand, ambiguity, vague-time, decline-slang, and medical-slang gaps.
+- 2026-08-29: Fixed all eight adversarial gaps through shared shorthand normalization, broader deterministic safety/greeting/decline rules, package/time validation, and a constrained LLM handover backstop; the suite passed 20/20, then expanded to 26/26 after fresh adjacent cases exposed and closed two model-variance gaps.

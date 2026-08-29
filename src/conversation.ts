@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { DateTime } from "luxon";
 import type { CalendarGateway } from "./calendar.js";
 import { parseLocalDateTime } from "./calendar.js";
-import { CLINIC, PACKAGES, parsePackage } from "./clinic.js";
+import { CLINIC, PACKAGES, packageMentions, parsePackage } from "./clinic.js";
 import type { CheckoutGateway } from "./stripe.js";
 import { FAQS, matchFaq } from "./faq.js";
 import type { IntentClassifier, LlmDecision } from "./llm.js";
@@ -18,21 +18,31 @@ import type { MessageSender } from "./whatsapp.js";
 
 const nowIso = () => new Date().toISOString();
 const sessionTtlMs = 24 * 60 * 60 * 1000;
-const greetingPattern = /^\s*((hi|hello|hey)( there)?|hiya|howdy|good (morning|afternoon|evening)|how are you|what'?s up|start|menu)\s*[!.?]*\s*$/i;
+const greetingPattern = /^\s*((h+i+|h+e+l+o+|h+e+y+)( there)?|hiya|howdy|yo+|sup|good (morning|afternoon|evening)|how are you|what'?s up|start|menu)\s*[!.?]*\s*$/i;
 const statusPattern = /^\s*(status|booking status|check booking|check my booking)\s*[!.?]*\s*$/i;
 const bookingPattern = /\b(book|booking|appointment|schedule|reserve)\b/i;
+const negativeBookingPattern = /\b(?:don'?t|do not|not|can'?t|cannot)\s+(?:(?:want|trying|going)\s+to\s+)?(?:book(?:ing)?|schedule|reserve)\b/i;
 const questionPattern = /^\s*(what|how|when|where|why|which|is|are|can|could|do|does|will|would)\b/i;
 const acceptPattern = /^\s*(yes|y|accept|agree|i agree)\s*[!.]*\s*$/i;
 const declinePattern = /^\s*(no|n|decline|cancel)\s*[!.]*\s*$/i;
 const conversationalYesPattern = /^\s*(yes(?: please)?|y|sure|ok(?:ay)?|please do)\s*[!.]*\s*$/i;
-const conversationalNoPattern = /^\s*(no(?: thanks)?|not now)\s*[!.]*\s*$/i;
+const conversationalNoPattern = /^\s*(no(?: thanks)?|not now|nah(?: not now)?|nope(?: not now)?)\s*[!.]*\s*$/i;
 const namePattern = /^[\p{L}][\p{L} '\-]{1,59}$/u;
 const directNamePattern = /^[\p{L}][\p{L}'\-]*(?: [\p{L}][\p{L}'\-]*){0,3}$/u;
 const reservedNamePattern = /\b(yes|no|sure|okay|please|book|booking|appointment|package|hair|scalp|skin|wrinkle|botox|today|tomorrow|next|morning|afternoon|evening)\b/i;
 const dateHintPattern = /\b(today|tomorrow|next|monday|tuesday|wednesday|thursday|friday|saturday|sunday|morning|afternoon|evening|\d{1,2}(?::\d{2})?\s*(?:am|pm))\b|\b20\d{2}-\d{2}-\d{2}\b/i;
+const preciseTimePattern = /\b(?:[01]?\d|2[0-3])(?::[0-5]\d)?\s*(?:am|pm)\b|\b(?:[01]\d|2[0-3]):[0-5]\d\b|\b(noon|midday|midnight)\b/i;
+const uncertainPackagePattern = /\b(or|either|idk|not sure|unsure|undecided|maybe|no preference|don'?t care)\b/i;
+const packageCorrectionPattern = /\b(not|forget|scrap|switch|change|instead|make it|rather|actually)\b/i;
+const normalizeShorthand = (text: string) => text.replace(/\bp\s*([123])\b/gi, "Package $1");
+const extractExplicitName = (text: string) => {
+  const value = text.match(/\b(?:name(?:\s+is|'s)?|nama)\s+([\p{L}][\p{L}'-]*(?:\s+[\p{L}][\p{L}'-]*){0,2})\s*(?=[,.;!?]|$)/iu)?.[1]
+    ?? text.match(/\bput\s+([\p{L}][\p{L}'-]*(?:\s+[\p{L}][\p{L}'-]*){0,2})\s+on it\b/iu)?.[1];
+  return value?.replace(/\s+(please|pls)$/i, "").trim();
+};
 const bookingCollectionStates = ["awaiting_package", "awaiting_name", "awaiting_datetime"] as const;
 const emptyDecision = (): LlmDecision => ({
-  intent: "unknown", wantsBooking: false, faqId: null, packageId: null, customerName: null, localDateTime: null,
+  intent: "unknown", handover: "none", wantsBooking: false, faqId: null, packageId: null, customerName: null, localDateTime: null,
 });
 
 const packageContext = {
@@ -259,6 +269,7 @@ export class ConversationEngine {
       : storedConversation;
     const firstMessage = !storedConversation || Boolean(expired);
     const text = message.text.trim();
+    const normalizedText = normalizeShorthand(text);
 
     if (/^\s*(restart|start over)\s*$/i.test(text)) {
       conversation = { waId: message.from, state: "new", updatedAt: nowIso() };
@@ -275,8 +286,8 @@ export class ConversationEngine {
 
     if (conversation.state === "handover") return GENERAL_HANDOVER_MESSAGE;
 
-    const faq = matchFaq(text);
-    if (faq && !bookingPattern.test(text)) {
+    const faq = matchFaq(normalizedText);
+    if (faq && !bookingPattern.test(normalizedText)) {
       await this.rememberFaq(conversation, faq.id);
       return firstMessage ? `${WELCOME_MESSAGE}\n\n${faq.answer}` : faq.answer;
     }
@@ -325,9 +336,13 @@ export class ConversationEngine {
       return "Your test booking is waiting for Stripe Test Checkout. It is not confirmed yet. Complete the test payment using the link already sent, or reply START OVER to cancel this conversation.";
     }
 
-    const packageId = parsePackage(text);
+    const mentionedPackages = packageMentions(normalizedText);
+    const packageIsAmbiguous = mentionedPackages.length > 1
+      && (uncertainPackagePattern.test(text) || !packageCorrectionPattern.test(text));
+    const packageId = packageIsAmbiguous ? undefined : parsePackage(normalizedText);
     const strictDateTime = text.match(/\b(20\d{2}-\d{2}-\d{2})[ T](\d{2}:\d{2})\b/);
     const localDateTime = strictDateTime ? `${strictDateTime[1]}T${strictDateTime[2]}` : null;
+    const explicitCustomerName = extractExplicitName(text);
     if (conversation.state === "awaiting_package" && packageId && !questionPattern.test(text)
       && !dateHintPattern.test(text) && text.split(/\s+/).length <= 5) {
       return this.advanceBooking(conversation, { ...emptyDecision(), wantsBooking: true, packageId });
@@ -345,17 +360,30 @@ export class ConversationEngine {
       return firstMessage ? `${WELCOME_MESSAGE}\n\n${reply}` : reply;
     }
 
-    let decision = await this.classify(text, conversation);
+    let decision = await this.classify(normalizedText, conversation);
+    const llmHandover = decision.handover !== "none" ? decision.handover
+      : [15, 19].includes(decision.faqId ?? 0) ? "medical"
+        : decision.faqId === 20 ? "general" : "none";
+    if (llmHandover !== "none") return this.handover(conversation, llmHandover);
+    if (packageIsAmbiguous) {
+      delete conversation.packageId;
+      delete conversation.concernCategory;
+    }
+    if (dateHintPattern.test(text) && !preciseTimePattern.test(text)) delete conversation.requestedStart;
     decision = {
       ...decision,
-      packageId: decision.packageId ?? packageId ?? null,
-      localDateTime: decision.localDateTime ?? localDateTime,
+      faqId: decision.faqId ?? faq?.id ?? null,
+      packageId: packageIsAmbiguous ? null : decision.packageId ?? packageId ?? null,
+      customerName: decision.customerName ?? explicitCustomerName ?? null,
+      localDateTime: preciseTimePattern.test(text) ? decision.localDateTime ?? localDateTime : null,
     };
     if (conversation.state === "awaiting_name" && !decision.customerName
       && directNamePattern.test(text) && !reservedNamePattern.test(text)) {
       decision = { ...decision, customerName: text };
     }
-    if (bookingPattern.test(text) && decision.intent === "unknown" && !decision.faqId) {
+    if (negativeBookingPattern.test(normalizedText)) {
+      decision = { ...decision, intent: decision.faqId ? "faq" : decision.packageId ? "explore_service" : "unknown", wantsBooking: false };
+    } else if (bookingPattern.test(normalizedText) && !decision.wantsBooking) {
       decision = { ...decision, intent: "book", wantsBooking: true };
     }
     return this.respondToDecision(conversation, decision, firstMessage);

@@ -15,15 +15,15 @@ Keep this file short. Move older detail to `archive/YYYY-MM.md` and add quarterl
 
 ## Current Project Status
 
-- Phase 1 backend is deployed with Supabase, VectorEngine, Twilio Sandbox, Google Calendar, and Stripe Test Checkout working through Calendar event creation. The synchronous `STATUS` fallback and natural multi-field dialogue upgrade are locally verified and awaiting deployment.
+- Phase 1 backend is deployed with Supabase, VectorEngine, Twilio Sandbox, Google Calendar, and Stripe Test Checkout working through Calendar event creation. All known direct dialogue gaps pass locally and await deployment plus one final WhatsApp smoke test.
 
 ## Recently Completed
 
-- Upgraded greeting priority and natural-language booking extraction so one message may fill FAQ/package/name/date-time fields and only missing data is requested; live Luna schema verification passed and 15 focused tests pass.
+- Added a no-WhatsApp live dialogue harness, fixed all discovered gaps plus later model-variance cases, and reached 19/19 offline plus 26/26 real-Luna unusual-language scenarios.
 
 ## Current Blockers
 
-- Automatic outbound confirmation requires a Twilio upgrade; the free Trial `STATUS` fallback and conversation upgrade await live WhatsApp verification after deployment.
+- No direct dialogue blocker remains. Automatic outbound confirmation separately requires a Twilio upgrade.
 
 ## Active Work
 
@@ -31,7 +31,7 @@ Keep this file short. Move older detail to `archive/YYYY-MM.md` and add quarterl
 
 ## Immediate Next Steps
 
-- Deploy, send `RESTART`, live-test one multi-field booking message and a greeting during name collection, then send `STATUS` for the existing confirmed booking.
+- Deploy the verified fixes, then spend one compact WhatsApp message chain on final smoke testing.
 
 ## Recent Important Decisions
 

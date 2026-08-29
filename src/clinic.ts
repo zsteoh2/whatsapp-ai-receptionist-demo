@@ -50,13 +50,17 @@ export const PACKAGES = {
   depositPence: number;
 }>;
 
-export function parsePackage(text: string): PackageId | undefined {
+export function packageMentions(text: string): PackageId[] {
   const normalized = text.toLowerCase();
-  if (/^\s*1\s*$/.test(normalized)) return "package_1";
-  if (/^\s*2\s*$/.test(normalized)) return "package_2";
-  if (/^\s*3\s*$/.test(normalized)) return "package_3";
-  if (/\b(package\s*1|hair|scalp)\b/.test(normalized)) return "package_1";
-  if (/\b(package\s*2|skin)\b/.test(normalized)) return "package_2";
-  if (/\b(package\s*3|anti[- ]?wrinkle|wrinkles?|botox)\b/.test(normalized)) return "package_3";
-  return undefined;
+  if (/^\s*[123]\s*$/.test(normalized)) return [`package_${normalized.trim()}` as PackageId];
+  return [
+    /\b((?:p|package)\s*1|hair|scalp|hair loss|hair fall|thinning hair)\b/.test(normalized) && "package_1",
+    /\b((?:p|package)\s*2|skin|acne|pigmentation|dark spots?|dry skin|oily skin)\b/.test(normalized) && "package_2",
+    /\b((?:p|package)\s*3|anti[- ]?wrinkle|wrinkles?|botox|forehead lines?|frown lines?|crow'?s feet)\b/.test(normalized) && "package_3",
+  ].filter(Boolean) as PackageId[];
+}
+
+export function parsePackage(text: string): PackageId | undefined {
+  const matches = packageMentions(text);
+  return matches.length === 1 ? matches[0] : undefined;
 }

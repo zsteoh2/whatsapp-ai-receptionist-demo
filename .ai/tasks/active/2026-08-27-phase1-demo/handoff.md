@@ -11,14 +11,17 @@
 - Added bounded structured memory using the existing conversation row: package/concern context, service exploration versus explicit booking, contextual confirmation, two clarification attempts before handoff, and 24-hour inactivity expiry. Raw transcripts are not stored.
 - Verified live Stripe Test Checkout through Google Calendar event creation, then added a `STATUS` fallback so Twilio Trial can retrieve confirmation synchronously without downgrading a successful booking when asynchronous notification fails.
 - Upgraded natural dialogue so greetings are safe in every state and one message can independently supply an approved FAQ, booking intent, package, preferred name, and date/time; valid fields persist and only missing data is requested.
+- Added and passed a 26-scenario real-Luna adversarial dialogue suite without WhatsApp traffic; fixed greeting/shorthand/decline slang, medical paraphrases, explicit name/booking variance, concern synonyms, human-request paraphrases, ambiguous package guesses, and invented times.
 
 ## Current Status
 
-- Railway, Supabase, VectorEngine, signed Twilio inbound replies, Google Calendar, and Stripe Test Checkout are working through Calendar event creation. The `STATUS` fallback and upgraded conversation layer are locally verified and await deployment/live WhatsApp retry.
+- Railway, Supabase, VectorEngine, signed Twilio inbound replies, Google Calendar, and Stripe Test Checkout are working through Calendar event creation. All known direct dialogue gaps pass locally; the verified commit is ready for Railway deployment and one final WhatsApp smoke test.
 
 ## Verification
 
-- `npm run check`: passed (build plus 15/15 tests).
+- `npm run check`: passed (build plus 16/16 tests) after adding direct casual-language coverage.
+- Direct real-Luna dialogue suite: 12/20 passed with all WhatsApp/Twilio, Supabase, Calendar, and Stripe network calls disabled.
+- After fixes and fresh adjacent cases, the expanded direct real-Luna suite passes 26/26 and `npm run check` passes 19/19.
 - Live Google OAuth and an occupied-slot WhatsApp check passed against the configured demo calendar.
 - Live VectorEngine classification accepted explicit Luna `reasoning_effort: medium`.
 - Live Stripe Test Checkout created the expected Package 2 Calendar event; Twilio Trial blocked only the final asynchronous notification.
@@ -46,13 +49,12 @@
 
 ## Remaining Work
 
-- Deploy and live-test `STATUS` against the existing Calendar-confirmed booking.
-- After `RESTART`, live-test one-message Package 2 booking extraction and a greeting while the bot is waiting for a name.
+- After Railway becomes active on the verified commit, live-test `STATUS` and one compact WhatsApp flow.
 
 ## Blocker
 
-- No external integration blocker remains for the Phase 1 fallback; automatic outbound confirmation still requires a Twilio upgrade.
+- No dialogue blocker remains in direct testing. Automatic outbound confirmation separately still requires a Twilio upgrade.
 
 ## Next Recommended Action
 
-- Deploy the dialogue upgrade, wait for Railway, then test `RESTART`, a multi-field booking message, greeting priority, and `STATUS` in WhatsApp.
+- Wait for Railway to activate the verified commit, then use WhatsApp only for one final compact smoke test.

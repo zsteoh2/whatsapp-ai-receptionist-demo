@@ -44,3 +44,12 @@
 - Passed: `npm run check` builds and passes 15/15 focused tests after the dialogue upgrade, including greeting priority, one-message FAQ plus full booking extraction, preserved partial slots, and natural service-plus-date routing.
 - Passed: a live VectorEngine `gpt-5.6-luna` call accepted the expanded strict schema and independently returned FAQ 5, Package 2, customer name Alex, the London-local date/time, and `wantsBooking: true` from one natural message.
 - Not run: live WhatsApp verification of the upgraded multi-field dialogue after Railway deployment.
+- Passed: `npm run check` builds and passes 16/16 offline tests after adding casual-language regression coverage.
+- Passed: `npm run test:dialogue:live` exercised 20 synthetic scenarios through the real `gpt-5.6-luna` classifier and complete in-memory conversation engine without calling Twilio/WhatsApp, Supabase, Google Calendar, or Stripe; 12/20 passed.
+- Passed in the adversarial suite: heavy booking typos, Malay-English and Chinese-English bookings, slang service exploration, package changes mid-flow, deposit slang, prompt injection containment, under-18, emergency, refund/legal, ordinary greeting, and gibberish clarification.
+- Failed in the adversarial suite: stretched/slang greetings changed the state to clarification; `p2` shorthand lost all booking fields; `nah not now` was not treated as a decline; an ambiguous hair-or-skin request guessed Hair; vague `tomorrow afternoon` invented a precise time; `blood thinners` and `preggers` did not create required medical handovers.
+- Not run: WhatsApp delivery for adversarial scenarios; this suite deliberately generated no Twilio/WhatsApp traffic.
+- Passed after fixes: `npm run check` builds and passes 19/19 offline tests, including shorthand parsing, medical slang, stretched/slang greetings, decline slang, ambiguity rejection, vague-time rejection, and LLM handover enforcement.
+- Passed after fixes: the original real-Luna direct dialogue suite passed 20/20. Six fresh adjacent scenarios were then added; repeated full-suite runs exposed model variance in explicit booking intent, explicit names, concern mapping, and an `actual person` request, which were moved behind deterministic application guards.
+- Passed final: the expanded real-Luna direct dialogue suite passes 26/26. Twilio/WhatsApp, Supabase, Google Calendar, and Stripe network calls remained disabled.
+- Not run after fixes: live WhatsApp smoke test or Railway deployment verification.

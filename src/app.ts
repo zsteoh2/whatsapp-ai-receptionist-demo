@@ -16,7 +16,7 @@ interface AppRequest extends Request { rawBody?: Buffer }
 
 class UnavailableClassifier implements IntentClassifier {
   async classify(): Promise<LlmDecision> {
-    return { intent: "unknown", wantsBooking: false, faqId: null, packageId: null, customerName: null, localDateTime: null };
+    return { intent: "unknown", handover: "none", wantsBooking: false, faqId: null, packageId: null, customerName: null, localDateTime: null };
   }
 }
 class UnavailableCalendar implements CalendarGateway {

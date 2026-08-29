@@ -8,8 +8,8 @@ const emergencyPatterns = [
 ];
 
 const medicalPatterns = [
-  /\b(pregnan|breastfeed)/i,
-  /\b(allerg|medication|prescription|medical condition|medical history)\b/i,
+  /\b(pregnan|preggers?|preggo|expecting (?:a )?baby|breastfeed|nursing)\b/i,
+  /\b(allerg|medication|meds|prescription|blood[- ]?thinners?|anticoagulants?|medical condition|medical history)\b/i,
   /\b(adverse reaction|complication|symptom|diagnos)/i,
   /\b(i have|i'm having|i am having|experiencing|after my).{0,40}\b(side effects?|reaction|pain|swelling)\b/i,
   /\b(dose|dosage|injection technique|aftercare)\b/i,
@@ -18,7 +18,7 @@ const medicalPatterns = [
 ];
 
 const generalPatterns = [
-  /\b(human|real person|reception|someone to talk|agent)\b/i,
+  /\b(human|(?:real|actual) person|reception|someone to talk|somebody to talk|agent)\b/i,
   /\b(complaint|refund|lawyer|legal|safeguard|custom quote)\b/i,
 ];
 

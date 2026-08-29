@@ -12,6 +12,7 @@
     "build": "npm run clean && tsc -p tsconfig.json",
     "start": "node dist/server.js",
     "test": "tsx --test test/core.test.ts",
+    "test:dialogue:live": "tsx scripts/test-dialogue-live.ts",
     "check": "npm run build && npm test"
   },
   "dependencies": {

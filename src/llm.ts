@@ -7,6 +7,7 @@ export type IntentContext = Pick<Conversation, "state" | "packageId" | "concernC
 
 export interface LlmDecision {
   intent: "faq" | "explore_service" | "book" | "provide_datetime" | "unknown";
+  handover: "none" | "medical" | "general" | "emergency";
   wantsBooking: boolean;
   faqId: number | null;
   packageId: PackageId | null;
@@ -23,13 +24,14 @@ const schema = {
   additionalProperties: false,
   properties: {
     intent: { type: "string", enum: ["faq", "explore_service", "book", "provide_datetime", "unknown"] },
+    handover: { type: "string", enum: ["none", "medical", "general", "emergency"] },
     wantsBooking: { type: "boolean" },
     faqId: { type: ["integer", "null"], minimum: 1, maximum: 20 },
     packageId: { type: ["string", "null"], enum: ["package_1", "package_2", "package_3", null] },
     customerName: { type: ["string", "null"], maxLength: 60 },
     localDateTime: { type: ["string", "null"], description: "Europe/London local ISO date and time without timezone, YYYY-MM-DDTHH:mm" },
   },
-  required: ["intent", "wantsBooking", "faqId", "packageId", "customerName", "localDateTime"],
+  required: ["intent", "handover", "wantsBooking", "faqId", "packageId", "customerName", "localDateTime"],
 } as const;
 
 export class OpenAiIntentClassifier implements IntentClassifier {
@@ -50,15 +52,18 @@ export class OpenAiIntentClassifier implements IntentClassifier {
           content: [
             "Classify a message for a fictional aesthetic clinic booking demo.",
             "Never answer the user and never add medical advice.",
+            "Set handover=medical for personal symptoms, suitability, allergies, medication or meds, blood thinners, medical conditions, pregnancy or breastfeeding, previous complications, dosage, personalised aftercare, or anyone under 18.",
+            "Set handover=emergency for severe pain, breathing difficulty, heavy bleeding, unconsciousness, or another urgent danger. Set handover=general for a human request, complaint, refund dispute, legal concern, or safeguarding issue. Otherwise use none.",
+            "Generic approved FAQ questions about risks or treatment information use handover=none unless they include the customer's personal circumstances.",
             "Extract every independently stated field even when the message contains more than one request.",
             "faqId must refer to one of the 20 approved FAQs; otherwise use unknown.",
             "faqId may be present together with wantsBooking when the customer asks a FAQ and also requests a booking.",
             `Approved FAQs: ${FAQS.map((faq) => `${faq.id}=${faq.question}`).join(" | ")}.`,
-            "Package mapping: package_1 is hair and scalp, package_2 is skin, package_3 is anti-wrinkle.",
+            "Package mapping: package_1/P1 is hair and scalp, package_2/P2 is skin, package_3/P3 is anti-wrinkle.",
             "Set wantsBooking true and use book when the user explicitly asks to book, schedule, or make an appointment; questions about policy or availability alone are not booking requests.",
             "Use explore_service when the user mentions a service or concern without explicitly asking to book.",
-            "Extract customerName only when the user explicitly gives a preferred booking name. Never infer a name from greetings, services, or other text.",
-            "Extract a date/time only when the user clearly provides one. Interpret it in Europe/London.",
+            "Extract customerName only when the user explicitly gives a preferred booking name, including phrases such as 'put Sam on it'. Never infer a name from greetings, services, or other text.",
+            "Extract a date/time only when the user supplies a specific clock time. Never choose a clock time for vague periods such as morning or afternoon. Interpret explicit times in Europe/London.",
             `Structured conversation memory: ${JSON.stringify(context)}. Current date/time: ${new Date().toISOString()}.`,
           ].join(" "),
         },

@@ -3,6 +3,7 @@ import { createHmac } from "node:crypto";
 import test from "node:test";
 import { DateTime } from "luxon";
 import { validateBusinessSlot, type CalendarGateway } from "../src/calendar.js";
+import { packageMentions, parsePackage } from "../src/clinic.js";
 import { ConversationEngine } from "../src/conversation.js";
 import { FAQS, matchFaq } from "../src/faq.js";
 import type { IntentClassifier, LlmDecision } from "../src/llm.js";
@@ -29,9 +30,21 @@ test("safety rules distinguish general information from personal medical and eme
   assert.equal(detectSafety("Are there risks or side effects?"), undefined);
   assert.equal(detectSafety("I am experiencing side effects after my treatment"), "medical");
   assert.equal(detectSafety("I am pregnant and take medication"), "medical");
+  assert.equal(detectSafety("im preggers can i do p3"), "medical");
+  assert.equal(detectSafety("im on blood thinners and want botox"), "medical");
   assert.equal(detectSafety("I'm 17 and want Package 3"), "medical");
   assert.equal(detectSafety("I cannot breathe and this is an emergency"), "emergency");
   assert.equal(detectSafety("I want a real person"), "general");
+  assert.equal(detectSafety("lemme talk to an actual person pls"), "general");
+});
+
+test("package parsing accepts shorthand but never selects between multiple mentions", () => {
+  assert.equal(parsePackage("p2"), "package_2");
+  assert.equal(parsePackage("forehead lines are annoying"), "package_3");
+  assert.equal(parsePackage("hair fall"), "package_1");
+  assert.equal(parsePackage("acne consultation"), "package_2");
+  assert.deepEqual(packageMentions("hair or skin idk"), ["package_1", "package_2"]);
+  assert.equal(parsePackage("hair or skin idk"), undefined);
 });
 
 test("business-slot rules enforce notice, opening hours, and duration", () => {
@@ -43,7 +56,7 @@ test("business-slot rules enforce notice, opening hours, and duration", () => {
 });
 
 const llmDecision = (patch: Partial<LlmDecision> = {}): LlmDecision => ({
-  intent: "unknown", wantsBooking: false, faqId: null, packageId: null, customerName: null, localDateTime: null, ...patch,
+  intent: "unknown", handover: "none", wantsBooking: false, faqId: null, packageId: null, customerName: null, localDateTime: null, ...patch,
 });
 
 class FakeClassifier implements IntentClassifier {
@@ -164,6 +177,81 @@ test("greetings never become a customer name during an active booking", async ()
   assert.match(reply ?? "", /what name/i);
   assert.equal((await store.getConversation("7"))?.state, "awaiting_name");
   assert.equal((await store.getConversation("7"))?.customerName, undefined);
+});
+
+test("supported casual language stays safe without calling external services", async () => {
+  const store = new MemoryStore();
+  const engine = new ConversationEngine(store, new FakeClassifier(), new FakeCalendar(), new FakeCheckout(), new FakeSender());
+
+  assert.match(await engine.handleMessage({ id: "odd-1", from: "odd-greeting", text: "hiya!!!" }) ?? "", /Welcome/i);
+  assert.equal((await store.getConversation("odd-greeting"))?.state, "new");
+  assert.match(await engine.handleMessage({ id: "odd-1b", from: "odd-stretched", text: "hiiiiii" }) ?? "", /Welcome/i);
+  assert.equal((await store.getConversation("odd-stretched"))?.state, "new");
+  assert.match(await engine.handleMessage({ id: "odd-1c", from: "odd-slang", text: "yo" }) ?? "", /Welcome/i);
+  assert.equal((await store.getConversation("odd-slang"))?.state, "new");
+
+  await engine.handleMessage({ id: "odd-2", from: "odd-decline", text: "I want something for wrinkle" });
+  assert.match(await engine.handleMessage({ id: "odd-3", from: "odd-decline", text: "nah not now" }) ?? "", /No problem/i);
+  assert.equal((await store.getConversation("odd-decline"))?.state, "new");
+
+  assert.equal(await engine.handleMessage({ id: "odd-4", from: "odd-minor", text: "im 17 can u book wrinkle thing" }), MEDICAL_HANDOVER_MESSAGE);
+  assert.equal(await engine.handleMessage({ id: "odd-5", from: "odd-emergency", text: "cant breathe, emergency" }), EMERGENCY_MESSAGE);
+  assert.equal(await engine.handleMessage({ id: "odd-6", from: "odd-legal", text: "refund now or lawyer" }), GENERAL_HANDOVER_MESSAGE);
+});
+
+test("adversarial guards reject package guesses and invented times, and obey LLM handover", async () => {
+  const ambiguousStore = new MemoryStore();
+  const ambiguous = new ConversationEngine(ambiguousStore, {
+    async classify() { return llmDecision({ intent: "explore_service", packageId: "package_1" }); },
+  }, new FakeCalendar(), new FakeCheckout(), new FakeSender());
+  assert.match(await ambiguous.handleMessage({ id: "guard-1", from: "guard-ambiguous", text: "book me hair or skin idk" }) ?? "", /Which package/i);
+  assert.equal((await ambiguousStore.getConversation("guard-ambiguous"))?.packageId, undefined);
+  assert.match(await ambiguous.handleMessage({ id: "guard-1b", from: "guard-no-preference", text: "book me hair and skin, no preference" }) ?? "", /Which package/i);
+  assert.equal((await ambiguousStore.getConversation("guard-no-preference"))?.packageId, undefined);
+
+  const vagueStore = new MemoryStore();
+  const vague = new ConversationEngine(vagueStore, {
+    async classify() {
+      return llmDecision({
+        intent: "explore_service", packageId: "package_2", localDateTime: "2026-08-30T15:00",
+      });
+    },
+  }, new FakeCalendar(), new FakeCheckout(), new FakeSender());
+  assert.match(await vague.handleMessage({ id: "guard-2", from: "guard-vague", text: "book package 2 tomorrow afternoon, name Jia" }) ?? "", /date and time/i);
+  assert.equal((await vagueStore.getConversation("guard-vague"))?.requestedStart, undefined);
+
+  const handoverStore = new MemoryStore();
+  const handover = new ConversationEngine(handoverStore, {
+    async classify() { return llmDecision({ handover: "medical" }); },
+  }, new FakeCalendar(), new FakeCheckout(), new FakeSender());
+  assert.equal(await handover.handleMessage({ id: "guard-3", from: "guard-medical", text: "personal health slang not in the regex" }), MEDICAL_HANDOVER_MESSAGE);
+  assert.equal(handoverStore.handoffs[0]?.category, "medical");
+
+  const negativeStore = new MemoryStore();
+  const negative = new ConversationEngine(negativeStore, {
+    async classify() { return llmDecision({ intent: "book", wantsBooking: true, faqId: 5, packageId: "package_3" }); },
+  }, new FakeCalendar(), new FakeCheckout(), new FakeSender());
+  assert.match(await negative.handleMessage({ id: "guard-4", from: "guard-negative", text: "price for p3 only, dont book me" }) ?? "", /Package 3 is £150/i);
+  assert.equal((await negativeStore.getConversation("guard-negative"))?.state, "new");
+});
+
+test("P2 shorthand is normalized before multi-field LLM extraction", async () => {
+  let classifiedText = "";
+  const store = new MemoryStore();
+  const engine = new ConversationEngine(store, {
+    async classify(text) {
+      classifiedText = text;
+      return llmDecision({
+        intent: "book", wantsBooking: true, faqId: 5, packageId: "package_2",
+        localDateTime: "2026-09-01T16:00",
+      });
+    },
+  }, new FakeCalendar(), new FakeCheckout(), new FakeSender());
+
+  const reply = await engine.handleMessage({ id: "p2-1", from: "p2-user", text: "p2 price? also reserve tuesday 4pm, put Sam on it" });
+  assert.match(classifiedText, /Package 2/i);
+  assert.match(reply ?? "", /Package 2 is £100/i);
+  assert.equal((await store.getConversation("p2-user"))?.state, "awaiting_policy");
 });
 
 test("one natural message can answer a FAQ and fill every booking slot", async () => {

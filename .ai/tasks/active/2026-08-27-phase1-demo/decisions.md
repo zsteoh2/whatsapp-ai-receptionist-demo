@@ -5,3 +5,4 @@
 - Keep facts and booking actions in code; the LLM only classifies/extracts constrained data.
 - Use VectorEngine's `https://api.vectorengine.cn/v1` OpenAI-compatible Chat Completions endpoint with `gpt-5.6-luna`; keep its Base URL configurable.
 - Let the classifier extract independent FAQ, booking, package, preferred-name, and date/time fields; application code remains authoritative for validation, state transitions, replies, and side effects.
+- Keep deterministic safety first, add a constrained LLM handover signal as defense in depth, and reject ambiguous packages or date periods without an explicit clock time in application code.
