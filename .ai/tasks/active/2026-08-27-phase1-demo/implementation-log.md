@@ -14,3 +14,4 @@
 - 2026-08-29: Explicitly set Luna reasoning effort to `medium`; the live VectorEngine Chat Completions probe accepted it and returned the expected structured booking decision.
 - 2026-08-29: Ignored downloaded Google OAuth client JSON files to prevent accidental commits without modifying the local credential file.
 - 2026-08-29: Kept Calendar-confirmed bookings confirmed when asynchronous WhatsApp notification fails and added a synchronous `STATUS` recovery path for Twilio Trial.
+- 2026-08-29: Upgraded the conversation layer with global greeting priority, strict multi-field extraction, natural schedule/reserve recognition, persistent partial booking slots, and missing-field-only prompts without storing raw chat text.

@@ -41,3 +41,6 @@
 - Passed: live Stripe Test Checkout and `checkout.session.completed` processing created the expected Package 2 Google Calendar event; final asynchronous WhatsApp delivery was unavailable on Twilio Trial as anticipated.
 - Passed: `npm run check` builds and passes 11/11 tests after separating booking confirmation from best-effort notification and adding `STATUS` recovery, including self-healing the previously downgraded record when a Calendar event ID exists.
 - Not run: live WhatsApp `STATUS` recovery after deploying the fallback.
+- Passed: `npm run check` builds and passes 15/15 focused tests after the dialogue upgrade, including greeting priority, one-message FAQ plus full booking extraction, preserved partial slots, and natural service-plus-date routing.
+- Passed: a live VectorEngine `gpt-5.6-luna` call accepted the expanded strict schema and independently returned FAQ 5, Package 2, customer name Alex, the London-local date/time, and `wantsBooking: true` from one natural message.
+- Not run: live WhatsApp verification of the upgraded multi-field dialogue after Railway deployment.

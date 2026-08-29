@@ -15,7 +15,9 @@ import {
 interface AppRequest extends Request { rawBody?: Buffer }
 
 class UnavailableClassifier implements IntentClassifier {
-  async classify(): Promise<LlmDecision> { return { intent: "unknown", faqId: null, packageId: null, localDateTime: null }; }
+  async classify(): Promise<LlmDecision> {
+    return { intent: "unknown", wantsBooking: false, faqId: null, packageId: null, customerName: null, localDateTime: null };
+  }
 }
 class UnavailableCalendar implements CalendarGateway {
   async validateSlot(): Promise<{ valid: boolean; reason?: string }> { throw new Error("Calendar unavailable"); }

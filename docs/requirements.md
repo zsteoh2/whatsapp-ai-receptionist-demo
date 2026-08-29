@@ -18,8 +18,8 @@ Use stable IDs such as `REQ-AUTH-001`. Do not reuse retired IDs.
 |---|---|---|---|---|
 | REQ-WA-001 | Must | Verify the configured WhatsApp provider webhook and receive/send text messages. | Twilio or Meta signature verification succeeds; duplicate message IDs are ignored. | approved |
 | REQ-FAQ-001 | Must | Answer only the 20 approved English FAQs. | Approved variants return fixed facts; unknown non-sensitive messages receive two clarification attempts without invented facts, then hand over on the third failure. | approved |
-| REQ-BOOK-001 | Must | Collect name, package, preferred date/time, and policy consent. | Bot never requests prohibited medical data. | approved |
-| REQ-MEM-001 | Must | Maintain bounded structured context per WhatsApp conversation. | A discussed package and concern carry into the next turn; natural confirmation continues the intended flow; inactive context resets after 24 hours; raw transcripts are not stored. | approved |
+| REQ-BOOK-001 | Must | Collect name, package, preferred date/time, and policy consent. | One natural-language message may fill multiple booking fields; the bot preserves valid fields, asks only for missing data, and never requests prohibited medical data. | approved |
+| REQ-MEM-001 | Must | Maintain bounded structured context per WhatsApp conversation. | Discussed and extracted package, concern, name, and date/time fields carry into the next turn; greetings do not overwrite pending fields; inactive context resets after 24 hours; raw transcripts are not stored. | approved |
 | REQ-CAL-001 | Must | Check Google Calendar before offering or confirming a slot. | Busy slots cannot be confirmed; events use Europe/London. | approved |
 | REQ-PAY-001 | Must | Use Stripe Test Checkout deposits before confirmation. | Only completed test checkout can create an event; a confirmed booking remains confirmed if outbound notification fails and can be retrieved with `STATUS`. | approved |
 | REQ-HO-001 | Must | Stop automation and log medical, emergency, complaint, under-18, or human requests. | Emergency response gives 999/111 guidance; other triggers create a handoff. | approved |

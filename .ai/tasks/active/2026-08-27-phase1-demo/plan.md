@@ -12,6 +12,7 @@ Ship the smallest reliable single-service Phase 1 implementation.
 4. Expose health, Meta webhook, Google OAuth, and Stripe webhook endpoints.
 5. Add focused automated tests, SQL schema, Railway configuration, and setup documentation.
 6. Add bounded structured conversation memory, natural service exploration, and clarification before handoff without storing transcripts.
+7. Extract multiple booking fields from natural language, preserve valid supplied fields, and ask only for missing data while keeping deterministic safety and approved replies.
 
 ## Risks
 

@@ -15,15 +15,15 @@ Keep this file short. Move older detail to `archive/YYYY-MM.md` and add quarterl
 
 ## Current Project Status
 
-- Phase 1 backend is deployed with Supabase, VectorEngine, Twilio Sandbox, Google Calendar, and Stripe Test Checkout working through Calendar event creation. A synchronous `STATUS` fallback for Trial confirmation is locally verified and awaiting deployment.
+- Phase 1 backend is deployed with Supabase, VectorEngine, Twilio Sandbox, Google Calendar, and Stripe Test Checkout working through Calendar event creation. The synchronous `STATUS` fallback and natural multi-field dialogue upgrade are locally verified and awaiting deployment.
 
 ## Recently Completed
 
-- Verified a live paid test booking through Calendar event creation and added `STATUS` recovery that preserves confirmation when Twilio Trial blocks asynchronous notification; 11 focused tests pass.
+- Upgraded greeting priority and natural-language booking extraction so one message may fill FAQ/package/name/date-time fields and only missing data is requested; live Luna schema verification passed and 15 focused tests pass.
 
 ## Current Blockers
 
-- Automatic outbound confirmation requires a Twilio upgrade; the free Trial fallback awaits live verification. Greeting priority still allows a greeting to be consumed as a pending customer name.
+- Automatic outbound confirmation requires a Twilio upgrade; the free Trial `STATUS` fallback and conversation upgrade await live WhatsApp verification after deployment.
 
 ## Active Work
 
@@ -31,7 +31,7 @@ Keep this file short. Move older detail to `archive/YYYY-MM.md` and add quarterl
 
 ## Immediate Next Steps
 
-- Deploy the fallback, send `STATUS` in the existing WhatsApp conversation, then fix greeting priority.
+- Deploy, send `RESTART`, live-test one multi-field booking message and a greeting during name collection, then send `STATUS` for the existing confirmed booking.
 
 ## Recent Important Decisions
 

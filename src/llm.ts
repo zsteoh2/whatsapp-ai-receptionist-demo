@@ -3,12 +3,14 @@ import { config } from "./config.js";
 import { FAQS } from "./faq.js";
 import type { Conversation, PackageId } from "./types.js";
 
-export type IntentContext = Pick<Conversation, "state" | "packageId" | "concernCategory">;
+export type IntentContext = Pick<Conversation, "state" | "packageId" | "concernCategory" | "customerName" | "requestedStart">;
 
 export interface LlmDecision {
   intent: "faq" | "explore_service" | "book" | "provide_datetime" | "unknown";
+  wantsBooking: boolean;
   faqId: number | null;
   packageId: PackageId | null;
+  customerName: string | null;
   localDateTime: string | null;
 }
 
@@ -21,11 +23,13 @@ const schema = {
   additionalProperties: false,
   properties: {
     intent: { type: "string", enum: ["faq", "explore_service", "book", "provide_datetime", "unknown"] },
+    wantsBooking: { type: "boolean" },
     faqId: { type: ["integer", "null"], minimum: 1, maximum: 20 },
     packageId: { type: ["string", "null"], enum: ["package_1", "package_2", "package_3", null] },
+    customerName: { type: ["string", "null"], maxLength: 60 },
     localDateTime: { type: ["string", "null"], description: "Europe/London local ISO date and time without timezone, YYYY-MM-DDTHH:mm" },
   },
-  required: ["intent", "faqId", "packageId", "localDateTime"],
+  required: ["intent", "wantsBooking", "faqId", "packageId", "customerName", "localDateTime"],
 } as const;
 
 export class OpenAiIntentClassifier implements IntentClassifier {
@@ -46,11 +50,14 @@ export class OpenAiIntentClassifier implements IntentClassifier {
           content: [
             "Classify a message for a fictional aesthetic clinic booking demo.",
             "Never answer the user and never add medical advice.",
+            "Extract every independently stated field even when the message contains more than one request.",
             "faqId must refer to one of the 20 approved FAQs; otherwise use unknown.",
+            "faqId may be present together with wantsBooking when the customer asks a FAQ and also requests a booking.",
             `Approved FAQs: ${FAQS.map((faq) => `${faq.id}=${faq.question}`).join(" | ")}.`,
             "Package mapping: package_1 is hair and scalp, package_2 is skin, package_3 is anti-wrinkle.",
-            "Use book only when the user explicitly asks to book or make an appointment.",
+            "Set wantsBooking true and use book when the user explicitly asks to book, schedule, or make an appointment; questions about policy or availability alone are not booking requests.",
             "Use explore_service when the user mentions a service or concern without explicitly asking to book.",
+            "Extract customerName only when the user explicitly gives a preferred booking name. Never infer a name from greetings, services, or other text.",
             "Extract a date/time only when the user clearly provides one. Interpret it in Europe/London.",
             `Structured conversation memory: ${JSON.stringify(context)}. Current date/time: ${new Date().toISOString()}.`,
           ].join(" "),
@@ -71,7 +78,7 @@ export class OpenAiIntentClassifier implements IntentClassifier {
     if (!content) throw new Error("The LLM returned no classification");
     const parsed = JSON.parse(content) as LlmDecision;
     if (parsed.faqId !== null && (parsed.faqId < 1 || parsed.faqId > 20)) {
-      return { intent: "unknown", faqId: null, packageId: null, localDateTime: null };
+      return { ...parsed, intent: "unknown", faqId: null };
     }
     return parsed;
   }

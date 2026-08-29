@@ -11,8 +11,8 @@ This is not a production clinic system. Use synthetic test data only. It does no
 - Twilio Sandbox or WhatsApp Cloud API text replies
 - 20 fixed approved FAQ answers
 - Deterministic emergency, medical, complaint, under-18, and human-request handover
-- OpenAI-compatible Chat Completions classification with structured output
-- Stateful booking flow with a two-hour minimum notice
+- OpenAI-compatible Chat Completions classification with strict, multi-field structured output
+- Stateful booking flow that preserves supplied fields, asks only for missing data, and enforces a two-hour minimum notice
 - Google Calendar free/busy lookup, alternatives, and event creation
 - Google OAuth with signed state and service-only refresh-token storage
 - Stripe Test Checkout and signed webhook confirmation

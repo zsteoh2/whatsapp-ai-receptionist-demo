@@ -5,7 +5,7 @@ import { DateTime } from "luxon";
 import { validateBusinessSlot, type CalendarGateway } from "../src/calendar.js";
 import { ConversationEngine } from "../src/conversation.js";
 import { FAQS, matchFaq } from "../src/faq.js";
-import type { IntentClassifier } from "../src/llm.js";
+import type { IntentClassifier, LlmDecision } from "../src/llm.js";
 import { EMERGENCY_MESSAGE, GENERAL_HANDOVER_MESSAGE, MEDICAL_HANDOVER_MESSAGE } from "../src/messages.js";
 import { detectSafety } from "../src/safety.js";
 import { MemoryStore } from "../src/store.js";
@@ -42,8 +42,12 @@ test("business-slot rules enforce notice, opening hours, and duration", () => {
   assert.match(validateBusinessSlot(DateTime.fromISO("2026-08-28T15:30", { zone: "Europe/London" }), 60, now) ?? "", /outside/i);
 });
 
+const llmDecision = (patch: Partial<LlmDecision> = {}): LlmDecision => ({
+  intent: "unknown", wantsBooking: false, faqId: null, packageId: null, customerName: null, localDateTime: null, ...patch,
+});
+
 class FakeClassifier implements IntentClassifier {
-  async classify() { return { intent: "unknown", faqId: null, packageId: null, localDateTime: null } as const; }
+  async classify() { return llmDecision(); }
 }
 
 class FakeCalendar implements CalendarGateway {
@@ -149,9 +153,83 @@ test("structured memory explores a concern and continues booking from a natural 
   assert.equal((await store.getConversation("3"))?.state, "awaiting_name");
 });
 
+test("greetings never become a customer name during an active booking", async () => {
+  const store = new MemoryStore();
+  const engine = new ConversationEngine(store, new FakeClassifier(), new FakeCalendar(), new FakeCheckout(), new FakeSender());
+  await engine.handleMessage({ id: "greet-1", from: "7", text: "book" });
+  await engine.handleMessage({ id: "greet-2", from: "7", text: "2" });
+
+  const reply = await engine.handleMessage({ id: "greet-3", from: "7", text: "Good evening" });
+  assert.match(reply ?? "", /part-way through your test booking/i);
+  assert.match(reply ?? "", /what name/i);
+  assert.equal((await store.getConversation("7"))?.state, "awaiting_name");
+  assert.equal((await store.getConversation("7"))?.customerName, undefined);
+});
+
+test("one natural message can answer a FAQ and fill every booking slot", async () => {
+  const store = new MemoryStore();
+  const classifier: IntentClassifier = {
+    async classify() {
+      return llmDecision({
+        intent: "book", wantsBooking: true, faqId: 5, packageId: "package_2",
+        customerName: "Alex", localDateTime: "2026-09-02T14:30",
+      });
+    },
+  };
+  const engine = new ConversationEngine(store, classifier, new FakeCalendar(), new FakeCheckout(), new FakeSender());
+  const reply = await engine.handleMessage({
+    id: "slots-1", from: "8", text: "Hi, I'm Alex. How much is Package 2, and can I book it on 2 September at 2:30pm?",
+  });
+
+  assert.match(reply ?? "", /Package 1 is £50, Package 2 is £100/i);
+  assert.match(reply ?? "", /Reply YES/i);
+  assert.equal((await store.getConversation("8"))?.state, "awaiting_policy");
+  assert.equal((await store.getConversation("8"))?.customerName, "Alex");
+  assert.equal((await store.getConversation("8"))?.packageId, "package_2");
+  assert.match((await store.getConversation("8"))?.requestedStart ?? "", /^2026-09-02T13:30/);
+});
+
+test("captured booking fields survive while the bot asks only for missing data", async () => {
+  const store = new MemoryStore();
+  const classifier: IntentClassifier = {
+    async classify() {
+      return llmDecision({
+        intent: "book", wantsBooking: true, packageId: "package_1", localDateTime: "2026-09-03T13:00",
+      });
+    },
+  };
+  const engine = new ConversationEngine(store, classifier, new FakeCalendar(), new FakeCheckout(), new FakeSender());
+  const first = await engine.handleMessage({ id: "missing-1", from: "9", text: "Book me a hair consultation Thursday at 1pm" });
+  assert.match(first ?? "", /What name/i);
+  assert.equal((await store.getConversation("9"))?.state, "awaiting_name");
+  assert.match((await store.getConversation("9"))?.requestedStart ?? "", /^2026-09-03T12:00/);
+
+  const second = await engine.handleMessage({ id: "missing-2", from: "9", text: "Alice Demo" });
+  assert.match(second ?? "", /Reply YES/i);
+  assert.equal((await store.getConversation("9"))?.state, "awaiting_policy");
+});
+
+test("service messages with a date use natural-language extraction instead of the keyword shortcut", async () => {
+  let classifierCalls = 0;
+  const classifier: IntentClassifier = {
+    async classify() {
+      classifierCalls += 1;
+      return llmDecision({
+        intent: "book", wantsBooking: true, packageId: "package_2", localDateTime: "2026-09-03T13:00",
+      });
+    },
+  };
+  const engine = new ConversationEngine(new MemoryStore(), classifier, new FakeCalendar(), new FakeCheckout(), new FakeSender());
+  const reply = await engine.handleMessage({ id: "natural-date-1", from: "10", text: "I'd like skin next Thursday at 1pm" });
+
+  assert.equal(classifierCalls, 1);
+  assert.match(reply ?? "", /What name/i);
+  assert.doesNotMatch(reply ?? "", /Would you like to make a test booking/i);
+});
+
 test("service questions use approved FAQ intent instead of keyword routing", async () => {
   const classifier: IntentClassifier = {
-    async classify() { return { intent: "faq", faqId: 17, packageId: "package_2", localDateTime: null }; },
+    async classify() { return llmDecision({ intent: "faq", faqId: 17, packageId: "package_2" }); },
   };
   const engine = new ConversationEngine(new MemoryStore(), classifier, new FakeCalendar(), new FakeCheckout(), new FakeSender());
   const reply = await engine.handleMessage({ id: "faq-intent-1", from: "6", text: "Are there side effects for skin treatment?" });

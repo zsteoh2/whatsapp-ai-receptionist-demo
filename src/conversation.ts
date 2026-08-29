@@ -18,15 +18,22 @@ import type { MessageSender } from "./whatsapp.js";
 
 const nowIso = () => new Date().toISOString();
 const sessionTtlMs = 24 * 60 * 60 * 1000;
-const greetingPattern = /^\s*(hi|hello|hey|start|menu)\s*[!.?]*\s*$/i;
+const greetingPattern = /^\s*((hi|hello|hey)( there)?|hiya|howdy|good (morning|afternoon|evening)|how are you|what'?s up|start|menu)\s*[!.?]*\s*$/i;
 const statusPattern = /^\s*(status|booking status|check booking|check my booking)\s*[!.?]*\s*$/i;
-const bookingPattern = /\b(book|booking|appointment|make an appointment)\b/i;
+const bookingPattern = /\b(book|booking|appointment|schedule|reserve)\b/i;
 const questionPattern = /^\s*(what|how|when|where|why|which|is|are|can|could|do|does|will|would)\b/i;
 const acceptPattern = /^\s*(yes|y|accept|agree|i agree)\s*[!.]*\s*$/i;
 const declinePattern = /^\s*(no|n|decline|cancel)\s*[!.]*\s*$/i;
 const conversationalYesPattern = /^\s*(yes(?: please)?|y|sure|ok(?:ay)?|please do)\s*[!.]*\s*$/i;
 const conversationalNoPattern = /^\s*(no(?: thanks)?|not now)\s*[!.]*\s*$/i;
 const namePattern = /^[\p{L}][\p{L} '\-]{1,59}$/u;
+const directNamePattern = /^[\p{L}][\p{L}'\-]*(?: [\p{L}][\p{L}'\-]*){0,3}$/u;
+const reservedNamePattern = /\b(yes|no|sure|okay|please|book|booking|appointment|package|hair|scalp|skin|wrinkle|botox|today|tomorrow|next|morning|afternoon|evening)\b/i;
+const dateHintPattern = /\b(today|tomorrow|next|monday|tuesday|wednesday|thursday|friday|saturday|sunday|morning|afternoon|evening|\d{1,2}(?::\d{2})?\s*(?:am|pm))\b|\b20\d{2}-\d{2}-\d{2}\b/i;
+const bookingCollectionStates = ["awaiting_package", "awaiting_name", "awaiting_datetime"] as const;
+const emptyDecision = (): LlmDecision => ({
+  intent: "unknown", wantsBooking: false, faqId: null, packageId: null, customerName: null, localDateTime: null,
+});
 
 const packageContext = {
   package_1: { faqId: 2, concern: "hair" },
@@ -102,23 +109,82 @@ export class ConversationEngine {
         state: conversation.state,
         packageId: conversation.packageId,
         concernCategory: conversation.concernCategory,
+        customerName: conversation.customerName,
+        requestedStart: conversation.requestedStart,
       });
     } catch {
-      return { intent: "unknown", faqId: null, packageId: null, localDateTime: null };
+      return emptyDecision();
     }
   }
 
-  private async choosePackage(conversation: Conversation, packageId?: PackageId) {
-    if (!packageId) {
+  private async greetingReply(conversation: Conversation) {
+    if (["new", "clarifying_once", "clarifying_twice"].includes(conversation.state)) {
+      conversation.state = "new";
+      await this.save(conversation);
+      return WELCOME_MESSAGE;
+    }
+    await this.save(conversation);
+    if (conversation.state === "awaiting_package") return "Hello! 👋 Which package would you like to book? Reply 1 for Hair & Scalp, 2 for Personalised Skin, or 3 for Anti-Wrinkle Consultation.";
+    if (conversation.state === "awaiting_name") return "Hello! 👋 We’re part-way through your test booking. What name would you like on it?";
+    if (conversation.state === "awaiting_datetime") return "Hello! 👋 We’re part-way through your test booking. What date and time would you prefer?";
+    if (conversation.state === "offering_booking") return "Hello! 👋 Would you like to make a test booking for the package we just discussed?";
+    if (conversation.state === "awaiting_policy") return `Hello! 👋 ${POLICY_MESSAGE}`;
+    if (conversation.state === "awaiting_payment") return "Hello! 👋 Your test booking is waiting for Stripe Test Checkout. Complete the test payment using the link already sent, or reply STATUS to check it.";
+    if (conversation.state === "confirmed") return "Hello! 👋 Your test booking is confirmed. Reply STATUS to see the booking details.";
+    return GENERAL_HANDOVER_MESSAGE;
+  }
+
+  private async advanceBooking(conversation: Conversation, decision: LlmDecision) {
+    if (conversation.state === "confirmed") {
+      conversation = { waId: conversation.waId, state: "new", updatedAt: nowIso() };
+    }
+    if (decision.packageId) {
+      conversation.packageId = decision.packageId;
+      conversation.concernCategory = packageContext[decision.packageId].concern;
+    }
+    const customerName = decision.customerName?.trim();
+    if (customerName && namePattern.test(customerName)) conversation.customerName = customerName;
+    if (decision.localDateTime) {
+      const local = parseLocalDateTime(decision.localDateTime);
+      if (!local) {
+        conversation.state = "awaiting_datetime";
+        delete conversation.requestedStart;
+        await this.save(conversation);
+        return "I couldn’t identify a valid date and time. Please use YYYY-MM-DD HH:mm, for example 2026-09-02 14:30.";
+      }
+      conversation.requestedStart = local.toUTC().toISO()!;
+    }
+    if (!conversation.packageId) {
       conversation.state = "awaiting_package";
       await this.save(conversation);
       return "Which package would you like to book? Reply 1 for Hair & Scalp, 2 for Personalised Skin, or 3 for Anti-Wrinkle Consultation.";
     }
-    conversation.packageId = packageId;
-    conversation.concernCategory = packageContext[packageId].concern;
-    conversation.state = "awaiting_name";
+    if (conversation.requestedStart) {
+      try {
+        const availability = await this.calendar.validateSlot(conversation.requestedStart, conversation.packageId);
+        if (!availability.valid) {
+          delete conversation.requestedStart;
+          conversation.state = "awaiting_datetime";
+          await this.save(conversation);
+          return await this.offerAlternatives(conversation.packageId, availability.reason ?? "That slot is unavailable.");
+        }
+      } catch {
+        return this.integrationFailure(conversation);
+      }
+    }
+    if (!conversation.customerName) {
+      conversation.state = "awaiting_name";
+      await this.save(conversation);
+      return `You selected ${PACKAGES[conversation.packageId].name}. What name would you like on the test booking?`;
+    }
+    if (!conversation.requestedStart) {
+      conversation.state = "awaiting_datetime";
+      await this.save(conversation);
+      return "What date and time would you prefer? You can reply naturally or use YYYY-MM-DD HH:mm. Times are interpreted in Europe/London.";
+    }
+    conversation.state = "awaiting_policy";
     await this.save(conversation);
-    return `You selected ${PACKAGES[packageId].name}. What name would you like on the test booking?`;
+    return `The test slot ${formatSlot(conversation.requestedStart)} is available. ${POLICY_MESSAGE}`;
   }
 
   private async explorePackage(conversation: Conversation, packageId: PackageId) {
@@ -140,11 +206,31 @@ export class ConversationEngine {
     await this.save(conversation);
   }
 
-  private async requestedDateTime(text: string, conversation: Conversation) {
-    const strict = text.match(/\b(20\d{2}-\d{2}-\d{2})[ T](\d{2}:\d{2})\b/);
-    if (strict) return `${strict[1]}T${strict[2]}`;
-    const decision = await this.classify(text, conversation);
-    return decision.localDateTime ?? undefined;
+  private async respondToDecision(conversation: Conversation, decision: LlmDecision, firstMessage: boolean) {
+    if (decision.packageId) {
+      conversation.packageId = decision.packageId;
+      conversation.concernCategory = packageContext[decision.packageId].concern;
+    }
+    const approved = decision.faqId ? FAQS.find((item) => item.id === decision.faqId) : undefined;
+    const wantsBooking = decision.wantsBooking || decision.intent === "book";
+    if (approved && !wantsBooking) {
+      await this.rememberFaq(conversation, approved.id);
+      return firstMessage ? `${WELCOME_MESSAGE}\n\n${approved.answer}` : approved.answer;
+    }
+    if (wantsBooking || bookingCollectionStates.includes(conversation.state as typeof bookingCollectionStates[number])) {
+      const bookingReply = await this.advanceBooking(conversation, decision);
+      const reply = approved ? `${approved.answer}\n\n${bookingReply}` : bookingReply;
+      return firstMessage ? `${WELCOME_MESSAGE}\n\n${reply}` : reply;
+    }
+    if (decision.intent === "explore_service" && decision.packageId) {
+      const reply = await this.explorePackage(conversation, decision.packageId);
+      return firstMessage ? `${WELCOME_MESSAGE}\n\n${reply}` : reply;
+    }
+    if (conversation.state === "offering_booking") {
+      await this.save(conversation);
+      return "Please reply YES if you would like to make a test booking for this package, or NO if you only wanted information.";
+    }
+    return this.unknown(conversation, firstMessage);
   }
 
   private async unknown(conversation: Conversation, firstMessage: boolean) {
@@ -185,58 +271,25 @@ export class ConversationEngine {
 
     if (statusPattern.test(text)) return this.bookingStatus(conversation);
 
+    if (greetingPattern.test(text)) return this.greetingReply(conversation);
+
     if (conversation.state === "handover") return GENERAL_HANDOVER_MESSAGE;
 
     const faq = matchFaq(text);
-    if (faq) {
+    if (faq && !bookingPattern.test(text)) {
       await this.rememberFaq(conversation, faq.id);
       return firstMessage ? `${WELCOME_MESSAGE}\n\n${faq.answer}` : faq.answer;
     }
 
-    if (["new", "clarifying_once", "clarifying_twice"].includes(conversation.state) && greetingPattern.test(text)) {
-      conversation.state = "new";
-      await this.save(conversation);
-      return WELCOME_MESSAGE;
-    }
-
     if (conversation.state === "offering_booking") {
-      if (conversationalYesPattern.test(text)) return this.choosePackage(conversation, conversation.packageId);
+      if (conversationalYesPattern.test(text)) {
+        return this.advanceBooking(conversation, { ...emptyDecision(), intent: "book", wantsBooking: true, packageId: conversation.packageId ?? null });
+      }
       if (conversationalNoPattern.test(text)) {
         conversation.state = "new";
         await this.save(conversation);
         return "No problem. I can still explain another package or answer one of the approved clinic FAQs.";
       }
-    }
-
-    if (conversation.state === "awaiting_name") {
-      if (!namePattern.test(text)) {
-        await this.save(conversation);
-        return "Please provide a preferred name using letters, spaces, apostrophes, or hyphens only (2–60 characters).";
-      }
-      conversation.customerName = text;
-      conversation.state = "awaiting_datetime";
-      await this.save(conversation);
-      return "What date and time would you prefer? You can reply naturally or use YYYY-MM-DD HH:mm. Times are interpreted in Europe/London.";
-    }
-
-    if (conversation.state === "awaiting_datetime") {
-      const localValue = await this.requestedDateTime(text, conversation);
-      const local = localValue ? parseLocalDateTime(localValue) : undefined;
-      if (!local || !conversation.packageId) {
-        await this.save(conversation);
-        return "I couldn’t identify a valid date and time. Please use YYYY-MM-DD HH:mm, for example 2026-09-02 14:30.";
-      }
-      const requestedStart = local.toUTC().toISO()!;
-      try {
-        const availability = await this.calendar.validateSlot(requestedStart, conversation.packageId);
-        if (!availability.valid) return await this.offerAlternatives(conversation.packageId, availability.reason ?? "That slot is unavailable.");
-      } catch {
-        return this.integrationFailure(conversation);
-      }
-      conversation.requestedStart = requestedStart;
-      conversation.state = "awaiting_policy";
-      await this.save(conversation);
-      return `The test slot ${formatSlot(requestedStart)} is available. ${POLICY_MESSAGE}`;
     }
 
     if (conversation.state === "awaiting_policy") {
@@ -273,33 +326,39 @@ export class ConversationEngine {
     }
 
     const packageId = parsePackage(text);
-    if (conversation.state === "awaiting_package") return this.choosePackage(conversation, packageId);
-    if (bookingPattern.test(text)) {
-      const reply = await this.choosePackage(conversation, packageId ?? conversation.packageId);
-      return firstMessage ? `${WELCOME_MESSAGE}\n\n${reply}` : reply;
+    const strictDateTime = text.match(/\b(20\d{2}-\d{2}-\d{2})[ T](\d{2}:\d{2})\b/);
+    const localDateTime = strictDateTime ? `${strictDateTime[1]}T${strictDateTime[2]}` : null;
+    if (conversation.state === "awaiting_package" && packageId && !questionPattern.test(text)
+      && !dateHintPattern.test(text) && text.split(/\s+/).length <= 5) {
+      return this.advanceBooking(conversation, { ...emptyDecision(), wantsBooking: true, packageId });
     }
-    if (packageId && !questionPattern.test(text)) {
+    if (conversation.state === "awaiting_name" && directNamePattern.test(text) && !reservedNamePattern.test(text)) {
+      return this.advanceBooking(conversation, { ...emptyDecision(), wantsBooking: true, customerName: text });
+    }
+    if (conversation.state === "awaiting_datetime" && localDateTime) {
+      return this.advanceBooking(conversation, { ...emptyDecision(), wantsBooking: true, localDateTime });
+    }
+    if (!bookingCollectionStates.includes(conversation.state as typeof bookingCollectionStates[number])
+      && packageId && !bookingPattern.test(text) && !questionPattern.test(text)
+      && !dateHintPattern.test(text) && text.split(/\s+/).length <= 5) {
       const reply = await this.explorePackage(conversation, packageId);
       return firstMessage ? `${WELCOME_MESSAGE}\n\n${reply}` : reply;
     }
 
-    const decision = await this.classify(text, conversation);
-    if (decision.intent === "faq" && decision.faqId) {
-      const approved = FAQS.find((item) => item.id === decision.faqId);
-      if (approved) {
-        await this.rememberFaq(conversation, approved.id);
-        return firstMessage ? `${WELCOME_MESSAGE}\n\n${approved.answer}` : approved.answer;
-      }
+    let decision = await this.classify(text, conversation);
+    decision = {
+      ...decision,
+      packageId: decision.packageId ?? packageId ?? null,
+      localDateTime: decision.localDateTime ?? localDateTime,
+    };
+    if (conversation.state === "awaiting_name" && !decision.customerName
+      && directNamePattern.test(text) && !reservedNamePattern.test(text)) {
+      decision = { ...decision, customerName: text };
     }
-    if (decision.intent === "book") {
-      const reply = await this.choosePackage(conversation, decision.packageId ?? conversation.packageId);
-      return firstMessage ? `${WELCOME_MESSAGE}\n\n${reply}` : reply;
+    if (bookingPattern.test(text) && decision.intent === "unknown" && !decision.faqId) {
+      decision = { ...decision, intent: "book", wantsBooking: true };
     }
-    if (decision.intent === "explore_service" && decision.packageId) {
-      const reply = await this.explorePackage(conversation, decision.packageId);
-      return firstMessage ? `${WELCOME_MESSAGE}\n\n${reply}` : reply;
-    }
-    return this.unknown(conversation, firstMessage);
+    return this.respondToDecision(conversation, decision, firstMessage);
   }
 
   async confirmPaidBooking(bookingId: string) {
