@@ -24,18 +24,47 @@ test("all 20 approved FAQ questions match their fixed answers", () => {
     assert.equal(matched?.id, faq.id, faq.question);
     assert.equal(matched?.answer, faq.answer);
   }
+  assert.equal(matchFaq("gotta pay upfront or wat")?.id, 7);
+  assert.equal(matchFaq("what times are you open?")?.id, 10);
+  assert.equal(matchFaq("can I move my appointment")?.id, 13);
+  assert.equal(matchFaq("How much does each one cost?")?.id, 5);
+  assert.equal(matchFaq("How long am I in for?")?.id, 6);
+  assert.equal(matchFaq("Can I shift my appointment?")?.id, 13);
+  assert.equal(matchFaq("What's package one then?")?.id, 2);
+  assert.equal(matchFaq("What comes with package two?")?.id, 3);
+  assert.equal(matchFaq("Do I need to put any money down?")?.id, 7);
+  assert.equal(matchFaq("How long do the effects stick around?")?.id, 18);
 });
 
 test("safety rules distinguish general information from personal medical and emergency messages", () => {
   assert.equal(detectSafety("Are there risks or side effects?"), undefined);
   assert.equal(detectSafety("I am experiencing side effects after my treatment"), "medical");
+  assert.equal(detectSafety("my face is swelling after treatment"), "medical");
+  assert.equal(detectSafety("my face blew up after botox what do i do"), "medical");
   assert.equal(detectSafety("I am pregnant and take medication"), "medical");
+  assert.equal(detectSafety("pregnant and thinking about p3"), "medical");
+  assert.equal(detectSafety("breastfeeding and want skin treatment"), "medical");
+  assert.equal(detectSafety("allergic to something, can I still book?"), "medical");
   assert.equal(detectSafety("im preggers can i do p3"), "medical");
   assert.equal(detectSafety("im on blood thinners and want botox"), "medical");
   assert.equal(detectSafety("I'm 17 and want Package 3"), "medical");
+  assert.equal(detectSafety("I'm fourteen and want Package 3"), "medical");
+  assert.equal(detectSafety("my son is 15 can he book botox"), "medical");
+  assert.equal(detectSafety("my daughter is fourteen and wants skin treatment"), "medical");
+  assert.equal(detectSafety("my wee lad is fourteen"), "medical");
+  assert.equal(detectSafety("I am 72 and want Package 2"), undefined);
+  assert.equal(detectSafety("I'm 81 and want Package 1"), undefined);
+  assert.equal(detectSafety("botox safe if im on warfarin?"), "medical");
+  assert.equal(detectSafety("I'm on tablets; is Botox alright for me?"), "medical");
+  assert.equal(detectSafety("I'm expecting and thinking about the wrinkle package"), "medical");
   assert.equal(detectSafety("I cannot breathe and this is an emergency"), "emergency");
+  assert.equal(detectSafety("someone's blacked out after an injection"), "emergency");
+  assert.equal(detectSafety("there's loads of blood and it won't stop"), "emergency");
+  assert.equal(detectSafety("my face has puffed right up after the treatment"), "medical");
+  assert.equal(detectSafety("I think I need A&E"), "emergency");
   assert.equal(detectSafety("I want a real person"), "general");
   assert.equal(detectSafety("lemme talk to an actual person pls"), "general");
+  assert.equal(detectSafety("I want my money back"), "general");
 });
 
 test("package parsing accepts shorthand but never selects between multiple mentions", () => {
@@ -189,6 +218,15 @@ test("supported casual language stays safe without calling external services", a
   assert.equal((await store.getConversation("odd-stretched"))?.state, "new");
   assert.match(await engine.handleMessage({ id: "odd-1c", from: "odd-slang", text: "yo" }) ?? "", /Welcome/i);
   assert.equal((await store.getConversation("odd-slang"))?.state, "new");
+  assert.match(await engine.handleMessage({ id: "odd-1d", from: "odd-uk-greeting", text: "alright mate?" }) ?? "", /Welcome/i);
+  assert.equal((await store.getConversation("odd-uk-greeting"))?.state, "new");
+
+  assert.match(await engine.handleMessage({ id: "odd-1e", from: "odd-uk-concern", text: "My hair's getting a bit thin." }) ?? "", /Hair & Scalp Consultation/i);
+  assert.equal((await store.getConversation("odd-uk-concern"))?.state, "offering_booking");
+  assert.match(await engine.handleMessage({ id: "odd-1f", from: "odd-uk-could", text: "Could do with something for oily skin." }) ?? "", /Personalised Skin Consultation/i);
+  assert.equal((await store.getConversation("odd-uk-could"))?.state, "offering_booking");
+  assert.match(await engine.handleMessage({ id: "odd-1g", from: "odd-slang-concern", text: "forehead lines are annoying af lol what u got" }) ?? "", /Anti-Wrinkle Consultation/i);
+  assert.equal((await store.getConversation("odd-slang-concern"))?.state, "offering_booking");
 
   await engine.handleMessage({ id: "odd-2", from: "odd-decline", text: "I want something for wrinkle" });
   assert.match(await engine.handleMessage({ id: "odd-3", from: "odd-decline", text: "nah not now" }) ?? "", /No problem/i);
@@ -233,6 +271,134 @@ test("adversarial guards reject package guesses and invented times, and obey LLM
   }, new FakeCalendar(), new FakeCheckout(), new FakeSender());
   assert.match(await negative.handleMessage({ id: "guard-4", from: "guard-negative", text: "price for p3 only, dont book me" }) ?? "", /Package 3 is £150/i);
   assert.equal((await negativeStore.getConversation("guard-negative"))?.state, "new");
+});
+
+test("UK time parsing is exact and vague or incomplete requests never create a slot", async () => {
+  const exactCases: Array<[string, string]> = [
+    ["on 18 Nov 2030 at 10.30am", "2030-11-18T10:30"],
+    ["on 18 November 2030 at 1430", "2030-11-18T14:30"],
+    ["on 18 November 2030 at 2 in the afternoon", "2030-11-18T14:00"],
+    ["on 18 November 2030 at two fifteen", "2030-11-18T14:15"],
+    ["on 18 November 2030 at ten fifteen", "2030-11-18T10:15"],
+    ["on 18 November 2030 at twenty-five past ten", "2030-11-18T10:25"],
+    ["on 18 November 2030 at half-past two", "2030-11-18T14:30"],
+    ["on 18 November 2030 at fourteen thirty", "2030-11-18T14:30"],
+    ["on 18 November 2030 at nineteen hundred", "2030-11-18T19:00"],
+    ["on the 18th of November 2030 at quarter-to-three", "2030-11-18T14:45"],
+  ];
+  for (const [index, [phrase, expected]] of exactCases.entries()) {
+    const store = new MemoryStore();
+    const engine = new ConversationEngine(store, {
+      async classify() {
+        return llmDecision({ intent: "book", wantsBooking: true, packageId: "package_2", customerName: "Morgan", localDateTime: "2099-01-01T01:00" });
+      },
+    }, new FakeCalendar(), new FakeCheckout(), new FakeSender());
+    const from = `uk-exact-${index}`;
+    await engine.handleMessage({ id: from, from, text: `Book Package 2 ${phrase}, name Morgan.` });
+    const actual = DateTime.fromISO((await store.getConversation(from))?.requestedStart ?? "", { setZone: true })
+      .setZone("Europe/London").toFormat("yyyy-MM-dd'T'HH:mm");
+    assert.equal(actual, expected, phrase);
+  }
+
+  const vagueCases = [
+    "around 2pm next Monday",
+    "before noon next Monday",
+    "between 2pm and 3pm next Monday",
+    "either 2pm or 3pm next Monday",
+    "at 2pm",
+    "on 31 February 2030 at 2pm",
+  ];
+  for (const [index, phrase] of vagueCases.entries()) {
+    const store = new MemoryStore();
+    const engine = new ConversationEngine(store, {
+      async classify() {
+        return llmDecision({ intent: "book", wantsBooking: true, packageId: "package_2", customerName: "Morgan", localDateTime: "2030-11-18T14:00" });
+      },
+    }, new FakeCalendar(), new FakeCheckout(), new FakeSender());
+    const from = `uk-vague-${index}`;
+    await engine.handleMessage({ id: from, from, text: `Book Package 2 ${phrase}, name Morgan.` });
+    const conversation = await store.getConversation(from);
+    assert.equal(conversation?.requestedStart, undefined, phrase);
+    assert.equal(conversation?.state, "awaiting_datetime", phrase);
+  }
+});
+
+test("appointment FAQs stay informational and explicit weekday times survive LLM omissions", async () => {
+  const faqStore = new MemoryStore();
+  const faqEngine = new ConversationEngine(faqStore, {
+    async classify() { return llmDecision({ intent: "faq", faqId: 6 }); },
+  }, new FakeCalendar(), new FakeCheckout(), new FakeSender());
+  assert.match(await faqEngine.handleMessage({ id: "faq-duration", from: "faq-duration", text: "appointment duration?" }) ?? "", /Package 1 is 15 minutes/i);
+  assert.equal((await faqStore.getConversation("faq-duration"))?.state, "new");
+
+  const bookingStore = new MemoryStore();
+  const bookingEngine = new ConversationEngine(bookingStore, {
+    async classify() {
+      return llmDecision({ intent: "book", wantsBooking: true, packageId: "package_3", customerName: "OMAR" });
+    },
+  }, new FakeCalendar(), new FakeCheckout(), new FakeSender());
+  assert.match(await bookingEngine.handleMessage({
+    id: "caps-booking", from: "caps-booking", text: "BOOK P3 NEXT TUESDAY 10AM NAME OMAR",
+  }) ?? "", /Reply YES/i);
+  assert.equal((await bookingStore.getConversation("caps-booking"))?.state, "awaiting_policy");
+  assert.ok((await bookingStore.getConversation("caps-booking"))?.requestedStart);
+
+  let classifiedAdultText = "";
+  const adultStore = new MemoryStore();
+  const adultEngine = new ConversationEngine(adultStore, {
+    async classify(text) {
+      classifiedAdultText = text;
+      return llmDecision({ intent: "book", wantsBooking: true, packageId: "package_2", customerName: "Margaret" });
+    },
+  }, new FakeCalendar(), new FakeCheckout(), new FakeSender());
+  assert.match(await adultEngine.handleMessage({
+    id: "adult-booking", from: "adult-booking", text: "I am 72; please book Package 2 next Tuesday 11am, name Margaret.",
+  }) ?? "", /Reply YES/i);
+  assert.doesNotMatch(classifiedAdultText, /72/);
+  assert.equal((await adultStore.getConversation("adult-booking"))?.state, "awaiting_policy");
+
+  const correctionStore = new MemoryStore();
+  const correctionEngine = new ConversationEngine(correctionStore, new FakeClassifier(), new FakeCalendar(), new FakeCheckout(), new FakeSender());
+  await correctionEngine.handleMessage({ id: "correction-1", from: "correction", text: "book" });
+  assert.match(await correctionEngine.handleMessage({
+    id: "correction-2", from: "correction", text: "actually not hair, make it skin next Thursday 2pm, name Kim",
+  }) ?? "", /Reply YES/i);
+  assert.equal((await correctionStore.getConversation("correction"))?.packageId, "package_2");
+
+  const ukTimeStore = new MemoryStore();
+  const ukTimeEngine = new ConversationEngine(ukTimeStore, new FakeClassifier(), new FakeCalendar(), new FakeCheckout(), new FakeSender());
+  assert.match(await ukTimeEngine.handleMessage({
+    id: "uk-time-1", from: "uk-time", text: "Book me in for p1 next Tuesday at quarter to three, name Alfie.",
+  }) ?? "", /Reply YES/i);
+  const ukTime = DateTime.fromISO((await ukTimeStore.getConversation("uk-time"))?.requestedStart ?? "", { setZone: true })
+    .setZone("Europe/London");
+  assert.equal(ukTime.toFormat("HH:mm"), "14:45");
+
+  const abbreviatedDateStore = new MemoryStore();
+  const abbreviatedDateEngine = new ConversationEngine(abbreviatedDateStore, new FakeClassifier(), new FakeCalendar(), new FakeCheckout(), new FakeSender());
+  assert.match(await abbreviatedDateEngine.handleMessage({
+    id: "uk-abbreviated-1", from: "uk-abbreviated", text: "pls book p3 nxt Tue 2pm name Grace",
+  }) ?? "", /Reply YES/i);
+  assert.ok((await abbreviatedDateStore.getConversation("uk-abbreviated"))?.requestedStart);
+
+  const namedDateStore = new MemoryStore();
+  const namedDateEngine = new ConversationEngine(namedDateStore, new FakeClassifier(), new FakeCalendar(), new FakeCheckout(), new FakeSender());
+  assert.match(await namedDateEngine.handleMessage({
+    id: "named-date-1", from: "named-date", text: "book p3 on 5 September at 3pm, name Jack",
+  }) ?? "", /Reply YES/i);
+  const namedDate = DateTime.fromISO((await namedDateStore.getConversation("named-date"))?.requestedStart ?? "", { setZone: true })
+    .setZone("Europe/London");
+  assert.equal(namedDate.toFormat("dd LLL HH:mm"), "05 Sep 15:00");
+
+  const explicitCorrectionStore = new MemoryStore();
+  const explicitCorrectionEngine = new ConversationEngine(explicitCorrectionStore, {
+    async classify() { return llmDecision({ intent: "book", wantsBooking: true, packageId: "package_1" }); },
+  }, new FakeCalendar(), new FakeCheckout(), new FakeSender());
+  assert.match(await explicitCorrectionEngine.handleMessage({
+    id: "explicit-correction-1", from: "explicit-correction",
+    text: "actually p1, not p3, make it skin next Tuesday 2pm, name Molly",
+  }) ?? "", /Reply YES/i);
+  assert.equal((await explicitCorrectionStore.getConversation("explicit-correction"))?.packageId, "package_2");
 });
 
 test("P2 shorthand is normalized before multi-field LLM extraction", async () => {

@@ -14,6 +14,9 @@ Ship the smallest reliable single-service Phase 1 implementation.
 6. Add bounded structured conversation memory, natural service exploration, and clarification before handoff without storing transcripts.
 7. Extract multiple booking fields from natural language, preserve valid supplied fields, and ask only for missing data while keeping deterministic safety and approved replies.
 8. Direct-test unusual language without WhatsApp traffic; add safety backstops and reject ambiguous packages or invented times before live-channel smoke testing.
+9. Expand the direct real-Luna suite to 100 style-diverse scenarios, move stable FAQ and high-risk safety meanings behind deterministic guards, and rerun the entire suite after each shared-layer fix.
+10. Expand the suite to exactly 200 scenarios with 100 UK-focused cases spanning regional lexical forms, registers, approved FAQ paraphrases, British date/time language, safety expressions, ambiguity, and memory; keep dialect labels out of runtime memory and avoid demographic inference.
+11. Add a separate 200-case UK date/time benchmark that compares the exact stored `Europe/London` minute, rejects vague or incomplete times, and isolates language understanding from Calendar availability.
 
 ## Risks
 

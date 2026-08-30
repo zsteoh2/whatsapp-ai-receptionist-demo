@@ -12,16 +12,26 @@
 - Verified live Stripe Test Checkout through Google Calendar event creation, then added a `STATUS` fallback so Twilio Trial can retrieve confirmation synchronously without downgrading a successful booking when asynchronous notification fails.
 - Upgraded natural dialogue so greetings are safe in every state and one message can independently supply an approved FAQ, booking intent, package, preferred name, and date/time; valid fields persist and only missing data is requested.
 - Added and passed a 26-scenario real-Luna adversarial dialogue suite without WhatsApp traffic; fixed greeting/shorthand/decline slang, medical paraphrases, explicit name/booking variance, concern synonyms, human-request paraphrases, ambiguous package guesses, and invented times.
+- Expanded the same provider-isolated real-Luna harness to exactly 100 style-diverse scenarios and reached 100/100 after fixing shared FAQ, safety, typo, explicit-time, adult-age, and package-correction gaps. The bot does not infer or persist demographic traits.
+- Expanded the harness again to exactly 200 scenarios by adding 100 UK-focused cases across greetings/registers, approved FAQ wordings, regional lexical forms, British dates and spoken times, safety/handover language, ambiguity, negation, and structured memory. Narrow deterministic guards now handle approved and high-risk meanings before Luna; regional labels exist only in tests and no dialect or demographic trait is inferred or stored.
+- Added a separate exact-outcome UK date/time harness with 200 cases and no WhatsApp, Supabase, Calendar, or Stripe traffic. It checks the stored London-local minute rather than merely checking for a date, and keeps difficult failures unchanged for repair.
+- Hardened the shared date/time layer without changing the benchmark: deterministic validated values now outrank model output; approximate, range, missing-date, and invalid-date requests never create an exact slot; and additional UK clock/date forms are parsed locally. The exact-time suite now passes 200/200.
 
 ## Current Status
 
-- Railway, Supabase, VectorEngine, signed Twilio inbound replies, Google Calendar, and Stripe Test Checkout are working through Calendar event creation. All known direct dialogue gaps pass locally; the verified commit is ready for Railway deployment and one final WhatsApp smoke test.
+- Railway, Supabase, VectorEngine, signed Twilio inbound replies, Google Calendar, and Stripe Test Checkout are working through Calendar event creation. Both the general dialogue suite and exact UK date/time suite pass 200/200 against real Luna, and offline checks pass 21/21.
 
 ## Verification
 
 - `npm run check`: passed (build plus 16/16 tests) after adding direct casual-language coverage.
 - Direct real-Luna dialogue suite: 12/20 passed with all WhatsApp/Twilio, Supabase, Calendar, and Stripe network calls disabled.
 - After fixes and fresh adjacent cases, the expanded direct real-Luna suite passes 26/26 and `npm run check` passes 19/19.
+- The final style-diverse direct suite passes 100/100 against real `gpt-5.6-luna` with no Twilio/WhatsApp, Supabase, Google Calendar, or Stripe network calls; `npm run check` passes 20/20.
+- The final UK-expanded direct suite passes 200/200 against real `gpt-5.6-luna` at `reasoning_effort: medium`; no Twilio/WhatsApp, Supabase, Google Calendar, or Stripe network calls were made, and `npm run check` passes 21/21.
+- The dedicated UK date/time suite completed 152/200 against real `gpt-5.6-luna` at `reasoning_effort: medium`: numeric clocks 34/40, spoken clocks 40/50, date wording 51/60, and vague/invalid handling 27/50. Only the configured model API was used.
+- `npm run check` still passes 20/20 offline tests, and the project-context validator reports 0 errors with three existing review recommendations.
+- After shared-layer fixes, the unchanged dedicated UK date/time suite passes 200/200: numeric clocks 40/40, spoken clocks 50/50, date wording 60/60, and vague/invalid handling 50/50.
+- `npm run check` passes 21/21 and the full general `npm run test:dialogue:live` regression remains 200/200.
 - Live Google OAuth and an occupied-slot WhatsApp check passed against the configured demo calendar.
 - Live VectorEngine classification accepted explicit Luna `reasoning_effort: medium`.
 - Live Stripe Test Checkout created the expected Package 2 Calendar event; Twilio Trial blocked only the final asynchronous notification.
@@ -45,16 +55,17 @@
 - Automatic asynchronous Stripe confirmation still requires a Twilio upgrade, but Trial can retrieve it by sending `STATUS` through synchronous TwiML.
 - Structured memory deliberately stores no raw transcript and supports one active package/concern context per WhatsApp sender.
 - One approved FAQ can be selected per message; a FAQ can coexist with one booking request and all supplied booking fields.
+- Date/time extraction deliberately accepts only locally validated forms; unsupported, approximate, range, missing-date, and invalid-date requests ask for clarification instead of trusting an LLM-generated slot.
 - The original ignored `Key.txt` still exists; remove it manually after confirming `.env.local` works.
 
 ## Remaining Work
 
-- After Railway becomes active on the verified commit, live-test `STATUS` and one compact WhatsApp flow.
+- Wait for Railway to activate the pushed commit, then live-test one compact WhatsApp flow.
 
 ## Blocker
 
-- No dialogue blocker remains in direct testing. Automatic outbound confirmation separately still requires a Twilio upgrade.
+- No direct dialogue blocker remains. Automatic outbound confirmation separately still requires a Twilio upgrade.
 
 ## Next Recommended Action
 
-- Wait for Railway to activate the verified commit, then use WhatsApp only for one final compact smoke test.
+- Wait for Railway to activate the pushed commit, then use WhatsApp only for one final compact smoke test.

@@ -18,10 +18,10 @@ import type { MessageSender } from "./whatsapp.js";
 
 const nowIso = () => new Date().toISOString();
 const sessionTtlMs = 24 * 60 * 60 * 1000;
-const greetingPattern = /^\s*((h+i+|h+e+l+o+|h+e+y+)( there)?|hiya|howdy|yo+|sup|good (morning|afternoon|evening)|how are you|what'?s up|start|menu)\s*[!.?]*\s*$/i;
+const greetingPattern = /^\s*((h+i+|h+e+l+o+|h+e+y+)( there)?|hiya(?: (?:mate|love))?|howdy|yo+|sup|(?:good )?(?:morning|afternoon|evening)|how are you|what'?s up|start|menu|cheers(?: mate)?|(?:you )?alright(?: mate)?|ey up|aye,?\s*hello|hello (?:pet|there,? mate)|hi hen|good day)\s*[!.?]*\s*$/i;
 const statusPattern = /^\s*(status|booking status|check booking|check my booking)\s*[!.?]*\s*$/i;
-const bookingPattern = /\b(book|booking|appointment|schedule|reserve)\b/i;
-const negativeBookingPattern = /\b(?:don'?t|do not|not|can'?t|cannot)\s+(?:(?:want|trying|going)\s+to\s+)?(?:book(?:ing)?|schedule|reserve)\b/i;
+const bookingPattern = /\b(book(?:ed|ing)?|schedule|reserve)\b|\b(?:pencil|slot|fit)\s+(?:me|us)\s+in\b|\b(?:make|need|want|arrange)\s+(?:an?\s+)?appointment\b/i;
+const negativeBookingPattern = /\b(?:don'?t|do not|not|can'?t|cannot)\s+(?:(?:want|trying|going)\s+to\s+)?(?:book(?:ing)?|schedule|reserve|pencil(?:\s+(?:me|us))?\s+in)\b/i;
 const questionPattern = /^\s*(what|how|when|where|why|which|is|are|can|could|do|does|will|would)\b/i;
 const acceptPattern = /^\s*(yes|y|accept|agree|i agree)\s*[!.]*\s*$/i;
 const declinePattern = /^\s*(no|n|decline|cancel)\s*[!.]*\s*$/i;
@@ -30,11 +30,166 @@ const conversationalNoPattern = /^\s*(no(?: thanks)?|not now|nah(?: not now)?|no
 const namePattern = /^[\p{L}][\p{L} '\-]{1,59}$/u;
 const directNamePattern = /^[\p{L}][\p{L}'\-]*(?: [\p{L}][\p{L}'\-]*){0,3}$/u;
 const reservedNamePattern = /\b(yes|no|sure|okay|please|book|booking|appointment|package|hair|scalp|skin|wrinkle|botox|today|tomorrow|next|morning|afternoon|evening)\b/i;
-const dateHintPattern = /\b(today|tomorrow|next|monday|tuesday|wednesday|thursday|friday|saturday|sunday|morning|afternoon|evening|\d{1,2}(?::\d{2})?\s*(?:am|pm))\b|\b20\d{2}-\d{2}-\d{2}\b/i;
-const preciseTimePattern = /\b(?:[01]?\d|2[0-3])(?::[0-5]\d)?\s*(?:am|pm)\b|\b(?:[01]\d|2[0-3]):[0-5]\d\b|\b(noon|midday|midnight)\b/i;
+const dateHintPattern = /\b(today|tomorrow|next|monday|tuesday|wednesday|thursday|friday|saturday|sunday|morning|afternoon|evening|january|february|march|april|may|june|july|august|september|october|november|december|fortnight|week|\d{1,2}(?::\d{2})?\s*(?:am|pm))\b|\b20\d{2}-\d{2}-\d{2}\b|\b\d{1,2}[/.\-]\d{1,2}(?:[/.\-]\d{2,4})?\b/i;
+const clockWordPattern = "one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|twenty-one|twenty-two|twenty-three";
+const impreciseTimePattern = /\b(?:around|about|roughly|approximately|ish|just|before|after|between|either|maybe|by|no later than|any time (?:from|until))\b/i;
+const weekdays: Record<string, number> = {
+  monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5, saturday: 6, sunday: 7,
+};
+const months: Record<string, number> = {
+  january: 1, february: 2, march: 3, april: 4, may: 5, june: 6,
+  july: 7, august: 8, september: 9, october: 10, november: 11, december: 12,
+};
+const clockWords: Record<string, number> = {
+  one: 1, two: 2, three: 3, four: 4, five: 5, six: 6,
+  seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12,
+  thirteen: 13, fourteen: 14, fifteen: 15, sixteen: 16, seventeen: 17,
+  eighteen: 18, nineteen: 19, twenty: 20, "twenty-one": 21,
+  "twenty-two": 22, "twenty-three": 23,
+};
+const parseClockHour = (value: string) => clockWords[value.toLowerCase()] ?? Number(value);
+const applyClockPeriod = (hour: number, period?: string) => {
+  if (period?.toLowerCase() === "am") return hour === 12 ? 0 : hour;
+  if (period?.toLowerCase() === "pm") return hour === 12 ? 12 : hour + 12;
+  return hour >= 1 && hour <= 7 ? hour + 12 : hour;
+};
+const extractSpokenTime = (text: string): { hour: number; minute: number } | null => {
+  const relative = text.match(new RegExp(
+    `\\b(half|quarter|twenty[- ]five|twenty|ten|five)[ -]+(?:(past|to)[ -]+)?(${clockWordPattern}|\\d{1,2})(?:\\s*(am|pm))?\\b`,
+    "i",
+  ));
+  if (relative && (relative[2] || /^half$/i.test(relative[1]!))) {
+    const minutes = { half: 30, quarter: 15, five: 5, ten: 10, twenty: 20, "twenty-five": 25, "twenty five": 25 }[relative[1]!.toLowerCase()]!;
+    let hour = applyClockPeriod(parseClockHour(relative[3]!), relative[4]);
+    if (relative[2]?.toLowerCase() === "to") hour = (hour + 23) % 24;
+    return { hour, minute: relative[2]?.toLowerCase() === "to" ? 60 - minutes : minutes };
+  }
+  const oclock = text.match(new RegExp(`\\b(${clockWordPattern}|\\d{1,2})\\s+o'?clock(?:\\s*(am|pm))?\\b`, "i"));
+  if (oclock) return { hour: applyClockPeriod(parseClockHour(oclock[1]!), oclock[2]), minute: 0 };
+  const spokenMinutes = text.match(new RegExp(`\\b(?:oh\\s+)?(${clockWordPattern})\\s+(oh\\s+five|fifteen|thirty|forty[- ]five)(?:\\s*(am|pm))?\\b`, "i"));
+  if (spokenMinutes) {
+    const minuteToken = spokenMinutes[2]!.toLowerCase().replace(/[- ]/g, "");
+    const minute = { ohfive: 5, fifteen: 15, thirty: 30, fortyfive: 45 }[minuteToken]!;
+    return { hour: applyClockPeriod(parseClockHour(spokenMinutes[1]!), spokenMinutes[3]), minute };
+  }
+  const hundred = text.match(new RegExp(`\\b(${clockWordPattern})\\s+hundred\\b`, "i"));
+  if (hundred) {
+    const hour = parseClockHour(hundred[1]!);
+    return hour <= 23 ? { hour, minute: 0 } : null;
+  }
+  return null;
+};
+const extractNumericTime = (text: string): { hour: number; minute: number } | null => {
+  const meridiem = text.match(/\b(\d{1,2})(?:[:.](\d{2}))?\s*(am|pm)\b/i);
+  if (meridiem) {
+    const hour = Number(meridiem[1]);
+    const minute = Number(meridiem[2] ?? 0);
+    if (hour < 1 || hour > 12 || minute > 59) return null;
+    return { hour: applyClockPeriod(hour, meridiem[3]), minute };
+  }
+  const colon = text.match(/\b([01]?\d|2[0-3]):([0-5]\d)\b/);
+  if (colon) return { hour: Number(colon[1]), minute: Number(colon[2]) };
+  const dotted = text.match(/\bat\s+([01]?\d|2[0-3])\.([0-5]\d)\b/i);
+  if (dotted) return { hour: Number(dotted[1]), minute: Number(dotted[2]) };
+  const compact = text.match(/\bat\s+([01]\d|2[0-3])([0-5]\d)\b/i);
+  if (compact) return { hour: Number(compact[1]), minute: Number(compact[2]) };
+  const dayPeriod = text.match(/\b(\d{1,2})\s+in the\s+(morning|afternoon|evening)\b/i);
+  if (dayPeriod) {
+    const rawHour = Number(dayPeriod[1]);
+    if (rawHour < 1 || rawHour > 12) return null;
+    const period = /afternoon|evening/i.test(dayPeriod[2]!) ? "pm" : "am";
+    return { hour: applyClockPeriod(rawHour, period), minute: 0 };
+  }
+  const named = text.match(/\b(noon|midday|midnight)\b/i)?.[1];
+  return named ? { hour: /^midnight$/i.test(named) ? 0 : 12, minute: 0 } : null;
+};
+const extractExplicitTime = (text: string) => extractNumericTime(text) ?? extractSpokenTime(text);
+const extractExplicitDate = (text: string): DateTime | null => {
+  const today = DateTime.now().setZone(CLINIC.timezone).startOf("day");
+  if (/\bthe day after tomorrow\b/i.test(text)) return today.plus({ days: 2 });
+  if (/\ba week tomorrow\b/i.test(text)) return today.plus({ days: 8 });
+  if (/\bin a fortnight\b/i.test(text)) return today.plus({ days: 14 });
+  if (/\bin a week\b/i.test(text)) return today.plus({ days: 7 });
+
+  const delayedWeekday = text.match(/\b(?:(a week|a fortnight)\s+on\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)|(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\s+(week|fortnight))\b/i);
+  if (delayedWeekday) {
+    const targetToken = delayedWeekday[2] ?? delayedWeekday[3]!;
+    const delayToken = delayedWeekday[1] ?? delayedWeekday[4]!;
+    const daysAhead = (weekdays[targetToken.toLowerCase()]! - today.weekday + 7) % 7 || 7;
+    return today.plus({ days: daysAhead + (/fortnight/i.test(delayToken) ? 14 : 7) });
+  }
+
+  const isoDate = text.match(/\b(20\d{2})-(\d{2})-(\d{2})\b/);
+  if (isoDate) {
+    const day = DateTime.fromObject({ year: Number(isoDate[1]), month: Number(isoDate[2]), day: Number(isoDate[3]) }, { zone: CLINIC.timezone });
+    return day.isValid ? day : null;
+  }
+  const namedDate = text.match(/\b(?:the\s+)?(\d{1,2})(?:st|nd|rd|th)?(?:\s+of)?\s+(january|february|march|april|may|june|july|august|september|october|november|december)(?:\s+(20\d{2}))?\b/i);
+  if (namedDate) {
+    const day = DateTime.fromObject({
+      year: Number(namedDate[3] ?? today.year), month: months[namedDate[2]!.toLowerCase()]!, day: Number(namedDate[1]),
+    }, { zone: CLINIC.timezone });
+    if (!day.isValid) return null;
+    return !namedDate[3] && day < today ? day.plus({ years: 1 }) : day;
+  }
+  const numericDate = text.match(/\b(\d{1,2})[/.\-](\d{1,2})(?:[/.\-](\d{2}|20\d{2}))?\b/);
+  if (numericDate) {
+    const rawYear = numericDate[3];
+    const year = rawYear ? Number(rawYear.length === 2 ? `20${rawYear}` : rawYear) : today.year;
+    const day = DateTime.fromObject({ year, month: Number(numericDate[2]), day: Number(numericDate[1]) }, { zone: CLINIC.timezone });
+    if (!day.isValid) return null;
+    return !rawYear && day < today ? day.plus({ years: 1 }) : day;
+  }
+
+  const relativeDate = text.match(/\b(today|tomorrow|(?:(?:next|this(?: coming)?)\s+)?(monday|tuesday|wednesday|thursday|friday|saturday|sunday)(?:\s+coming)?)\b/i);
+  if (!relativeDate) return null;
+  const token = relativeDate[1]!.toLowerCase();
+  if (token === "today") return today;
+  if (token === "tomorrow") return today.plus({ days: 1 });
+  const target = weekdays[relativeDate[2]!.toLowerCase()]!;
+  return today.plus({ days: (target - today.weekday + 7) % 7 || 7 });
+};
+const extractExplicitLocalDateTime = (text: string) => {
+  const ambiguityText = text.replace(/\bthe day after tomorrow\b/gi, "");
+  if (impreciseTimePattern.test(ambiguityText)) return null;
+  const day = extractExplicitDate(text);
+  const time = extractExplicitTime(text);
+  if (!day || !time) return null;
+  return day.set(time).toFormat("yyyy-MM-dd'T'HH:mm");
+};
 const uncertainPackagePattern = /\b(or|either|idk|not sure|unsure|undecided|maybe|no preference|don'?t care)\b/i;
 const packageCorrectionPattern = /\b(not|forget|scrap|switch|change|instead|make it|rather|actually)\b/i;
-const normalizeShorthand = (text: string) => text.replace(/\bp\s*([123])\b/gi, "Package $1");
+const benignConcernPattern = /\b(?:hair(?:'s| is)?\s+(?:getting|going)\s+(?:a bit\s+)?thin(?:ner)?|could do with something for|doing my head in|wee consultation for|forehead lines?.*annoying)\b/i;
+const normalizeInput = (text: string) => text
+  .replace(/\bp\s*([123])\b/gi, "Package $1")
+  .replace(/\bpakage\b/gi, "package")
+  .replace(/\bbok\b/gi, "book")
+  .replace(/\bskn\b/gi, "skin")
+  .replace(/\bnex\b/gi, "next")
+  .replace(/\bnxt\b/gi, "next")
+  .replace(/\bmon\b/gi, "Monday")
+  .replace(/\btue(?:s)?\b/gi, "Tuesday")
+  .replace(/\bwed\b/gi, "Wednesday")
+  .replace(/\bthu(?:rs)?\b/gi, "Thursday")
+  .replace(/\bfri\b/gi, "Friday")
+  .replace(/\bsat\b/gi, "Saturday")
+  .replace(/\bsun\b/gi, "Sunday")
+  .replace(/\bjan\b/gi, "January")
+  .replace(/\bfeb\b/gi, "February")
+  .replace(/\bmar\b/gi, "March")
+  .replace(/\bapr\b/gi, "April")
+  .replace(/\bjun\b/gi, "June")
+  .replace(/\bjul\b/gi, "July")
+  .replace(/\baug\b/gi, "August")
+  .replace(/\bsep(?:t)?\b/gi, "September")
+  .replace(/\boct\b/gi, "October")
+  .replace(/\bnov\b/gi, "November")
+  .replace(/\bdec\b/gi, "December")
+  .replace(/皮肤/g, "skin")
+  .replace(/\bname\s+iz\b/gi, "name is")
+  .replace(/\bu\b/gi, "you")
+  .replace(/\br\b/gi, "are")
+  .replace(/\b(?:i am|i'?m|age(?:d)?)\s+(\d{1,3})\b/gi, (match, age) => Number(age) >= 18 ? "" : match);
 const extractExplicitName = (text: string) => {
   const value = text.match(/\b(?:name(?:\s+is|'s)?|nama)\s+([\p{L}][\p{L}'-]*(?:\s+[\p{L}][\p{L}'-]*){0,2})\s*(?=[,.;!?]|$)/iu)?.[1]
     ?? text.match(/\bput\s+([\p{L}][\p{L}'-]*(?:\s+[\p{L}][\p{L}'-]*){0,2})\s+on it\b/iu)?.[1];
@@ -269,7 +424,7 @@ export class ConversationEngine {
       : storedConversation;
     const firstMessage = !storedConversation || Boolean(expired);
     const text = message.text.trim();
-    const normalizedText = normalizeShorthand(text);
+    const normalizedText = normalizeInput(text);
 
     if (/^\s*(restart|start over)\s*$/i.test(text)) {
       conversation = { waId: message.from, state: "new", updatedAt: nowIso() };
@@ -339,10 +494,15 @@ export class ConversationEngine {
     const mentionedPackages = packageMentions(normalizedText);
     const packageIsAmbiguous = mentionedPackages.length > 1
       && (uncertainPackagePattern.test(text) || !packageCorrectionPattern.test(text));
-    const packageId = packageIsAmbiguous ? undefined : parsePackage(normalizedText);
-    const strictDateTime = text.match(/\b(20\d{2}-\d{2}-\d{2})[ T](\d{2}:\d{2})\b/);
-    const localDateTime = strictDateTime ? `${strictDateTime[1]}T${strictDateTime[2]}` : null;
-    const explicitCustomerName = extractExplicitName(text);
+    const correction = [...normalizedText.matchAll(/\b(?:actually|instead|make it|switch(?: to)?|change(?: to)?|rather)\b/gi)].at(-1);
+    const correctedPackageId = correction?.index === undefined
+      ? undefined
+      : parsePackage(normalizedText.slice(correction.index + correction[0].length));
+    const packageId = packageIsAmbiguous ? undefined : correctedPackageId ?? parsePackage(normalizedText);
+    const localDateTime = extractExplicitLocalDateTime(normalizedText);
+    const explicitCustomerName = extractExplicitName(normalizedText);
+    const hasCompleteBookingSignals = Boolean(packageId && explicitCustomerName
+      && localDateTime);
     if (conversation.state === "awaiting_package" && packageId && !questionPattern.test(text)
       && !dateHintPattern.test(text) && text.split(/\s+/).length <= 5) {
       return this.advanceBooking(conversation, { ...emptyDecision(), wantsBooking: true, packageId });
@@ -354,8 +514,8 @@ export class ConversationEngine {
       return this.advanceBooking(conversation, { ...emptyDecision(), wantsBooking: true, localDateTime });
     }
     if (!bookingCollectionStates.includes(conversation.state as typeof bookingCollectionStates[number])
-      && packageId && !bookingPattern.test(text) && !questionPattern.test(text)
-      && !dateHintPattern.test(text) && text.split(/\s+/).length <= 5) {
+      && packageId && !bookingPattern.test(text) && (!questionPattern.test(text) || benignConcernPattern.test(text))
+      && !dateHintPattern.test(text) && (text.split(/\s+/).length <= 5 || benignConcernPattern.test(text))) {
       const reply = await this.explorePackage(conversation, packageId);
       return firstMessage ? `${WELCOME_MESSAGE}\n\n${reply}` : reply;
     }
@@ -369,13 +529,13 @@ export class ConversationEngine {
       delete conversation.packageId;
       delete conversation.concernCategory;
     }
-    if (dateHintPattern.test(text) && !preciseTimePattern.test(text)) delete conversation.requestedStart;
+    if (dateHintPattern.test(normalizedText) && !localDateTime) delete conversation.requestedStart;
     decision = {
       ...decision,
       faqId: decision.faqId ?? faq?.id ?? null,
-      packageId: packageIsAmbiguous ? null : decision.packageId ?? packageId ?? null,
+      packageId: packageIsAmbiguous ? null : correctedPackageId ?? decision.packageId ?? packageId ?? null,
       customerName: decision.customerName ?? explicitCustomerName ?? null,
-      localDateTime: preciseTimePattern.test(text) ? decision.localDateTime ?? localDateTime : null,
+      localDateTime,
     };
     if (conversation.state === "awaiting_name" && !decision.customerName
       && directNamePattern.test(text) && !reservedNamePattern.test(text)) {
@@ -383,7 +543,7 @@ export class ConversationEngine {
     }
     if (negativeBookingPattern.test(normalizedText)) {
       decision = { ...decision, intent: decision.faqId ? "faq" : decision.packageId ? "explore_service" : "unknown", wantsBooking: false };
-    } else if (bookingPattern.test(normalizedText) && !decision.wantsBooking) {
+    } else if ((bookingPattern.test(normalizedText) || hasCompleteBookingSignals) && !decision.wantsBooking) {
       decision = { ...decision, intent: "book", wantsBooking: true };
     }
     return this.respondToDecision(conversation, decision, firstMessage);

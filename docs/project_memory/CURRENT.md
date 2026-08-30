@@ -1,7 +1,7 @@
 ---
 document: project-memory-current
 status: active
-last-reviewed: 2026-08-29
+last-reviewed: 2026-08-30
 source-of-truth: true
 owners:
   - project
@@ -15,11 +15,11 @@ Keep this file short. Move older detail to `archive/YYYY-MM.md` and add quarterl
 
 ## Current Project Status
 
-- Phase 1 backend is deployed with Supabase, VectorEngine, Twilio Sandbox, Google Calendar, and Stripe Test Checkout working through Calendar event creation. All known direct dialogue gaps pass locally and await deployment plus one final WhatsApp smoke test.
+- Phase 1 backend is deployed with Supabase, VectorEngine, Twilio Sandbox, Google Calendar, and Stripe Test Checkout working through Calendar event creation. Both the general dialogue suite and stricter exact UK date/time suite now pass 200/200 against real Luna; offline checks pass 21/21.
 
 ## Recently Completed
 
-- Added a no-WhatsApp live dialogue harness, fixed all discovered gaps plus later model-variance cases, and reached 19/19 offline plus 26/26 real-Luna unusual-language scenarios.
+- Hardened UK time parsing from a 152/200 baseline to 200/200 without weakening the benchmark. Validated deterministic dates/times now outrank model output, while approximate, ranged, incomplete, or invalid requests stay unconfirmed and request clarification.
 
 ## Current Blockers
 
@@ -31,7 +31,7 @@ Keep this file short. Move older detail to `archive/YYYY-MM.md` and add quarterl
 
 ## Immediate Next Steps
 
-- Deploy the verified fixes, then spend one compact WhatsApp message chain on final smoke testing.
+- Wait for Railway to activate the pushed commit, then perform one compact WhatsApp smoke test.
 
 ## Recent Important Decisions
 
