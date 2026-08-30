@@ -7,7 +7,10 @@ import { packageMentions, parsePackage } from "../src/clinic.js";
 import { ConversationEngine } from "../src/conversation.js";
 import { FAQS, matchFaq } from "../src/faq.js";
 import type { IntentClassifier, LlmDecision } from "../src/llm.js";
-import { EMERGENCY_MESSAGE, GENERAL_HANDOVER_MESSAGE, MEDICAL_HANDOVER_MESSAGE } from "../src/messages.js";
+import {
+  EMERGENCY_MESSAGE, GENERAL_HANDOVER_MESSAGE, INTEGRATION_FAILURE_MESSAGE,
+  MEDICAL_HANDOVER_MESSAGE, UNKNOWN_HELP_MESSAGE,
+} from "../src/messages.js";
 import { detectSafety } from "../src/safety.js";
 import { MemoryStore } from "../src/store.js";
 import type { CheckoutGateway } from "../src/stripe.js";
@@ -140,6 +143,48 @@ test("booking flow creates test checkout then confirms exactly one calendar even
   assert.equal(calendar.events.length, 1);
   assert.equal(sender.sent.length, 1);
   assert.equal(await send("m5", "YES"), undefined, "duplicate Meta message is ignored");
+});
+
+test("customer copy uses natural dates and hides implementation details", async () => {
+  assert.doesNotMatch(FAQS[7]!.answer, /Stripe Test Checkout/i);
+  assert.doesNotMatch(UNKNOWN_HELP_MESSAGE, /approved clinic FAQs/i);
+  assert.doesNotMatch(INTEGRATION_FAILURE_MESSAGE, /booking services/i);
+
+  const store = new MemoryStore();
+  const calendar = new FakeCalendar();
+  const sender = new FakeSender();
+  const engine = new ConversationEngine(store, new FakeClassifier(), calendar, new FakeCheckout(), sender);
+  const send = (id: string, text: string) => engine.handleMessage({ id, from: "447700900099", text });
+
+  await send("copy-1", "book");
+  await send("copy-2", "2");
+  const datePrompt = await send("copy-3", "Morgan") ?? "";
+  assert.match(datePrompt, /next Saturday at 11am/i);
+  assert.doesNotMatch(datePrompt, /YYYY|Europe\/London/i);
+
+  const vagueReply = await send("copy-4", "tomorrow afternoon") ?? "";
+  assert.match(vagueReply, /date and time/i);
+  assert.doesNotMatch(vagueReply, /YYYY|Europe\/London/i);
+
+  const policyReply = await send("copy-5", "18 November 2030 at 2pm") ?? "";
+  assert.match(policyReply, /Reply YES/i);
+  const paymentReply = await send("copy-6", "YES") ?? "";
+  assert.doesNotMatch(paymentReply, /Stripe Test Checkout|Calendar event/i);
+
+  const booking = [...store.bookings.values()][0]!;
+  await engine.confirmPaidBooking(booking.id);
+  assert.doesNotMatch(sender.sent[0]?.text ?? "", /Google Calendar|Calendar event/i);
+
+  const busyStore = new MemoryStore();
+  const busyCalendar = new FakeCalendar();
+  busyCalendar.available = false;
+  const busyEngine = new ConversationEngine(busyStore, new FakeClassifier(), busyCalendar, new FakeCheckout(), new FakeSender());
+  const busySend = (id: string, text: string) => busyEngine.handleMessage({ id, from: "447700900098", text });
+  await busySend("busy-1", "book");
+  await busySend("busy-2", "2");
+  await busySend("busy-3", "Morgan");
+  const alternatives = await busySend("busy-4", "18 November 2030 at 2pm") ?? "";
+  assert.doesNotMatch(alternatives, /YYYY|test slots/i);
 });
 
 test("confirmed booking survives async WhatsApp failure and STATUS returns confirmation", async () => {

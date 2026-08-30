@@ -207,7 +207,7 @@ const packageContext = {
 } as const;
 
 const formatSlot = (iso: string) => DateTime.fromISO(iso, { setZone: true }).setZone(CLINIC.timezone).toFormat("cccc, d LLLL 'at' h:mm a");
-const confirmationMessage = (booking: Booking) => `Your test booking is confirmed ✅\n${PACKAGES[booking.packageId].name}\n${formatSlot(booking.confirmedStart ?? booking.requestedStart)}\nA Google Calendar event has been created. This is a demonstration and no real treatment is booked.`;
+const confirmationMessage = (booking: Booking) => `Your test booking is confirmed ✅\n${PACKAGES[booking.packageId].name}\n${formatSlot(booking.confirmedStart ?? booking.requestedStart)}\nThis is a demonstration and no real treatment is booked.`;
 
 export class ConversationEngine {
   constructor(
@@ -245,8 +245,8 @@ export class ConversationEngine {
       await this.save(conversation);
       return confirmationMessage(booking);
     }
-    if (booking.status === "awaiting_payment") return "Your test booking is still waiting for Stripe Test Checkout and is not confirmed yet.";
-    if (booking.status === "paid") return "Your test payment was received and Calendar confirmation is still processing. Please try STATUS again shortly.";
+    if (booking.status === "awaiting_payment") return "Your test booking is still waiting for payment and is not confirmed yet.";
+    if (booking.status === "paid") return "Your test payment was received and your appointment confirmation is still processing. Please try STATUS again shortly.";
     return INTEGRATION_FAILURE_MESSAGE;
   }
 
@@ -294,7 +294,7 @@ export class ConversationEngine {
     if (conversation.state === "awaiting_datetime") return "Hello! 👋 We’re part-way through your test booking. What date and time would you prefer?";
     if (conversation.state === "offering_booking") return "Hello! 👋 Would you like to make a test booking for the package we just discussed?";
     if (conversation.state === "awaiting_policy") return `Hello! 👋 ${POLICY_MESSAGE}`;
-    if (conversation.state === "awaiting_payment") return "Hello! 👋 Your test booking is waiting for Stripe Test Checkout. Complete the test payment using the link already sent, or reply STATUS to check it.";
+    if (conversation.state === "awaiting_payment") return "Hello! 👋 Your test booking is waiting for payment. Complete the test payment using the link already sent, or reply STATUS to check it.";
     if (conversation.state === "confirmed") return "Hello! 👋 Your test booking is confirmed. Reply STATUS to see the booking details.";
     return GENERAL_HANDOVER_MESSAGE;
   }
@@ -315,7 +315,7 @@ export class ConversationEngine {
         conversation.state = "awaiting_datetime";
         delete conversation.requestedStart;
         await this.save(conversation);
-        return "I couldn’t identify a valid date and time. Please use YYYY-MM-DD HH:mm, for example 2026-09-02 14:30.";
+        return "I couldn’t work out the exact date and time. Could you send both? For example, next Saturday at 11am.";
       }
       conversation.requestedStart = local.toUTC().toISO()!;
     }
@@ -345,7 +345,7 @@ export class ConversationEngine {
     if (!conversation.requestedStart) {
       conversation.state = "awaiting_datetime";
       await this.save(conversation);
-      return "What date and time would you prefer? You can reply naturally or use YYYY-MM-DD HH:mm.";
+      return "What date and time would suit you? For example, next Saturday at 11am.";
     }
     conversation.state = "awaiting_policy";
     await this.save(conversation);
@@ -411,8 +411,8 @@ export class ConversationEngine {
 
   private async offerAlternatives(packageId: PackageId, reason: string) {
     const alternatives = await this.calendar.findAlternatives(packageId);
-    if (!alternatives.length) return `${reason} I couldn’t find another slot in the next 14 days, so the Clinic Reception Team will need to help.`;
-    return `${reason} The next available test slots are:\n${alternatives.map((slot, index) => `${index + 1}. ${formatSlot(slot)}`).join("\n")}\nReply with your preferred date and time in YYYY-MM-DD HH:mm format.`;
+    if (!alternatives.length) return `${reason} I couldn’t find another available appointment, so the Clinic Reception Team will need to help.`;
+    return `${reason} The next available appointment times are:\n${alternatives.map((slot, index) => `${index + 1}. ${formatSlot(slot)}`).join("\n")}\nTell me which date and time works best for you.`;
   }
 
   async handleMessage(message: IncomingMessage): Promise<string | undefined> {
@@ -454,7 +454,7 @@ export class ConversationEngine {
       if (conversationalNoPattern.test(text)) {
         conversation.state = "new";
         await this.save(conversation);
-        return "No problem. I can still explain another package or answer one of the approved clinic FAQs.";
+        return "No problem. I can still explain another package or answer questions about treatments, prices and opening hours.";
       }
     }
 
@@ -481,14 +481,14 @@ export class ConversationEngine {
         conversation.bookingId = booking.id;
         conversation.state = "awaiting_payment";
         await this.save(conversation);
-        return `Your ${pack.name} test slot is ready. Pay the £${(pack.depositPence / 100).toFixed(2)} test deposit here: ${session.url}\nThe booking is not confirmed until test payment succeeds and the Calendar event is created.`;
+        return `Your ${pack.name} appointment time is being held. Pay the £${(pack.depositPence / 100).toFixed(2)} test deposit using this secure link: ${session.url}\nYour test booking is not confirmed until the test payment succeeds and you receive a confirmation message.`;
       } catch {
         return this.integrationFailure(conversation, booking.id);
       }
     }
 
     if (conversation.state === "awaiting_payment") {
-      return "Your test booking is waiting for Stripe Test Checkout. It is not confirmed yet. Complete the test payment using the link already sent, or reply START OVER to cancel this conversation.";
+      return "Your test booking is waiting for payment. It is not confirmed yet. Complete the test payment using the link already sent, or reply START OVER to cancel this conversation.";
     }
 
     const mentionedPackages = packageMentions(normalizedText);

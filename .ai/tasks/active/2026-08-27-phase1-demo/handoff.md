@@ -16,10 +16,11 @@
 - Expanded the harness again to exactly 200 scenarios by adding 100 UK-focused cases across greetings/registers, approved FAQ wordings, regional lexical forms, British dates and spoken times, safety/handover language, ambiguity, negation, and structured memory. Narrow deterministic guards now handle approved and high-risk meanings before Luna; regional labels exist only in tests and no dialect or demographic trait is inferred or stored.
 - Added a separate exact-outcome UK date/time harness with 200 cases and no WhatsApp, Supabase, Calendar, or Stripe traffic. It checks the stored London-local minute rather than merely checking for a date, and keeps difficult failures unchanged for repair.
 - Hardened the shared date/time layer without changing the benchmark: deterministic validated values now outrank model output; approximate, range, missing-date, and invalid-date requests never create an exact slot; and additional UK clock/date forms are parsed locally. The exact-time suite now passes 200/200.
+- Naturalised customer-facing copy: date prompts now use UK examples instead of ISO syntax, and chat messages no longer expose timezone, Stripe Checkout, Google Calendar, or internal approval/handover/service terminology. Required demo, medical, payment, and confirmation disclosures remain.
 
 ## Current Status
 
-- Railway, Supabase, VectorEngine, signed Twilio inbound replies, Google Calendar, and Stripe Test Checkout are working through Calendar event creation. Both the general dialogue suite and exact UK date/time suite pass 200/200 against real Luna, and offline checks pass 21/21.
+- Railway, Supabase, VectorEngine, signed Twilio inbound replies, Google Calendar, and Stripe Test Checkout are working through Calendar event creation. Both the general dialogue suite and exact UK date/time suite pass 200/200 against real Luna, and offline checks pass 22/22.
 
 ## Verification
 
@@ -32,6 +33,7 @@
 - `npm run check` still passes 20/20 offline tests, and the project-context validator reports 0 errors with three existing review recommendations.
 - After shared-layer fixes, the unchanged dedicated UK date/time suite passes 200/200: numeric clocks 40/40, spoken clocks 50/50, date wording 60/60, and vague/invalid handling 50/50.
 - `npm run check` passes 21/21 and the full general `npm run test:dialogue:live` regression remains 200/200.
+- After the customer-copy cleanup, `npm run check` passes 22/22 and the full general `npm run test:dialogue:live` regression remains 200/200.
 - Live Google OAuth and an occupied-slot WhatsApp check passed against the configured demo calendar.
 - Live VectorEngine classification accepted explicit Luna `reasoning_effort: medium`.
 - Live Stripe Test Checkout created the expected Package 2 Calendar event; Twilio Trial blocked only the final asynchronous notification.
@@ -60,7 +62,7 @@
 
 ## Remaining Work
 
-- Wait for Railway to activate the pushed commit, then live-test one compact WhatsApp flow.
+- Wait for Railway to activate the latest commit, then live-test one compact WhatsApp flow.
 
 ## Blocker
 
@@ -68,4 +70,4 @@
 
 ## Next Recommended Action
 
-- Wait for Railway to activate the pushed commit, then use WhatsApp only for one final compact smoke test.
+- Wait for Railway to activate the latest commit, then use WhatsApp only for one final compact smoke test.

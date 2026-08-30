@@ -168,7 +168,7 @@ export function createApp(deps = createDependencies()) {
     }
   });
 
-  app.get("/payment/success", (_req, res) => res.status(200).send("Stripe Test Checkout returned successfully. Return to WhatsApp and send STATUS to receive your booking confirmation."));
+  app.get("/payment/success", (_req, res) => res.status(200).send("Test payment completed. Return to WhatsApp and send STATUS to receive your booking confirmation."));
   app.get("/payment/cancelled", (_req, res) => res.status(200).send("Test payment cancelled. No booking has been confirmed."));
 
   app.use((_req: Request, res: Response) => res.sendStatus(404));

@@ -73,3 +73,6 @@
 - Passed final: the unchanged `npm run test:uk-time:live` suite completed 200/200 against real `gpt-5.6-luna` at `reasoning_effort: medium`: numeric clocks 40/40, spoken clocks 50/50, date wording 60/60, and vague/invalid handling 50/50. Only the configured model API was used.
 - Passed final: `npm run check` compiles the service and passes 21/21 offline tests, including deterministic precedence over an intentionally wrong LLM date/time plus vague, range, missing-date, invalid-date, dotted, compact, spoken-minute, hyphenated, and spoken-24-hour cases.
 - Passed regression: `npm run test:dialogue:live` remains 200/200 against real `gpt-5.6-luna`; Twilio/WhatsApp, Supabase, Google Calendar, and Stripe network calls remained disabled.
+- Failed then fixed: the new customer-copy regression first failed on `Stripe Test Checkout`, then passed after naturalising payment, date, availability, handover, failure, and confirmation messages. Customer chat no longer asks for `YYYY-MM-DD HH:mm` or exposes timezone/provider implementation details.
+- Passed final: `npm run check` compiles the service and passes 22/22 offline tests after the copy cleanup.
+- Passed regression: the full `npm run test:dialogue:live` suite remains 200/200 against real `gpt-5.6-luna`; all non-model provider traffic remained disabled.

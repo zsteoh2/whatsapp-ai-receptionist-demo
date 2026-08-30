@@ -2,8 +2,8 @@
   "$schema": "../schemas/active-task.schema.json",
   "taskId": "2026-08-27-phase1-demo",
   "stage": "verification",
-  "lastUpdated": "2026-08-30T16:17:39+08:00",
-  "currentGoal": "Verify the pushed dialogue layer on Railway after both the general and exact UK date/time real-Luna suites passed 200/200.",
-  "nextAction": "Wait for Railway to activate the pushed commit, then perform one final compact WhatsApp smoke test.",
+  "lastUpdated": "2026-08-30T17:19:07+08:00",
+  "currentGoal": "Live-verify the pushed customer-facing copy cleanup after the general real-Luna suite remained at 200/200.",
+  "nextAction": "Wait for Railway to activate the latest commit, then perform one final compact WhatsApp smoke test.",
   "blocked": false
 }
