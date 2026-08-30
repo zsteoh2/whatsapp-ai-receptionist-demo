@@ -345,7 +345,7 @@ export class ConversationEngine {
     if (!conversation.requestedStart) {
       conversation.state = "awaiting_datetime";
       await this.save(conversation);
-      return "What date and time would you prefer? You can reply naturally or use YYYY-MM-DD HH:mm. Times are interpreted in Europe/London.";
+      return "What date and time would you prefer? You can reply naturally or use YYYY-MM-DD HH:mm.";
     }
     conversation.state = "awaiting_policy";
     await this.save(conversation);
