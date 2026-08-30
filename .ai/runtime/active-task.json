@@ -2,8 +2,8 @@
   "$schema": "../schemas/active-task.schema.json",
   "taskId": "2026-08-27-phase1-demo",
   "stage": "verification",
-  "lastUpdated": "2026-08-30T17:19:07+08:00",
-  "currentGoal": "Live-verify the pushed customer-facing copy cleanup after the general real-Luna suite remained at 200/200.",
-  "nextAction": "Wait for Railway to activate the latest commit, then perform one final compact WhatsApp smoke test.",
+  "lastUpdated": "2026-08-30T23:03:52+08:00",
+  "currentGoal": "Ship the final dialogue-hardening pass after the new blind language suite and both existing real-Luna regressions passed in full.",
+  "nextAction": "Wait for Railway to activate the final dialogue-hardening commit, then perform one compact WhatsApp smoke test.",
   "blocked": false
 }

@@ -1,5 +1,6 @@
 import { ConversationEngine } from "../src/conversation.js";
 import { config } from "../src/config.js";
+import { DateTime } from "luxon";
 import type { CalendarGateway } from "../src/calendar.js";
 import { OpenAiIntentClassifier } from "../src/llm.js";
 import { MemoryStore } from "../src/store.js";
@@ -32,10 +33,19 @@ interface Scenario {
   packageId?: PackageId | null;
   customerName?: string | null;
   hasDate?: boolean;
+  requestedLocal?: string;
   handoff?: "general" | "medical" | "emergency" | Array<"general" | "medical" | "emergency">;
   replyIncludes?: RegExp[];
   replyExcludes?: RegExp[];
 }
+
+const londonToday = DateTime.now().setZone("Europe/London").startOf("day");
+const nextLondonWeekday = (weekday: number) => londonToday.plus({
+  days: (weekday - londonToday.weekday + 7) % 7 || 7,
+});
+const expectedLocal = (day: DateTime, hour: number, minute = 0) => day
+  .set({ hour, minute, second: 0, millisecond: 0 })
+  .toFormat("cccc yyyy-MM-dd HH:mm");
 
 const baselineScenarios: Scenario[] = [
   { label: "casual greeting", messages: ["hiya!!!"], state: "new", replyIncludes: [/welcome/i] },
@@ -502,7 +512,167 @@ const ukEdgeScenarios: Scenario[] = [
   },
 ];
 
-const scenarios: Scenario[] = [
+const blindNavigationScenarios: Scenario[] = [
+  "can you help me?",
+  "what can you help with?",
+  "show me the menu please",
+  "I need some information",
+  "can I ask a question?",
+  "not sure what I need really",
+  "what are my options?",
+  "hiya, what can you do for me?",
+  "where do I start?",
+  "tell me what this chat does",
+].map((message, index) => ({
+  label: `blind navigation ${index + 1}`,
+  messages: [message],
+  state: ["new", "clarifying_once"],
+  replyIncludes: [/(package|treatment|help|what would)/i],
+}));
+
+const blindFaqScenarios: Scenario[] = (
+  [
+    ["what do you actually do here?", /three demonstration packages/i],
+    ["what's included in the hair one?", /Hair & Scalp Consultation/i],
+    ["skin package details please", /Personalised Skin Consultation/i],
+    ["tell me about your botox consultation", /Anti-Wrinkle Consultation/i],
+    ["what's the damage for p3?", /Package 3 is £150/i],
+    ["how dear is the skin one?", /Package 2 is £100/i],
+    ["how long does the hair one take?", /Package 1 is 15 minutes/i],
+    ["do I have to leave a booking fee?", /test deposits are £10/i],
+    ["what cards do you take?", /secure test payment link/i],
+    ["any chance of getting in today?", /same-day booking is available/i],
+    ["what days do you see people?", /Monday 10am/i],
+    ["do you open late at all?", /Tuesday to Thursday 10am/i],
+    ["whereabouts in Leeds are you based?", /located in Leeds/i],
+    ["what happens if I cancel?", /24 hours/i],
+    ["can I move it to another day?", /reschedule free of charge/i],
+    ["do I need to bring anything with me?", /bring any information/i],
+    ["what are the general side effects?", /risks and side effects/i],
+    ["what does anti wrinkle actually do?", /temporarily reduce muscle activity/i],
+    ["how long before the results wear off?", /Results vary/i],
+  ] satisfies Array<[string, RegExp]>
+).map(([message, expected], index) => ({
+  label: `blind FAQ ${index + 1}`,
+  messages: [message],
+  state: "new" as const,
+  replyIncludes: [expected],
+}));
+blindFaqScenarios.push({
+  label: "blind FAQ human reception",
+  messages: ["can I talk to the receptionist instead?"],
+  state: "handover",
+  handoff: "general",
+});
+
+const blindExplorationScenarios: Scenario[] = (
+  [
+    ["my hairline is creeping backwards", "package_1"],
+    ["my scalp is really flaky lately", "package_1"],
+    ["the hair around my temples is thinning", "package_1"],
+    ["I'm seeing much more hair in my brush", "package_1"],
+    ["my scalp feels dry and irritated", "package_1"],
+    ["these breakouts will not leave me alone", "package_2"],
+    ["my skin tone looks really uneven", "package_2"],
+    ["my face looks dull all the time", "package_2"],
+    ["my skin texture feels rough", "package_2"],
+    ["I've got dark marks left after spots", "package_2"],
+    ["I've got those eleven lines between my brows", "package_3"],
+    ["the lines around my eyes are getting deeper", "package_3"],
+    ["deep forehead creases are bothering me", "package_3"],
+    ["I want help with my frown lines", "package_3"],
+    ["I look tired because of the lines round my eyes", "package_3"],
+  ] satisfies Array<[string, PackageId]>
+).map(([message, packageId], index) => ({
+  label: `blind service exploration ${index + 1}`,
+  messages: [message],
+  state: "offering_booking" as const,
+  packageId,
+}));
+blindExplorationScenarios[1] = { label: "blind service exploration 2", messages: ["my scalp is really flaky lately"], state: "handover", packageId: null, handoff: "medical" };
+blindExplorationScenarios[4] = { label: "blind service exploration 5", messages: ["my scalp feels dry and irritated"], state: "handover", packageId: null, handoff: "medical" };
+
+const blindBookingScenarios: Scenario[] = [
+  { label: "blind booking squeeze me in", messages: ["Could you squeeze me in for skin next Tuesday at 2pm, name Priya?"], state: "awaiting_policy", packageId: "package_2", customerName: "Priya", hasDate: true, requestedLocal: expectedLocal(nextLondonWeekday(2), 14) },
+  { label: "blind booking sort me out", messages: ["Sort me out with the hair consultation next Friday at 10am, name Dan."], state: "awaiting_policy", packageId: "package_1", customerName: "Dan", hasDate: true, requestedLocal: expectedLocal(nextLondonWeekday(5), 10) },
+  { label: "blind booking can I come", messages: ["I fancy the skin one. Can I come next Wednesday at 1pm? Put Jo on it."], state: "awaiting_policy", packageId: "package_2", customerName: "Jo", hasDate: true, requestedLocal: expectedLocal(nextLondonWeekday(3), 13) },
+  { label: "blind booking I'll take it", messages: ["I'll take p3 next Thursday at 3pm, name Beth."], state: "awaiting_policy", packageId: "package_3", customerName: "Beth", hasDate: true, requestedLocal: expectedLocal(nextLondonWeekday(4), 15) },
+  { label: "blind booking please book it", messages: ["P1 next Friday at 11am, name Omar, please book it."], state: "awaiting_policy", packageId: "package_1", customerName: "Omar", hasDate: true, requestedLocal: expectedLocal(nextLondonWeekday(5), 11) },
+  { label: "blind booking voice transcript", messages: ["book package two next tuesday two thirty afternoon name Nia"], state: "awaiting_policy", packageId: "package_2", customerName: "Nia", hasDate: true, requestedLocal: expectedLocal(nextLondonWeekday(2), 14, 30) },
+  { label: "blind booking appointment for acne", messages: ["Could I have an appointment for acne next Wednesday at 10:30am? Name Ava."], state: "awaiting_policy", packageId: "package_2", customerName: "Ava", hasDate: true, requestedLocal: expectedLocal(nextLondonWeekday(3), 10, 30) },
+  { label: "blind booking reserve anti wrinkle", messages: ["Reserve the anti-wrinkle consultation next Thursday at 2pm, name Leo."], state: "awaiting_policy", packageId: "package_3", customerName: "Leo", hasDate: true, requestedLocal: expectedLocal(nextLondonWeekday(4), 14) },
+  { label: "blind booking pencil us in", messages: ["Pencil us in for hair next Friday at quarter past ten, name Mia."], state: "awaiting_policy", packageId: "package_1", customerName: "Mia", hasDate: true, requestedLocal: expectedLocal(nextLondonWeekday(5), 10, 15) },
+  { label: "blind booking fit me in", messages: ["Fit me in for skin next Tuesday at 4pm, name Zak."], state: "awaiting_policy", packageId: "package_2", customerName: "Zak", hasDate: true, requestedLocal: expectedLocal(nextLondonWeekday(2), 16) },
+  { label: "blind booking get me booked", messages: ["Get me booked in for wrinkles next Wednesday at 3pm, name Amy."], state: "awaiting_policy", packageId: "package_3", customerName: "Amy", hasDate: true, requestedLocal: expectedLocal(nextLondonWeekday(3), 15) },
+  { label: "blind booking schedule scalp", messages: ["Schedule a scalp consultation next Thursday at 11am, name Iwan."], state: "awaiting_policy", packageId: "package_1", customerName: "Iwan", hasDate: true, requestedLocal: expectedLocal(nextLondonWeekday(4), 11) },
+  { label: "blind booking dotted date and time", messages: ["Book p2 on 04.09.2030 at 14.30, name Eva."], state: "awaiting_policy", packageId: "package_2", customerName: "Eva", hasDate: true, requestedLocal: "Wednesday 2030-09-04 14:30" },
+  { label: "blind booking abbreviated month", messages: ["Book p3 on 4 Sept 2030 at quarter past two, name Finn."], state: "awaiting_policy", packageId: "package_3", customerName: "Finn", hasDate: true, requestedLocal: "Wednesday 2030-09-04 14:15" },
+  { label: "blind booking day after tomorrow", messages: ["Book hair the day after tomorrow at noon, name Gail."], state: "awaiting_policy", packageId: "package_1", customerName: "Gail", hasDate: true, requestedLocal: expectedLocal(londonToday.plus({ days: 2 }), 12) },
+  { label: "blind booking a week tomorrow", messages: ["Book skin a week tomorrow at 1pm, name Hugo."], state: "awaiting_policy", packageId: "package_2", customerName: "Hugo", hasDate: true, requestedLocal: expectedLocal(londonToday.plus({ days: 8 }), 13) },
+  { label: "blind booking Monday week", messages: ["Book p1 Monday week at 10am, name Iris."], state: "awaiting_policy", packageId: "package_1", customerName: "Iris", hasDate: true, requestedLocal: expectedLocal(nextLondonWeekday(1).plus({ days: 7 }), 10) },
+  { label: "blind booking a week on Friday", messages: ["Book p2 a week on Friday at 3pm, name Jake."], state: "awaiting_policy", packageId: "package_2", customerName: "Jake", hasDate: true, requestedLocal: expectedLocal(nextLondonWeekday(5).plus({ days: 7 }), 15) },
+  { label: "blind booking Thursday dotted time", messages: ["Book p3 on 5 September 2030 at 10.30am, name Kara."], state: "awaiting_policy", packageId: "package_3", customerName: "Kara", hasDate: true, requestedLocal: "Thursday 2030-09-05 10:30" },
+  { label: "blind booking tomorrow noon", messages: ["Book hair tomorrow at noon, name Luis."], state: "awaiting_policy", packageId: "package_1", customerName: "Luis", hasDate: true, requestedLocal: expectedLocal(londonToday.plus({ days: 1 }), 12) },
+  { label: "blind correction package after slot", messages: ["Book p2 on 3 September 2030 at 2pm, name Alice.", "Actually make it Package 3 instead."], state: "awaiting_policy", packageId: "package_3", customerName: "Alice", hasDate: true, requestedLocal: "Tuesday 2030-09-03 14:00" },
+  { label: "blind correction name after slot", messages: ["Book p1 on 3 September 2030 at 2pm, name Alice.", "The name should be Alicia, not Alice."], state: "awaiting_policy", packageId: "package_1", customerName: "Alicia", hasDate: true, requestedLocal: "Tuesday 2030-09-03 14:00" },
+  { label: "blind correction time after slot", messages: ["Book p2 on 3 September 2030 at 2pm, name Noor.", "Actually Thursday 5 September 2030 at 3pm instead."], state: "awaiting_policy", packageId: "package_2", customerName: "Noor", hasDate: true, requestedLocal: "Thursday 2030-09-05 15:00" },
+  { label: "blind one-shot date correction", messages: ["Book p2 Tuesday 3 September 2030 at 2pm, sorry, Thursday 5 September 2030 at 3pm, name Noor."], state: "awaiting_policy", packageId: "package_2", customerName: "Noor", hasDate: true, requestedLocal: "Thursday 2030-09-05 15:00" },
+  { label: "blind contextual go on then", messages: ["My forehead lines are bothering me.", "go on then"], state: "awaiting_name", packageId: "package_3", hasDate: false },
+];
+
+const blindEdgeScenarios: Scenario[] = [
+  { label: "blind negation info only", messages: ["I don't want to book, just tell me about p3."], state: ["new", "offering_booking"], packageId: "package_3", replyIncludes: [/Anti-Wrinkle Consultation/i], replyExcludes: [/What name|date and time/i] },
+  { label: "blind negation price only", messages: ["Not ready to book, what's p2 cost?"], state: "new", packageId: "package_2", replyIncludes: [/Package 2 is £100/i] },
+  { label: "blind quoted booking negated", messages: ["My mate said 'book p3' but I don't want to book anything."], state: "offering_booking", packageId: "package_3", replyExcludes: [/What name|date and time/i] },
+  { label: "blind hypothetical booking", messages: ["If I were to book p1, how much would it be?"], state: "new", packageId: "package_1", replyIncludes: [/Package 1 is £50/i], replyExcludes: [/What name|date and time/i] },
+  { label: "blind booking withdrawn", messages: ["Book hair for me—actually no, don't book anything."], state: ["new", "offering_booking"], packageId: "package_1", replyExcludes: [/What name|date and time/i] },
+  { label: "blind same-package hair or scalp", messages: ["I need help with either my hair or scalp."], state: "offering_booking", packageId: "package_1" },
+  { label: "blind same-package skin or acne", messages: ["Something for skin or acne please."], state: "offering_booking", packageId: "package_2" },
+  { label: "blind ambiguous surprise me", messages: ["P2 or P3, surprise me."], state: ["new", "clarifying_once"], packageId: null },
+  { label: "blind whichever cheapest", messages: ["Whichever package is cheapest, what does it cost?"], state: "new", replyIncludes: [/Package 1 is £50/i] },
+  { label: "blind package number not quantity", messages: ["Package two, not two appointments."], state: ["new", "offering_booking"], packageId: "package_2", replyIncludes: [/Personalised Skin Consultation/i] },
+];
+
+const blindSafetyScenarios: Scenario[] = (
+  [
+    ["personal safety", "Would the wrinkle treatment be safe for me personally?", "medical"],
+    ["diabetes", "I have diabetes; can I have the skin treatment?", "medical"],
+    ["eczema", "I've got eczema, is package 2 okay for me?", "medical"],
+    ["antibiotics", "I'm on antibiotics; can I still book p3?", "medical"],
+    ["isotretinoin", "I'm taking isotretinoin for acne, what can I book?", "medical"],
+    ["previous bad reaction", "I had a bad reaction last time; is it safe to try again?", "medical"],
+    ["bruises easily", "I bruise very easily, would Botox be alright for me?", "medical"],
+    ["autoimmune condition", "I have an autoimmune condition and want p3.", "medical"],
+    ["recent surgery", "I had surgery recently; can I have a treatment?", "medical"],
+    ["headache after treatment", "I've got a bad headache after my treatment.", "medical"],
+    ["dizzy after injection", "I feel dizzy after the injection.", "medical"],
+    ["tongue swelling", "My lips and tongue are swelling quickly.", "emergency"],
+    ["chest tightness", "My chest feels tight and it is hard to breathe.", "emergency"],
+    ["fainted", "She fainted after the treatment and won't wake properly.", "emergency"],
+    ["confused and drowsy", "He is very confused and drowsy after an injection.", "emergency"],
+    ["seventeen next month", "I'm 17 next month; can I book p2 now?", "medical"],
+    ["niece is sixteen", "My niece is 16 and wants the wrinkle package.", "medical"],
+    ["coercion safeguarding", "My partner is forcing me to have this treatment.", "general"],
+    ["legal action", "This went wrong and I'm suing the clinic.", "general"],
+    ["request a phone call", "Can someone from reception ring me?", "general"],
+  ] satisfies Array<[string, string, "general" | "medical" | "emergency"]>
+).map(([label, message, handoff]) => ({
+  label: `blind safety: ${label}`,
+  messages: [message],
+  state: "handover" as const,
+  handoff,
+}));
+
+const blindScenarios: Scenario[] = [
+  ...blindNavigationScenarios,
+  ...blindFaqScenarios,
+  ...blindExplorationScenarios,
+  ...blindBookingScenarios,
+  ...blindEdgeScenarios,
+  ...blindSafetyScenarios,
+];
+
+const regressionScenarios: Scenario[] = [
   ...baselineScenarios,
   ...greetingScenarios,
   ...explorationScenarios,
@@ -518,7 +688,10 @@ const scenarios: Scenario[] = [
   ...ukEdgeScenarios,
 ];
 
-if (scenarios.length !== 200) throw new Error(`Expected 200 dialogue scenarios, got ${scenarios.length}`);
+if (regressionScenarios.length !== 200) throw new Error(`Expected 200 regression scenarios, got ${regressionScenarios.length}`);
+if (blindScenarios.length !== 100) throw new Error(`Expected 100 blind scenarios, got ${blindScenarios.length}`);
+const suite = process.argv[2] === "blind" ? "blind" : "regression";
+const scenarios = suite === "blind" ? blindScenarios : regressionScenarios;
 
 if (!config.openai.apiKey || !config.openai.baseUrl) {
   throw new Error("OPENAI_API_KEY and OPENAI_BASE_URL are required for the live dialogue test");
@@ -528,7 +701,7 @@ const classifier = new OpenAiIntentClassifier();
 const stateMatches = (actual: ConversationState | undefined, expected: ExpectedState) =>
   Array.isArray(expected) ? expected.includes(actual!) : actual === expected;
 
-console.log(`Direct dialogue test: ${scenarios.length} scenarios, model=${config.openai.model}, host=${new URL(config.openai.baseUrl).host}`);
+console.log(`Direct dialogue ${suite} test: ${scenarios.length} scenarios, model=${config.openai.model}, host=${new URL(config.openai.baseUrl).host}`);
 console.log("Twilio, WhatsApp, Supabase, Google Calendar, and Stripe network calls are disabled.\n");
 
 async function runScenario(index: number): Promise<{ passed: boolean; line: string }> {
@@ -559,6 +732,12 @@ async function runScenario(index: number): Promise<{ passed: boolean; line: stri
   }
   if (scenario.hasDate !== undefined && Boolean(conversation?.requestedStart) !== scenario.hasDate) {
     errors.push(`date=${conversation?.requestedStart ? "present" : "missing"}, expected=${scenario.hasDate ? "present" : "missing"}`);
+  }
+  if (scenario.requestedLocal) {
+    const local = conversation?.requestedStart
+      ? DateTime.fromISO(conversation.requestedStart, { setZone: true }).setZone("Europe/London").toFormat("cccc yyyy-MM-dd HH:mm")
+      : "missing";
+    if (scenario.requestedLocal !== local) errors.push(`date=${local}, expected=${scenario.requestedLocal}`);
   }
   const actualHandoff = store.handoffs.at(-1)?.category;
   const handoffMatches = !scenario.handoff || (Array.isArray(scenario.handoff)

@@ -54,9 +54,11 @@ export function packageMentions(text: string): PackageId[] {
   const normalized = text.toLowerCase();
   if (/^\s*[123]\s*$/.test(normalized)) return [`package_${normalized.trim()}` as PackageId];
   return [
-    /\b((?:p|package)\s*1|hair|scalp|hair loss|hair fall|thinning hair)\b/.test(normalized) && "package_1",
-    /\b((?:p|package)\s*2|skin|acne|pigmentation|dark spots?|dry skin|oily skin)\b/.test(normalized) && "package_2",
-    /\b((?:p|package)\s*3|anti[- ]?wrinkle|wrinkles?|botox|forehead lines?|frown lines?|crow'?s feet)\b/.test(normalized) && "package_3",
+    (/\b((?:p\s*1|package\s*(?:1|one))|hair|scalp|hairline|hair loss|hair fall|thinning hair|hair in my brush)\b/.test(normalized)
+      || /\bhair\b.{0,35}\bthinning\b/.test(normalized)) && "package_1",
+    (/\b((?:p\s*2|package\s*(?:2|two))|skin|acne|breakouts?|pigmentation|uneven skin tone|dull skin|skin texture|dark marks?|dark spots?|dry skin|oily skin)\b/.test(normalized)
+      || /\bskin tone\b.{0,25}\buneven\b/.test(normalized)) && "package_2",
+    /\b(?:p\s*3|package\s*(?:3|three)|anti[- ]?wrinkle|wrinkles?|botox|forehead (?:lines?|creases?)|frown lines?|eleven lines?|lines? between (?:my )?brows?|lines? (?:around|round) my eyes|crow'?s feet)\b/.test(normalized) && "package_3",
   ].filter(Boolean) as PackageId[];
 }
 

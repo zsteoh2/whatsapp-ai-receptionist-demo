@@ -76,3 +76,9 @@
 - Failed then fixed: the new customer-copy regression first failed on `Stripe Test Checkout`, then passed after naturalising payment, date, availability, handover, failure, and confirmation messages. Customer chat no longer asks for `YYYY-MM-DD HH:mm` or exposes timezone/provider implementation details.
 - Passed final: `npm run check` compiles the service and passes 22/22 offline tests after the copy cleanup.
 - Passed regression: the full `npm run test:dialogue:live` suite remains 200/200 against real `gpt-5.6-luna`; all non-model provider traffic remained disabled.
+- Passed: new untouched blind language baseline completed 78/100 and exposed 22 concrete gaps rather than reusing the existing regression vocabulary.
+- Passed: after fixing the discovered routing, correction, FAQ, package-precedence, and safety gaps, `npm run test:dialogue:blind:live` completed 100/100 against real `gpt-5.6-luna` at `reasoning_effort: medium`.
+- Passed: final `npm run check` completed 25/25 offline tests.
+- Passed: final `npm run test:dialogue:live` regression completed 200/200 against real Luna.
+- Passed: final `npm run test:uk-time:live` exact London-local regression completed 200/200 against real Luna.
+- Passed: the three direct model suites disabled Twilio/WhatsApp, Supabase, Google Calendar, and Stripe network calls; only the configured model API was used.

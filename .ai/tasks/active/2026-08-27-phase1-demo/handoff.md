@@ -20,7 +20,7 @@
 
 ## Current Status
 
-- Railway, Supabase, VectorEngine, signed Twilio inbound replies, Google Calendar, and Stripe Test Checkout are working through Calendar event creation. Both the general dialogue suite and exact UK date/time suite pass 200/200 against real Luna, and offline checks pass 22/22.
+- Railway, Supabase, VectorEngine, signed Twilio inbound replies, Google Calendar, and Stripe Test Checkout are working through Calendar event creation. The new blind language suite passes 100/100, both the general dialogue and exact UK date/time suites pass 200/200 against real Luna, and offline checks pass 25/25.
 
 ## Verification
 
@@ -44,6 +44,8 @@
 - Railway healthcheck failure was traced to Node.js 20 lacking the native WebSocket required by the current Supabase SDK; the runtime requirement is now Node.js 22+.
 - Context validation passed with no errors; undated session files and an ungenerated graph remain review recommendations.
 - Changed-file secret scan found no populated provider-secret assignments.
+- The untouched 100-case blind language baseline passed 78/100; after fixing every discovered language, correction, precedence, and safety gap, the final blind suite passes 100/100.
+- Final post-fix regressions: `npm run check` 25/25, general real-Luna dialogue 200/200, and exact UK date/time 200/200. Direct model tests used no Twilio/WhatsApp, Supabase, Google Calendar, or Stripe traffic.
 
 ## Documentation Updated
 
@@ -62,7 +64,7 @@
 
 ## Remaining Work
 
-- Wait for Railway to activate the latest commit, then live-test one compact WhatsApp flow.
+- Wait for Railway to activate the final dialogue-hardening commit, then live-test one compact WhatsApp flow.
 
 ## Blocker
 
@@ -70,4 +72,4 @@
 
 ## Next Recommended Action
 
-- Wait for Railway to activate the latest commit, then use WhatsApp only for one final compact smoke test.
+- Wait for Railway to activate the final dialogue-hardening commit, then use WhatsApp only for one final compact smoke test.

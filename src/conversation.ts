@@ -20,12 +20,14 @@ const nowIso = () => new Date().toISOString();
 const sessionTtlMs = 24 * 60 * 60 * 1000;
 const greetingPattern = /^\s*((h+i+|h+e+l+o+|h+e+y+)( there)?|hiya(?: (?:mate|love))?|howdy|yo+|sup|(?:good )?(?:morning|afternoon|evening)|how are you|what'?s up|start|menu|cheers(?: mate)?|(?:you )?alright(?: mate)?|ey up|aye,?\s*hello|hello (?:pet|there,? mate)|hi hen|good day)\s*[!.?]*\s*$/i;
 const statusPattern = /^\s*(status|booking status|check booking|check my booking)\s*[!.?]*\s*$/i;
+const navigationHelpPattern = /^\s*(?:can you help(?: me)?|what can you help with|show me the menu(?: please)?|i need some information|can i ask a question|not sure what i need(?: really)?|what are my options|hiya,? what can you do for me|where do i start|tell me what this chat does)\s*[!.?]*\s*$/i;
 const bookingPattern = /\b(book(?:ed|ing)?|schedule|reserve)\b|\b(?:pencil|slot|fit)\s+(?:me|us)\s+in\b|\b(?:make|need|want|arrange)\s+(?:an?\s+)?appointment\b/i;
-const negativeBookingPattern = /\b(?:don'?t|do not|not|can'?t|cannot)\s+(?:(?:want|trying|going)\s+to\s+)?(?:book(?:ing)?|schedule|reserve|pencil(?:\s+(?:me|us))?\s+in)\b/i;
+const negativeBookingPattern = /\b(?:don'?t|do not|not|can'?t|cannot)\s+(?:(?:want|trying|going|ready)\s+to\s+)?(?:book(?:ing)?|schedule|reserve|pencil(?:\s+(?:me|us))?\s+in)\b/i;
+const hypotheticalBookingPattern = /\bif i (?:were to|wanted to|did)\s+(?:book|schedule|reserve)\b/i;
 const questionPattern = /^\s*(what|how|when|where|why|which|is|are|can|could|do|does|will|would)\b/i;
 const acceptPattern = /^\s*(yes|y|accept|agree|i agree)\s*[!.]*\s*$/i;
 const declinePattern = /^\s*(no|n|decline|cancel)\s*[!.]*\s*$/i;
-const conversationalYesPattern = /^\s*(yes(?: please)?|y|sure|ok(?:ay)?|please do)\s*[!.]*\s*$/i;
+const conversationalYesPattern = /^\s*(yes(?: please)?|y|sure|ok(?:ay)?|please do|go on then)\s*[!.]*\s*$/i;
 const conversationalNoPattern = /^\s*(no(?: thanks)?|not now|nah(?: not now)?|nope(?: not now)?)\s*[!.]*\s*$/i;
 const namePattern = /^[\p{L}][\p{L} '\-]{1,59}$/u;
 const directNamePattern = /^[\p{L}][\p{L}'\-]*(?: [\p{L}][\p{L}'\-]*){0,3}$/u;
@@ -150,6 +152,15 @@ const extractExplicitDate = (text: string): DateTime | null => {
   return today.plus({ days: (target - today.weekday + 7) % 7 || 7 });
 };
 const extractExplicitLocalDateTime = (text: string) => {
+  const correction = [...text.matchAll(/\b(?:sorry|actually|change(?: it| that)? to|make that)\b/gi)].at(-1);
+  if (correction?.index !== undefined) {
+    const correctedText = text.slice(correction.index + correction[0].length);
+    if (!impreciseTimePattern.test(correctedText)) {
+      const correctedDay = extractExplicitDate(correctedText);
+      const correctedTime = extractExplicitTime(correctedText);
+      if (correctedDay && correctedTime) return correctedDay.set(correctedTime).toFormat("yyyy-MM-dd'T'HH:mm");
+    }
+  }
   const ambiguityText = text.replace(/\bthe day after tomorrow\b/gi, "");
   if (impreciseTimePattern.test(ambiguityText)) return null;
   const day = extractExplicitDate(text);
@@ -159,7 +170,7 @@ const extractExplicitLocalDateTime = (text: string) => {
 };
 const uncertainPackagePattern = /\b(or|either|idk|not sure|unsure|undecided|maybe|no preference|don'?t care)\b/i;
 const packageCorrectionPattern = /\b(not|forget|scrap|switch|change|instead|make it|rather|actually)\b/i;
-const benignConcernPattern = /\b(?:hair(?:'s| is)?\s+(?:getting|going)\s+(?:a bit\s+)?thin(?:ner)?|could do with something for|doing my head in|wee consultation for|forehead lines?.*annoying)\b/i;
+const benignConcernPattern = /\b(?:hair(?:'s| is)?\s+(?:getting|going)\s+(?:a bit\s+)?thin(?:ner)?|hair.{0,35}\bthinning\b|hairline.*(?:creeping|receding|going).*back|more hair in my brush|help with.*hair.*scalp|breakouts?.*(?:leave me alone|bothering)|appointment for acne|skin.{0,25}\bacne\b|acne.{0,25}\bskin\b|skin tone.*uneven|face.*dull|dark marks?.*after spots|forehead (?:lines?|creases?).*(?:annoying|bothering)|frown lines?|lines? (?:around|round|between) (?:my )?(?:eyes|brows?)|could do with something for|doing my head in|wee consultation for)\b/i;
 const normalizeInput = (text: string) => text
   .replace(/\bp\s*([123])\b/gi, "Package $1")
   .replace(/\bpakage\b/gi, "package")
@@ -194,6 +205,15 @@ const extractExplicitName = (text: string) => {
   const value = text.match(/\b(?:name(?:\s+is|'s)?|nama)\s+([\p{L}][\p{L}'-]*(?:\s+[\p{L}][\p{L}'-]*){0,2})\s*(?=[,.;!?]|$)/iu)?.[1]
     ?? text.match(/\bput\s+([\p{L}][\p{L}'-]*(?:\s+[\p{L}][\p{L}'-]*){0,2})\s+on it\b/iu)?.[1];
   return value?.replace(/\s+(please|pls)$/i, "").trim();
+};
+const extractCorrectedName = (text: string) => text.match(/\bname should be\s+([\p{L}][\p{L}'-]*(?:\s+[\p{L}][\p{L}'-]*){0,2})\s*(?=[,.;!?]|\bnot\b|$)/iu)?.[1]?.trim();
+const extractCorrectedPackage = (text: string) => {
+  const corrections = [...text.matchAll(/\b(?:actually|instead|make it|switch(?: to)?|change(?: to)?|rather|not)\b/gi)];
+  for (const correction of corrections.reverse()) {
+    const packageId = parsePackage(text.slice((correction.index ?? 0) + correction[0].length));
+    if (packageId) return packageId;
+  }
+  return undefined;
 };
 const bookingCollectionStates = ["awaiting_package", "awaiting_name", "awaiting_datetime"] as const;
 const emptyDecision = (): LlmDecision => ({
@@ -441,8 +461,16 @@ export class ConversationEngine {
 
     if (conversation.state === "handover") return GENERAL_HANDOVER_MESSAGE;
 
+    if (navigationHelpPattern.test(text)) return this.unknown(conversation, firstMessage);
+
     const faq = matchFaq(normalizedText);
-    if (faq && !bookingPattern.test(normalizedText)) {
+    if (faq && (!bookingPattern.test(normalizedText) || negativeBookingPattern.test(normalizedText)
+      || hypotheticalBookingPattern.test(normalizedText) || /\bbooking fee\b/i.test(normalizedText))) {
+      const faqPackageId = parsePackage(normalizedText);
+      if (faqPackageId) {
+        conversation.packageId = faqPackageId;
+        conversation.concernCategory = packageContext[faqPackageId].concern;
+      }
       await this.rememberFaq(conversation, faq.id);
       return firstMessage ? `${WELCOME_MESSAGE}\n\n${faq.answer}` : faq.answer;
     }
@@ -459,6 +487,18 @@ export class ConversationEngine {
     }
 
     if (conversation.state === "awaiting_policy") {
+      const correctedPackageId = extractCorrectedPackage(normalizedText);
+      const correctedCustomerName = extractCorrectedName(normalizedText);
+      const correctedLocalDateTime = extractExplicitLocalDateTime(normalizedText);
+      if (!acceptPattern.test(text) && !declinePattern.test(text)
+        && (correctedPackageId || correctedCustomerName || correctedLocalDateTime)) {
+        return this.advanceBooking(conversation, {
+          ...emptyDecision(), intent: "book", wantsBooking: true,
+          packageId: correctedPackageId ?? null,
+          customerName: correctedCustomerName ?? null,
+          localDateTime: correctedLocalDateTime,
+        });
+      }
       if (declinePattern.test(text)) {
         conversation = { waId: message.from, state: "new", updatedAt: nowIso() };
         await this.save(conversation);
@@ -494,10 +534,7 @@ export class ConversationEngine {
     const mentionedPackages = packageMentions(normalizedText);
     const packageIsAmbiguous = mentionedPackages.length > 1
       && (uncertainPackagePattern.test(text) || !packageCorrectionPattern.test(text));
-    const correction = [...normalizedText.matchAll(/\b(?:actually|instead|make it|switch(?: to)?|change(?: to)?|rather)\b/gi)].at(-1);
-    const correctedPackageId = correction?.index === undefined
-      ? undefined
-      : parsePackage(normalizedText.slice(correction.index + correction[0].length));
+    const correctedPackageId = extractCorrectedPackage(normalizedText);
     const packageId = packageIsAmbiguous ? undefined : correctedPackageId ?? parsePackage(normalizedText);
     const localDateTime = extractExplicitLocalDateTime(normalizedText);
     const explicitCustomerName = extractExplicitName(normalizedText);
@@ -524,7 +561,10 @@ export class ConversationEngine {
     const llmHandover = decision.handover !== "none" ? decision.handover
       : [15, 19].includes(decision.faqId ?? 0) ? "medical"
         : decision.faqId === 20 ? "general" : "none";
-    if (llmHandover !== "none") return this.handover(conversation, llmHandover);
+    const clearlyBenignBooking = hasCompleteBookingSignals && benignConcernPattern.test(normalizedText);
+    if (llmHandover !== "none" && !(llmHandover === "medical" && clearlyBenignBooking)) {
+      return this.handover(conversation, llmHandover);
+    }
     if (packageIsAmbiguous) {
       delete conversation.packageId;
       delete conversation.concernCategory;
@@ -533,7 +573,7 @@ export class ConversationEngine {
     decision = {
       ...decision,
       faqId: decision.faqId ?? faq?.id ?? null,
-      packageId: packageIsAmbiguous ? null : correctedPackageId ?? decision.packageId ?? packageId ?? null,
+      packageId: packageIsAmbiguous ? null : correctedPackageId ?? packageId ?? decision.packageId ?? null,
       customerName: decision.customerName ?? explicitCustomerName ?? null,
       localDateTime,
     };
@@ -541,7 +581,7 @@ export class ConversationEngine {
       && directNamePattern.test(text) && !reservedNamePattern.test(text)) {
       decision = { ...decision, customerName: text };
     }
-    if (negativeBookingPattern.test(normalizedText)) {
+    if (negativeBookingPattern.test(normalizedText) || hypotheticalBookingPattern.test(normalizedText)) {
       decision = { ...decision, intent: decision.faqId ? "faq" : decision.packageId ? "explore_service" : "unknown", wantsBooking: false };
     } else if ((bookingPattern.test(normalizedText) || hasCompleteBookingSignals) && !decision.wantsBooking) {
       decision = { ...decision, intent: "book", wantsBooking: true };

@@ -36,6 +36,13 @@ test("all 20 approved FAQ questions match their fixed answers", () => {
   assert.equal(matchFaq("What's package one then?")?.id, 2);
   assert.equal(matchFaq("What comes with package two?")?.id, 3);
   assert.equal(matchFaq("Do I need to put any money down?")?.id, 7);
+  assert.equal(matchFaq("Do I have to leave a booking fee?")?.id, 7);
+  assert.equal(matchFaq("Skin package details please")?.id, 3);
+  assert.equal(matchFaq("Tell me about your Botox consultation")?.id, 4);
+  assert.equal(matchFaq("How dear is the skin one?")?.id, 5);
+  assert.equal(matchFaq("Can I move it to another day?")?.id, 13);
+  assert.equal(matchFaq("How long does the hair one take?")?.id, 6);
+  assert.equal(matchFaq("What cards do you take?")?.id, 8);
   assert.equal(matchFaq("How long do the effects stick around?")?.id, 18);
 });
 
@@ -54,27 +61,43 @@ test("safety rules distinguish general information from personal medical and eme
   assert.equal(detectSafety("I'm fourteen and want Package 3"), "medical");
   assert.equal(detectSafety("my son is 15 can he book botox"), "medical");
   assert.equal(detectSafety("my daughter is fourteen and wants skin treatment"), "medical");
+  assert.equal(detectSafety("my niece is sixteen and wants a skin consultation"), "medical");
   assert.equal(detectSafety("my wee lad is fourteen"), "medical");
   assert.equal(detectSafety("I am 72 and want Package 2"), undefined);
   assert.equal(detectSafety("I'm 81 and want Package 1"), undefined);
   assert.equal(detectSafety("botox safe if im on warfarin?"), "medical");
   assert.equal(detectSafety("I'm on tablets; is Botox alright for me?"), "medical");
+  assert.equal(detectSafety("I have diabetes; can I have the skin treatment?"), "medical");
+  assert.equal(detectSafety("I had surgery recently; can I have a treatment?"), "medical");
+  assert.equal(detectSafety("I had a bad reaction last time; is it safe to try again?"), "medical");
+  assert.equal(detectSafety("I've got a bad headache after my treatment"), "medical");
+  assert.equal(detectSafety("my scalp is really flaky lately"), "medical");
+  assert.equal(detectSafety("my lips and tongue are swelling quickly"), "emergency");
   assert.equal(detectSafety("I'm expecting and thinking about the wrinkle package"), "medical");
   assert.equal(detectSafety("I cannot breathe and this is an emergency"), "emergency");
+  assert.equal(detectSafety("My chest feels tight and it is hard to breathe."), "emergency");
   assert.equal(detectSafety("someone's blacked out after an injection"), "emergency");
   assert.equal(detectSafety("there's loads of blood and it won't stop"), "emergency");
   assert.equal(detectSafety("my face has puffed right up after the treatment"), "medical");
   assert.equal(detectSafety("I think I need A&E"), "emergency");
   assert.equal(detectSafety("I want a real person"), "general");
+  assert.equal(detectSafety("My partner is forcing me to have this treatment."), "general");
+  assert.equal(detectSafety("This went wrong and I'm suing the clinic."), "general");
   assert.equal(detectSafety("lemme talk to an actual person pls"), "general");
   assert.equal(detectSafety("I want my money back"), "general");
 });
 
 test("package parsing accepts shorthand but never selects between multiple mentions", () => {
   assert.equal(parsePackage("p2"), "package_2");
+  assert.equal(parsePackage("Package two, not two appointments."), "package_2");
   assert.equal(parsePackage("forehead lines are annoying"), "package_3");
   assert.equal(parsePackage("hair fall"), "package_1");
+  assert.equal(parsePackage("my hairline is creeping backwards"), "package_1");
+  assert.equal(parsePackage("the hair around my temples is thinning"), "package_1");
   assert.equal(parsePackage("acne consultation"), "package_2");
+  assert.equal(parsePackage("my skin tone looks really uneven"), "package_2");
+  assert.equal(parsePackage("deep forehead creases"), "package_3");
+  assert.equal(parsePackage("eleven lines between my brows"), "package_3");
   assert.deepEqual(packageMentions("hair or skin idk"), ["package_1", "package_2"]);
   assert.equal(parsePackage("hair or skin idk"), undefined);
 });
@@ -187,6 +210,40 @@ test("customer copy uses natural dates and hides implementation details", async 
   assert.doesNotMatch(alternatives, /YYYY|test slots/i);
 });
 
+test("booking details can be corrected before consent and the latest stated date wins", async () => {
+  const store = new MemoryStore();
+  const engine = new ConversationEngine(store, new FakeClassifier(), new FakeCalendar(), new FakeCheckout(), new FakeSender());
+  const from = "447700900097";
+  const send = (id: string, text: string) => engine.handleMessage({ id, from, text });
+
+  await send("correction-1", "Book p2 on 1 September at 2pm, name Alice.");
+  await send("correction-2", "Actually make it Package 3 instead.");
+  await send("correction-3", "The name should be Alicia, not Alice.");
+  await send("correction-4", "Actually Thursday 3 September at 3pm instead.");
+
+  const conversation = await store.getConversation(from);
+  assert.equal(conversation?.state, "awaiting_policy");
+  assert.equal(conversation?.packageId, "package_3");
+  assert.equal(conversation?.customerName, "Alicia");
+  assert.equal(DateTime.fromISO(conversation?.requestedStart ?? "", { setZone: true })
+    .setZone("Europe/London").toFormat("cccc yyyy-MM-dd HH:mm"), "Thursday 2026-09-03 15:00");
+
+  const oneShotStore = new MemoryStore();
+  const oneShot = new ConversationEngine(oneShotStore, new FakeClassifier(), new FakeCalendar(), new FakeCheckout(), new FakeSender());
+  await oneShot.handleMessage({ id: "latest-date", from: "latest-date", text: "Book p2 Tuesday 1 September at 2pm, sorry, Thursday 3 September at 3pm, name Noor." });
+  assert.equal(DateTime.fromISO((await oneShotStore.getConversation("latest-date"))?.requestedStart ?? "", { setZone: true })
+    .setZone("Europe/London").toFormat("cccc yyyy-MM-dd HH:mm"), "Thursday 2026-09-03 15:00");
+
+  const hypotheticalStore = new MemoryStore();
+  const hypothetical = new ConversationEngine(hypotheticalStore, {
+    async classify() { return llmDecision({ intent: "book", wantsBooking: true, faqId: 5, packageId: "package_1" }); },
+  }, new FakeCalendar(), new FakeCheckout(), new FakeSender());
+  const reply = await hypothetical.handleMessage({ id: "hypothetical", from: "hypothetical", text: "If I were to book p1, how much would it be?" }) ?? "";
+  assert.equal((await hypotheticalStore.getConversation("hypothetical"))?.state, "new");
+  assert.match(reply, /Package 1 is £50/i);
+  assert.doesNotMatch(reply, /What name|date and time/i);
+});
+
 test("confirmed booking survives async WhatsApp failure and STATUS returns confirmation", async () => {
   const store = new MemoryStore();
   const calendar = new FakeCalendar();
@@ -238,6 +295,44 @@ test("structured memory explores a concern and continues booking from a natural 
 
   assert.match(await engine.handleMessage({ id: "yes-1", from: "3", text: "Yes please" }) ?? "", /What name/i);
   assert.equal((await store.getConversation("3"))?.state, "awaiting_name");
+});
+
+test("clear benign concern phrases route deterministically before an unstable model handover", async () => {
+  const store = new MemoryStore();
+  const engine = new ConversationEngine(store, {
+    async classify() { return llmDecision({ intent: "handover", handover: "medical" }); },
+  }, new FakeCalendar(), new FakeCheckout(), new FakeSender());
+
+  const reply = await engine.handleMessage({
+    id: "benign-temples-1", from: "benign-temples",
+    text: "the hair around my temples is thinning",
+  });
+  assert.match(reply ?? "", /Hair & Scalp Consultation/i);
+  assert.equal((await store.getConversation("benign-temples"))?.state, "offering_booking");
+
+  const skinReply = await engine.handleMessage({
+    id: "benign-skin-1", from: "benign-skin",
+    text: "Something for skin or acne please.",
+  });
+  assert.match(skinReply ?? "", /Personalised Skin Consultation/i);
+  assert.equal((await store.getConversation("benign-skin"))?.state, "offering_booking");
+
+  const acneBookingReply = await engine.handleMessage({
+    id: "benign-acne-booking-1", from: "benign-acne-booking",
+    text: "Could I have an appointment for acne next Wednesday at 10:30am? Name Ava.",
+  });
+  assert.match(acneBookingReply ?? "", /Reply YES/i);
+  assert.equal((await store.getConversation("benign-acne-booking"))?.state, "awaiting_policy");
+
+  const medicalStore = new MemoryStore();
+  const medicalEngine = new ConversationEngine(medicalStore, {
+    async classify() { return llmDecision({ intent: "handover", handover: "medical" }); },
+  }, new FakeCalendar(), new FakeCheckout(), new FakeSender());
+  await medicalEngine.handleMessage({
+    id: "model-medical-1", from: "model-medical",
+    text: "Book p2 next Wednesday at 10:30am, name Ava; I have MCAS.",
+  });
+  assert.equal((await medicalStore.getConversation("model-medical"))?.state, "handover");
 });
 
 test("greetings never become a customer name during an active booking", async () => {
@@ -463,6 +558,22 @@ test("P2 shorthand is normalized before multi-field LLM extraction", async () =>
   assert.match(classifiedText, /Package 2/i);
   assert.match(reply ?? "", /Package 2 is £100/i);
   assert.equal((await store.getConversation("p2-user"))?.state, "awaiting_policy");
+});
+
+test("an explicit unambiguous package mention outranks a conflicting model guess", async () => {
+  const store = new MemoryStore();
+  const engine = new ConversationEngine(store, {
+    async classify() {
+      return llmDecision({ intent: "explore_service", packageId: "package_3" });
+    },
+  }, new FakeCalendar(), new FakeCheckout(), new FakeSender());
+
+  const reply = await engine.handleMessage({
+    id: "explicit-package-1", from: "explicit-package",
+    text: "Package two, not two appointments.",
+  });
+  assert.match(reply ?? "", /Personalised Skin Consultation/i);
+  assert.equal((await store.getConversation("explicit-package"))?.packageId, "package_2");
 });
 
 test("one natural message can answer a FAQ and fill every booking slot", async () => {
