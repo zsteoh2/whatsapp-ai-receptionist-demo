@@ -15,7 +15,7 @@ Keep this file short. Move older detail to `archive/YYYY-MM.md` and add quarterl
 
 ## Current Project Status
 
-- Phase 1 backend is deployed with Supabase, VectorEngine, Twilio Sandbox, Google Calendar, and Stripe Test Checkout working through Calendar event creation. The blind language suite passes 100/100, both the general dialogue suite and stricter exact UK date/time suite pass 200/200 against real Luna, and offline checks pass 25/25.
+- Phase 1 backend is deployed with Supabase, VectorEngine, Twilio Sandbox, Google Calendar, and Stripe Test Checkout working through Calendar event creation. The blind language suite passes 100/100, both the general dialogue suite and stricter exact UK date/time suite pass 200/200 against real Luna, and offline checks pass 26/26 after adding today/tomorrow shortcut support.
 
 ## Recently Completed
 
@@ -23,6 +23,7 @@ Keep this file short. Move older detail to `archive/YYYY-MM.md` and add quarterl
 - Naturalised customer copy so chat uses UK date examples and plain booking language without exposing ISO, timezone, provider, or internal workflow details.
 - Added an independent 100-case blind language suite. Its untouched 78/100 baseline exposed missing everyday concern phrases, FAQ paraphrases, corrections, negation/hypotheticals, family-age wording, coercion/legal language, and emergency phrasing; all discovered gaps were fixed and the final run passed 100/100.
 - Made explicit customer package/date/name corrections authoritative over conflicting model guesses while preserving model-detected medical handover outside clearly benign booking language.
+- Added shared normalisation for common `tdy`/`tmr` variants and ensured date shortcuts cannot be mistaken for customer names.
 
 ## Current Blockers
 
@@ -34,7 +35,7 @@ Keep this file short. Move older detail to `archive/YYYY-MM.md` and add quarterl
 
 ## Immediate Next Steps
 
-- Wait for Railway to activate the final dialogue-hardening commit, then perform one compact WhatsApp smoke test.
+- Wait for Railway to deploy the date-shortcut fix, then retry one WhatsApp booking using `tmr at 2pm`.
 
 ## Recent Important Decisions
 

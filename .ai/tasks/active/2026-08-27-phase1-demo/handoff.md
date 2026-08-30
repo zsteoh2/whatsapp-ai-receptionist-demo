@@ -20,7 +20,7 @@
 
 ## Current Status
 
-- Railway, Supabase, VectorEngine, signed Twilio inbound replies, Google Calendar, and Stripe Test Checkout are working through Calendar event creation. The new blind language suite passes 100/100, both the general dialogue and exact UK date/time suites pass 200/200 against real Luna, and offline checks pass 25/25.
+- Railway, Supabase, VectorEngine, signed Twilio inbound replies, Google Calendar, and Stripe Test Checkout are working through Calendar event creation. The new blind language suite passes 100/100, both the general dialogue and exact UK date/time suites pass 200/200 against real Luna, and offline checks pass 26/26 after adding today/tomorrow shortcut support.
 
 ## Verification
 
@@ -46,6 +46,7 @@
 - Changed-file secret scan found no populated provider-secret assignments.
 - The untouched 100-case blind language baseline passed 78/100; after fixing every discovered language, correction, precedence, and safety gap, the final blind suite passes 100/100.
 - Final post-fix regressions: `npm run check` 25/25, general real-Luna dialogue 200/200, and exact UK date/time 200/200. Direct model tests used no Twilio/WhatsApp, Supabase, Google Calendar, or Stripe traffic.
+- The live WhatsApp smoke test exposed unsupported `tmr`; the shared normaliser now accepts common `today`/`tomorrow` shortcuts and prevents them from being captured as customer names. `npm run check` passes 26/26.
 
 ## Documentation Updated
 
@@ -64,7 +65,7 @@
 
 ## Remaining Work
 
-- Wait for Railway to activate the final dialogue-hardening commit, then live-test one compact WhatsApp flow.
+- Wait for Railway to deploy the date-shortcut fix, then retry one compact WhatsApp flow using `tmr at 2pm`.
 
 ## Blocker
 
@@ -72,4 +73,4 @@
 
 ## Next Recommended Action
 
-- Wait for Railway to activate the final dialogue-hardening commit, then use WhatsApp only for one final compact smoke test.
+- Wait for Railway to deploy the date-shortcut fix, then retry WhatsApp with `Book Package 2 tmr at 2pm, name Alex`.

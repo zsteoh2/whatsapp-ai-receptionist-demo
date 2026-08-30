@@ -178,6 +178,8 @@ const normalizeInput = (text: string) => text
   .replace(/\bskn\b/gi, "skin")
   .replace(/\bnex\b/gi, "next")
   .replace(/\bnxt\b/gi, "next")
+  .replace(/\b(?:tdy|2day)\b/gi, "today")
+  .replace(/\b(?:tmr|tmrw|tmw|tmoro|2moro|2morrow|tmoz|tomoz)\b/gi, "tomorrow")
   .replace(/\bmon\b/gi, "Monday")
   .replace(/\btue(?:s)?\b/gi, "Tuesday")
   .replace(/\bwed\b/gi, "Wednesday")
@@ -544,7 +546,7 @@ export class ConversationEngine {
       && !dateHintPattern.test(text) && text.split(/\s+/).length <= 5) {
       return this.advanceBooking(conversation, { ...emptyDecision(), wantsBooking: true, packageId });
     }
-    if (conversation.state === "awaiting_name" && directNamePattern.test(text) && !reservedNamePattern.test(text)) {
+    if (conversation.state === "awaiting_name" && directNamePattern.test(text) && !reservedNamePattern.test(normalizedText)) {
       return this.advanceBooking(conversation, { ...emptyDecision(), wantsBooking: true, customerName: text });
     }
     if (conversation.state === "awaiting_datetime" && localDateTime) {
@@ -578,7 +580,7 @@ export class ConversationEngine {
       localDateTime,
     };
     if (conversation.state === "awaiting_name" && !decision.customerName
-      && directNamePattern.test(text) && !reservedNamePattern.test(text)) {
+      && directNamePattern.test(text) && !reservedNamePattern.test(normalizedText)) {
       decision = { ...decision, customerName: text };
     }
     if (negativeBookingPattern.test(normalizedText) || hypotheticalBookingPattern.test(normalizedText)) {

@@ -463,6 +463,44 @@ test("UK time parsing is exact and vague or incomplete requests never create a s
   }
 });
 
+test("date shortcuts are normalized without becoming a customer name", async () => {
+  for (const [index, shortcut] of ["tdy", "2day"].entries()) {
+    const store = new MemoryStore();
+    const engine = new ConversationEngine(store, new FakeClassifier(), new FakeCalendar(), new FakeCheckout(), new FakeSender());
+    const from = `today-shortcut-${index}`;
+    await engine.handleMessage({ id: from, from, text: `Book Package 2 ${shortcut} at 2pm, name Morgan.` });
+    const conversation = await store.getConversation(from);
+    const expected = DateTime.now().setZone("Europe/London").toFormat("yyyy-MM-dd'T'14:00");
+    const actual = DateTime.fromISO(conversation?.requestedStart ?? "", { setZone: true })
+      .setZone("Europe/London").toFormat("yyyy-MM-dd'T'HH:mm");
+    assert.equal(actual, expected, shortcut);
+  }
+
+  for (const [index, shortcut] of ["tmr", "tmrw", "tmw", "tmoro", "2moro", "2morrow", "tmoz", "tomoz"].entries()) {
+    const store = new MemoryStore();
+    const engine = new ConversationEngine(store, new FakeClassifier(), new FakeCalendar(), new FakeCheckout(), new FakeSender());
+    const from = `tomorrow-shortcut-${index}`;
+    await engine.handleMessage({
+      id: from, from,
+      text: `Book Package 2 ${shortcut} at 2pm, name Morgan.`,
+    });
+    const conversation = await store.getConversation(from);
+    const expected = DateTime.now().setZone("Europe/London").plus({ days: 1 }).toFormat("yyyy-MM-dd'T'14:00");
+    const actual = DateTime.fromISO(conversation?.requestedStart ?? "", { setZone: true })
+      .setZone("Europe/London").toFormat("yyyy-MM-dd'T'HH:mm");
+    assert.equal(actual, expected, shortcut);
+    assert.equal(conversation?.customerName, "Morgan", shortcut);
+  }
+
+  const nameStore = new MemoryStore();
+  const nameEngine = new ConversationEngine(nameStore, new FakeClassifier(), new FakeCalendar(), new FakeCheckout(), new FakeSender());
+  await nameEngine.handleMessage({ id: "tmr-name-1", from: "tmr-name", text: "Book Package 2" });
+  await nameEngine.handleMessage({ id: "tmr-name-2", from: "tmr-name", text: "tmr" });
+  const conversation = await nameStore.getConversation("tmr-name");
+  assert.equal(conversation?.state, "awaiting_name");
+  assert.equal(conversation?.customerName, undefined);
+});
+
 test("appointment FAQs stay informational and explicit weekday times survive LLM omissions", async () => {
   const faqStore = new MemoryStore();
   const faqEngine = new ConversationEngine(faqStore, {

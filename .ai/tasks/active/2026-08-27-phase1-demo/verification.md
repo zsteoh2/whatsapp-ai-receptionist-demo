@@ -82,3 +82,5 @@
 - Passed: final `npm run test:dialogue:live` regression completed 200/200 against real Luna.
 - Passed: final `npm run test:uk-time:live` exact London-local regression completed 200/200 against real Luna.
 - Passed: the three direct model suites disabled Twilio/WhatsApp, Supabase, Google Calendar, and Stripe network calls; only the configured model API was used.
+- Failed then fixed: the deployed smoke test did not recognise `tmr` because the shared normaliser handled weekday/package abbreviations but no today/tomorrow shortcuts.
+- Passed: `npm run check` completed 26/26 after adding exact London-date assertions for `tdy`, `2day`, `tmr`, `tmrw`, `tmw`, `tmoro`, `2moro`, `2morrow`, `tmoz`, and `tomoz`, plus a regression proving `tmr` cannot be stored as a customer name.
