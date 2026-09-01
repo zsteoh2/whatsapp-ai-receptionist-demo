@@ -1,7 +1,7 @@
 ---
 document: ai-context
 status: draft
-last-reviewed: 2026-08-27
+last-reviewed: 2026-09-01
 source-of-truth: true
 owners:
   - project
@@ -14,11 +14,11 @@ related:
 
 ## Identity
 
-Project name: WhatsApp AI Receptionist Demo
+Project name: ORA WhatsApp AI Receptionist Demo
 
 ## Current Objective
 
-Project objective: Deliver a deployed Phase 1 WhatsApp booking demonstration for a fictional Leeds aesthetic clinic.
+Project objective: Deliver a polished, reusable ORA WhatsApp assistant demonstration. ORA is the only active customer-facing identity; industry-specific booking, payment, and calendar behavior will be activated only after approved business-template data is supplied.
 
 ## Non-Goals
 
@@ -26,7 +26,7 @@ Project objective: Deliver a deployed Phase 1 WhatsApp booking demonstration for
 
 ## Critical Constraints
 
-- English-only demo; synthetic data; Stripe Test Mode; approved FAQs only; personalised medical matters must hand over.
+- English-only demo; synthetic data; no invented business services, prices, availability, policies, or meeting links; safety-sensitive matters must hand over.
 
 ## Current System Status
 

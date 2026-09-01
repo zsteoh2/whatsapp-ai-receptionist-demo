@@ -52,6 +52,7 @@ export class MemoryStore implements Store {
 const conversationFromRow = (row: Record<string, unknown>): Conversation => ({
   waId: String(row.wa_id),
   state: row.state as Conversation["state"],
+  businessMode: row.business_mode === "cleaner" ? "cleaner" : undefined,
   customerName: row.customer_name ? String(row.customer_name) : undefined,
   packageId: row.package_id as Conversation["packageId"],
   requestedStart: row.requested_start ? String(row.requested_start) : undefined,
@@ -92,6 +93,7 @@ export class SupabaseStore implements Store {
     const { error } = await this.client.from("conversations").upsert({
       wa_id: value.waId,
       state: value.state,
+      business_mode: value.businessMode ?? null,
       customer_name: value.customerName ?? null,
       package_id: value.packageId ?? null,
       requested_start: value.requestedStart ?? null,

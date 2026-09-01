@@ -12,6 +12,9 @@ export const config = {
   nodeEnv: env("NODE_ENV") ?? "development",
   port: Number(env("PORT") ?? 3000),
   appBaseUrl: env("APP_BASE_URL") ?? "http://localhost:3000",
+  demo: {
+    clinicEnabled: env("ENABLE_CLINIC_DEMO") === "true",
+  },
   openai: {
     apiKey: env("OPENAI_API_KEY"),
     baseUrl: env("OPENAI_BASE_URL"),

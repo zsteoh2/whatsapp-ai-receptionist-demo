@@ -7,8 +7,9 @@ import type { CheckoutGateway } from "./stripe.js";
 import { FAQS, matchFaq } from "./faq.js";
 import type { IntentClassifier, LlmDecision } from "./llm.js";
 import {
-  EMERGENCY_MESSAGE, GENERAL_HANDOVER_MESSAGE, INTEGRATION_FAILURE_MESSAGE,
-  MEDICAL_HANDOVER_MESSAGE, POLICY_MESSAGE, UNKNOWN_HELP_MESSAGE, UNKNOWN_RETRY_MESSAGE,
+  CALLBACK_REQUEST_MESSAGE, CLEANER_TEMPLATE_PENDING_MESSAGE, CLEANER_WELCOME_MESSAGE, EMERGENCY_MESSAGE, FOUNDER_CTA_MESSAGE, GENERAL_HANDOVER_MESSAGE, INTEGRATION_FAILURE_MESSAGE,
+  MEDICAL_HANDOVER_MESSAGE, ORA_BOOKING_MESSAGE, ORA_DEMO_CLOSING_MESSAGE, ORA_HANDOVER_MESSAGE, ORA_INFO_MESSAGE, ORA_INTEGRATION_MESSAGE,
+  ORA_KNOWLEDGE_MESSAGE, ORA_PAYMENT_MESSAGE, ORA_TEMPLATE_PENDING_MESSAGE, POLICY_MESSAGE, UNKNOWN_HELP_MESSAGE, UNKNOWN_RETRY_MESSAGE,
   WELCOME_MESSAGE,
 } from "./messages.js";
 import { detectSafety, type SafetyDecision } from "./safety.js";
@@ -20,6 +21,10 @@ const nowIso = () => new Date().toISOString();
 const sessionTtlMs = 24 * 60 * 60 * 1000;
 const greetingPattern = /^\s*((h+i+|h+e+l+o+|h+e+y+)( there)?|hiya(?: (?:mate|love))?|howdy|yo+|sup|(?:good )?(?:morning|afternoon|evening)|how are you|what'?s up|start|menu|cheers(?: mate)?|(?:you )?alright(?: mate)?|ey up|aye,?\s*hello|hello (?:pet|there,? mate)|hi hen|good day)\s*[!.?]*\s*$/i;
 const statusPattern = /^\s*(status|booking status|check booking|check my booking)\s*[!.?]*\s*$/i;
+const callbackPattern = /\b(?:call[ -]?back|ring me|phone me|give me (?:a )?(?:call|ring)|(?:owner|founder|someone) (?:to )?(?:call|ring) me)\b/i;
+const generalQuestionPattern = /^\s*(?:general question|ask a general question)\s*[!.?]*\s*$/i;
+const demoClosingPattern = /^\s*(?:thanks|thank you|that'?s all|done|finish(?:ed)?|no more questions?)\s*[!.?]*\s*$/i;
+const cleanerActivationPattern = /^\s*cleaner\s*$/i;
 const navigationHelpPattern = /^\s*(?:can you help(?: me)?|what can you help with|show me the menu(?: please)?|i need some information|can i ask a question|not sure what i need(?: really)?|what are my options|hiya,? what can you do for me|where do i start|tell me what this chat does)\s*[!.?]*\s*$/i;
 const bookingPattern = /\b(book(?:ed|ing)?|schedule|reserve)\b|\b(?:pencil|slot|fit)\s+(?:me|us)\s+in\b|\b(?:make|need|want|arrange)\s+(?:an?\s+)?appointment\b/i;
 const negativeBookingPattern = /\b(?:don'?t|do not|not|can'?t|cannot)\s+(?:(?:want|trying|going|ready)\s+to\s+)?(?:book(?:ing)?|schedule|reserve|pencil(?:\s+(?:me|us))?\s+in)\b/i;
@@ -229,7 +234,7 @@ const packageContext = {
 } as const;
 
 const formatSlot = (iso: string) => DateTime.fromISO(iso, { setZone: true }).setZone(CLINIC.timezone).toFormat("cccc, d LLLL 'at' h:mm a");
-const confirmationMessage = (booking: Booking) => `Your test booking is confirmed ✅\n${PACKAGES[booking.packageId].name}\n${formatSlot(booking.confirmedStart ?? booking.requestedStart)}\nThis is a demonstration and no real treatment is booked.`;
+const confirmationMessage = (booking: Booking, showClinicService = true) => `Your test booking is confirmed ✅\n${showClinicService ? `${PACKAGES[booking.packageId].name}\n` : ""}${formatSlot(booking.confirmedStart ?? booking.requestedStart)}\nThis is a demonstration and no real appointment is booked.\n\n${FOUNDER_CTA_MESSAGE}`;
 
 export class ConversationEngine {
   constructor(
@@ -238,6 +243,7 @@ export class ConversationEngine {
     private readonly calendar: CalendarGateway,
     private readonly checkout: CheckoutGateway,
     private readonly sender: MessageSender,
+    private readonly clinicDemoEnabled = true,
   ) {}
 
   private async conversation(waId: string): Promise<Conversation> {
@@ -260,23 +266,24 @@ export class ConversationEngine {
   private async bookingStatus(conversation: Conversation) {
     if (!conversation.bookingId) return "I can’t find an active test booking in this conversation. Reply BOOK to start one.";
     const booking = await this.store.getBooking(conversation.bookingId);
-    if (!booking) return "I can’t find that test booking. Please ask the Clinic Reception Team for help.";
+    if (!booking) return "I can’t find that test booking. Please ask the business owner for help.";
     if (booking.status === "confirmed" || booking.calendarEventId) {
       if (booking.status !== "confirmed") await this.store.updateBooking(booking.id, { status: "confirmed" });
       conversation.state = "confirmed";
       await this.save(conversation);
-      return confirmationMessage(booking);
+      return confirmationMessage(booking, this.clinicDemoEnabled);
     }
     if (booking.status === "awaiting_payment") return "Your test booking is still waiting for payment and is not confirmed yet.";
     if (booking.status === "paid") return "Your test payment was received and your appointment confirmation is still processing. Please try STATUS again shortly.";
     return INTEGRATION_FAILURE_MESSAGE;
   }
 
-  private async handover(conversation: Conversation, decision: Exclude<SafetyDecision, undefined>, summary?: string) {
+  private async handover(conversation: Conversation, decision: Exclude<SafetyDecision, undefined>, summary?: string, reply?: string) {
     const category = decision === "emergency" ? "emergency" : decision === "medical" ? "medical" : "general";
     await this.store.createHandoff({ waId: conversation.waId, category, summary: summary ?? `${category} handover triggered by automated safety rules.` });
     conversation.state = "handover";
     await this.save(conversation);
+    if (reply) return reply;
     if (decision === "emergency") return EMERGENCY_MESSAGE;
     if (decision === "medical") return MEDICAL_HANDOVER_MESSAGE;
     return GENERAL_HANDOVER_MESSAGE;
@@ -305,6 +312,11 @@ export class ConversationEngine {
   }
 
   private async greetingReply(conversation: Conversation) {
+    if (conversation.businessMode === "cleaner" && conversation.state !== "handover") {
+      conversation.state = "new";
+      await this.save(conversation);
+      return CLEANER_WELCOME_MESSAGE;
+    }
     if (["new", "clarifying_once", "clarifying_twice"].includes(conversation.state)) {
       conversation.state = "new";
       await this.save(conversation);
@@ -433,7 +445,7 @@ export class ConversationEngine {
 
   private async offerAlternatives(packageId: PackageId, reason: string) {
     const alternatives = await this.calendar.findAlternatives(packageId);
-    if (!alternatives.length) return `${reason} I couldn’t find another available appointment, so the Clinic Reception Team will need to help.`;
+    if (!alternatives.length) return `${reason} I couldn’t find another available appointment, so the business owner will need to help.`;
     return `${reason} The next available appointment times are:\n${alternatives.map((slot, index) => `${index + 1}. ${formatSlot(slot)}`).join("\n")}\nTell me which date and time works best for you.`;
   }
 
@@ -448,20 +460,55 @@ export class ConversationEngine {
     const text = message.text.trim();
     const normalizedText = normalizeInput(text);
 
+    if (cleanerActivationPattern.test(text)) {
+      conversation = { waId: message.from, state: "new", businessMode: "cleaner", updatedAt: nowIso() };
+      await this.save(conversation);
+      return CLEANER_WELCOME_MESSAGE;
+    }
+
+    if (!this.clinicDemoEnabled && conversation.businessMode !== "cleaner"
+      && !["awaiting_payment", "confirmed", "handover"].includes(conversation.state)) {
+      conversation = { waId: message.from, state: "new", updatedAt: nowIso() };
+    }
+
     if (/^\s*(restart|start over)\s*$/i.test(text)) {
       conversation = { waId: message.from, state: "new", updatedAt: nowIso() };
       await this.save(conversation);
       return WELCOME_MESSAGE;
     }
 
+    if (generalQuestionPattern.test(text)) {
+      conversation.state = "new";
+      await this.save(conversation);
+      return "Of course — what would you like to know? You can write it naturally.";
+    }
+
     const safety = detectSafety(text);
     if (safety) return this.handover(conversation, safety);
+
+    if (callbackPattern.test(text)) {
+      return this.handover(conversation, "general", "Customer requested a callback.", CALLBACK_REQUEST_MESSAGE);
+    }
 
     if (statusPattern.test(text)) return this.bookingStatus(conversation);
 
     if (greetingPattern.test(text)) return this.greetingReply(conversation);
 
     if (conversation.state === "handover") return GENERAL_HANDOVER_MESSAGE;
+
+    if (!this.clinicDemoEnabled) {
+      await this.save(conversation);
+      if (conversation.businessMode === "cleaner") return CLEANER_TEMPLATE_PENDING_MESSAGE;
+      if (demoClosingPattern.test(text)) return ORA_DEMO_CLOSING_MESSAGE;
+      if (/\b(?:knowledge|faq|questions?|information|polic(?:y|ies)|learn (?:my|the) business)\b/i.test(normalizedText)) return ORA_KNOWLEDGE_MESSAGE;
+      if (/\b(?:calendar|availability|appointments?|bookings?)\b/i.test(normalizedText) && questionPattern.test(normalizedText)) return ORA_BOOKING_MESSAGE;
+      if (/\b(?:payments?|pay|deposit|checkout|stripe)\b/i.test(normalizedText)) return ORA_PAYMENT_MESSAGE;
+      if (/\b(?:integrat(?:e|es|ion)|connect|api|software|system|crm)\b/i.test(normalizedText)) return ORA_INTEGRATION_MESSAGE;
+      if (/\b(?:human|handover|hand off|owner|person|staff|judgement)\b/i.test(normalizedText)) return ORA_HANDOVER_MESSAGE;
+      return bookingPattern.test(normalizedText) || /\b(?:products?|services?|packages?|prices?)\b/i.test(normalizedText)
+        ? ORA_TEMPLATE_PENDING_MESSAGE
+        : ORA_INFO_MESSAGE;
+    }
 
     if (navigationHelpPattern.test(text)) return this.unknown(conversation, firstMessage);
 
@@ -616,6 +663,6 @@ export class ConversationEngine {
       await this.notify(booking.waId, INTEGRATION_FAILURE_MESSAGE);
       return;
     }
-    await this.notify(booking.waId, confirmationMessage(booking));
+    await this.notify(booking.waId, confirmationMessage(booking, this.clinicDemoEnabled));
   }
 }

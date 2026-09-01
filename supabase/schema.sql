@@ -1,6 +1,7 @@
 create table if not exists conversations (
   wa_id text primary key,
   state text not null,
+  business_mode text check (business_mode is null or business_mode = 'cleaner'),
   customer_name text,
   package_id text,
   requested_start timestamptz,
@@ -8,6 +9,9 @@ create table if not exists conversations (
   booking_id uuid,
   updated_at timestamptz not null default now()
 );
+
+-- Keep existing deployments compatible when this schema is run again.
+alter table conversations add column if not exists business_mode text;
 
 create table if not exists bookings (
   id uuid primary key,

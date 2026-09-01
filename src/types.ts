@@ -16,6 +16,7 @@ export type ConversationState =
 export interface Conversation {
   waId: string;
   state: ConversationState;
+  businessMode?: "cleaner";
   customerName?: string;
   packageId?: PackageId;
   requestedStart?: string;

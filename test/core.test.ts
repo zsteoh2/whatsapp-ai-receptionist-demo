@@ -8,8 +8,10 @@ import { ConversationEngine } from "../src/conversation.js";
 import { FAQS, matchFaq } from "../src/faq.js";
 import type { IntentClassifier, LlmDecision } from "../src/llm.js";
 import {
-  EMERGENCY_MESSAGE, GENERAL_HANDOVER_MESSAGE, INTEGRATION_FAILURE_MESSAGE,
-  MEDICAL_HANDOVER_MESSAGE, UNKNOWN_HELP_MESSAGE,
+  CALLBACK_REQUEST_MESSAGE, CLEANER_TEMPLATE_PENDING_MESSAGE, CLEANER_WELCOME_MESSAGE, EMERGENCY_MESSAGE, FOUNDER_CTA_MESSAGE, GENERAL_HANDOVER_MESSAGE, INTEGRATION_FAILURE_MESSAGE,
+  MEDICAL_HANDOVER_MESSAGE, ORA_BOOKING_MESSAGE, ORA_DEMO_CLOSING_MESSAGE, ORA_INFO_MESSAGE, ORA_INTEGRATION_MESSAGE, ORA_KNOWLEDGE_MESSAGE,
+  ORA_PAYMENT_MESSAGE, ORA_TEMPLATE_PENDING_MESSAGE, UNKNOWN_HELP_MESSAGE,
+  WELCOME_MESSAGE,
 } from "../src/messages.js";
 import { detectSafety } from "../src/safety.js";
 import { MemoryStore } from "../src/store.js";
@@ -44,6 +46,7 @@ test("all 20 approved FAQ questions match their fixed answers", () => {
   assert.equal(matchFaq("How long does the hair one take?")?.id, 6);
   assert.equal(matchFaq("What cards do you take?")?.id, 8);
   assert.equal(matchFaq("How long do the effects stick around?")?.id, 18);
+  assert.equal(matchFaq("Ask about a product or service")?.id, 1);
 });
 
 test("safety rules distinguish general information from personal medical and emergency messages", () => {
@@ -147,7 +150,7 @@ test("booking flow creates test checkout then confirms exactly one calendar even
   const send = (id: string, text: string) => engine.handleMessage({ id, from: "447700900001", text });
 
   const firstReply = await send("m1", "book") ?? "";
-  assert.match(firstReply, /This is a demonstration/i);
+  assert.match(firstReply, /my name is ORA/i);
   assert.match(firstReply, /Which package/i);
   assert.match(await send("m2", "1") ?? "", /What name/i);
   assert.match(await send("m3", "Alice Demo") ?? "", /date and time/i);
@@ -161,11 +164,108 @@ test("booking flow creates test checkout then confirms exactly one calendar even
   assert.equal((await store.getBooking(booking.id))?.status, "confirmed");
   assert.equal(calendar.events.length, 1);
   assert.match(sender.sent[0]?.text ?? "", /confirmed/i);
+  assert.match(sender.sent[0]?.text ?? "", /Speak with our Founder/i);
 
   await engine.confirmPaidBooking(booking.id);
   assert.equal(calendar.events.length, 1);
   assert.equal(sender.sent.length, 1);
   assert.equal(await send("m5", "YES"), undefined, "duplicate Meta message is ignored");
+});
+
+test("ORA presentation opens cleanly and callback requests reach the founder handoff", async () => {
+  assert.match(WELCOME_MESSAGE, /my name is ORA/i);
+  assert.match(WELCOME_MESSAGE, /• Ask what ORA can do/i);
+  assert.match(WELCOME_MESSAGE, /• Explore enquiries and business knowledge/i);
+  assert.match(WELCOME_MESSAGE, /• Explore bookings, payments and follow-up/i);
+  assert.match(WELCOME_MESSAGE, /• Speak with our Founder/i);
+  assert.match(FOUNDER_CTA_MESSAGE, /07955 506757/);
+  assert.match(FOUNDER_CTA_MESSAGE, /hau@convertbydigital\.com/);
+
+  const store = new MemoryStore();
+  const engine = new ConversationEngine(store, new FakeClassifier(), new FakeCalendar(), new FakeCheckout(), new FakeSender());
+  const reply = await engine.handleMessage({ id: "callback-1", from: "callback-user", text: "Could the owner call me back please?" });
+  assert.equal(reply, CALLBACK_REQUEST_MESSAGE);
+  assert.equal(store.handoffs[0]?.category, "general");
+  assert.equal(store.handoffs[0]?.summary, "Customer requested a callback.");
+
+  const urgentReply = await engine.handleMessage({ id: "callback-urgent", from: "callback-urgent", text: "I cannot breathe, call me back" });
+  assert.equal(urgentReply, EMERGENCY_MESSAGE);
+  assert.equal(store.handoffs[1]?.category, "emergency");
+
+  const questionReply = await engine.handleMessage({ id: "question-1", from: "question-user", text: "General question" });
+  assert.match(questionReply ?? "", /what would you like to know/i);
+});
+
+test("ORA-only mode keeps the clinic template offline", async () => {
+  let classifierCalls = 0;
+  const store = new MemoryStore();
+  const engine = new ConversationEngine(store, {
+    async classify() { classifierCalls += 1; return llmDecision({ intent: "book", wantsBooking: true, packageId: "package_3" }); },
+  }, new FakeCalendar(), new FakeCheckout(), new FakeSender(), false);
+
+  assert.doesNotMatch(WELCOME_MESSAGE, /clinic|hair|skin|wrinkle|package/i);
+  assert.doesNotMatch(MEDICAL_HANDOVER_MESSAGE, /clinic/i);
+  assert.equal(await engine.handleMessage({ id: "ora-off-1", from: "ora-off", text: "I want something for wrinkles" }), ORA_INFO_MESSAGE);
+  assert.equal(await engine.handleMessage({ id: "ora-off-2", from: "ora-off", text: "Book an appointment" }), ORA_TEMPLATE_PENDING_MESSAGE);
+  assert.equal(classifierCalls, 0);
+  assert.equal((await store.getConversation("ora-off"))?.state, "new");
+
+  assert.equal(await engine.handleMessage({ id: "ora-knowledge", from: "ora-knowledge", text: "What knowledge can this AI use?" }), ORA_KNOWLEDGE_MESSAGE);
+  assert.equal(await engine.handleMessage({ id: "ora-booking", from: "ora-booking", text: "Can ORA manage bookings and calendar availability?" }), ORA_BOOKING_MESSAGE);
+  assert.equal(await engine.handleMessage({ id: "ora-payment", from: "ora-payment", text: "How does the payment flow work?" }), ORA_PAYMENT_MESSAGE);
+  assert.equal(await engine.handleMessage({ id: "ora-integration", from: "ora-integration", text: "Can it integrate with our existing system?" }), ORA_INTEGRATION_MESSAGE);
+  assert.equal(await engine.handleMessage({ id: "ora-closing", from: "ora-closing", text: "Thanks" }), ORA_DEMO_CLOSING_MESSAGE);
+  assert.doesNotMatch([
+    WELCOME_MESSAGE, ORA_INFO_MESSAGE, ORA_KNOWLEDGE_MESSAGE, ORA_BOOKING_MESSAGE,
+    ORA_PAYMENT_MESSAGE, ORA_INTEGRATION_MESSAGE, ORA_DEMO_CLOSING_MESSAGE,
+  ].join("\n"), /clinic|treatment|package/i);
+
+  await store.saveConversation({
+    waId: "ora-stale", state: "awaiting_name", packageId: "package_3", concernCategory: "wrinkle", updatedAt: new Date().toISOString(),
+  });
+  assert.equal(await engine.handleMessage({ id: "ora-off-3", from: "ora-stale", text: "hello" }), WELCOME_MESSAGE);
+  const resetConversation = await store.getConversation("ora-stale");
+  assert.equal(resetConversation?.state, "new");
+  assert.equal(resetConversation?.packageId, undefined);
+  assert.equal(resetConversation?.concernCategory, undefined);
+});
+
+test("Cleaner Demo activates only from the exact standalone cleaner command", async () => {
+  let classifierCalls = 0;
+  const store = new MemoryStore();
+  const engine = new ConversationEngine(store, {
+    async classify() { classifierCalls += 1; return llmDecision(); },
+  }, new FakeCalendar(), new FakeCheckout(), new FakeSender(), false);
+
+  assert.equal(await engine.handleMessage({ id: "cleaner-1", from: "cleaner-user", text: " cleaner " }), CLEANER_WELCOME_MESSAGE);
+  assert.equal((await store.getConversation("cleaner-user"))?.businessMode, "cleaner");
+  assert.equal(await engine.handleMessage({ id: "cleaner-2", from: "cleaner-user", text: "hello" }), CLEANER_WELCOME_MESSAGE);
+  assert.equal(await engine.handleMessage({ id: "cleaner-3", from: "cleaner-user", text: "Can I book a deep clean?" }), CLEANER_TEMPLATE_PENDING_MESSAGE);
+  assert.equal((await store.getConversation("cleaner-user"))?.businessMode, "cleaner");
+
+  assert.equal(await engine.handleMessage({ id: "cleaner-safety-1", from: "cleaner-safety", text: "cleaner" }), CLEANER_WELCOME_MESSAGE);
+  assert.equal(await engine.handleMessage({ id: "cleaner-safety-2", from: "cleaner-safety", text: "I cannot breathe" }), EMERGENCY_MESSAGE);
+  assert.equal(await engine.handleMessage({ id: "cleaner-safety-3", from: "cleaner-safety", text: "hello" }), GENERAL_HANDOVER_MESSAGE);
+
+  assert.equal(await engine.handleMessage({ id: "cleaner-4", from: "cleaner-phrase", text: "cleaner please" }), ORA_INFO_MESSAGE);
+  assert.equal(await engine.handleMessage({ id: "cleaner-5", from: "cleaner-mention", text: "I need a cleaner" }), ORA_INFO_MESSAGE);
+  assert.equal((await store.getConversation("cleaner-phrase"))?.businessMode, undefined);
+  assert.equal((await store.getConversation("cleaner-mention"))?.businessMode, undefined);
+
+  assert.equal(await engine.handleMessage({ id: "cleaner-6", from: "cleaner-user", text: "START OVER" }), WELCOME_MESSAGE);
+  assert.equal((await store.getConversation("cleaner-user"))?.businessMode, undefined);
+  assert.equal(classifierCalls, 0);
+});
+
+test("Cleaner Demo expires with the normal 24-hour conversation window", async () => {
+  const store = new MemoryStore();
+  const engine = new ConversationEngine(store, new FakeClassifier(), new FakeCalendar(), new FakeCheckout(), new FakeSender(), false);
+  await store.saveConversation({
+    waId: "expired-cleaner", state: "new", businessMode: "cleaner", updatedAt: new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString(),
+  });
+
+  assert.equal(await engine.handleMessage({ id: "cleaner-expired", from: "expired-cleaner", text: "hello" }), WELCOME_MESSAGE);
+  assert.equal((await store.getConversation("expired-cleaner"))?.businessMode, undefined);
 });
 
 test("customer copy uses natural dates and hides implementation details", async () => {
@@ -283,7 +383,7 @@ test("structured memory explores a concern and continues booking from a natural 
   const store = new MemoryStore();
   const engine = new ConversationEngine(store, new FakeClassifier(), new FakeCalendar(), new FakeCheckout(), new FakeSender());
   const unknown = await engine.handleMessage({ id: "unknown-1", from: "3", text: "something else" });
-  assert.match(unknown ?? "", /Package 1, 2 or 3/i);
+  assert.match(unknown ?? "", /ask what ORA does/i);
   assert.equal(store.handoffs.length, 0);
   assert.equal((await store.getConversation("3"))?.state, "clarifying_once");
 

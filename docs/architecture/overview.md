@@ -1,7 +1,7 @@
 ---
 document: architecture-overview
 status: draft
-last-reviewed: 2026-08-28
+last-reviewed: 2026-09-01
 source-of-truth: true
 owners:
   - engineering
@@ -17,7 +17,7 @@ Use stable component IDs such as `COMP-AUTH-SERVICE`.
 
 ## System Context
 
-系统边界：A single TypeScript/Express webhook service receives Twilio Sandbox (or Meta) and Stripe events, calls an OpenAI-compatible API only for constrained intent extraction, reads/writes booking state in Supabase, and checks/creates events in Google Calendar.
+系统边界：A single TypeScript/Express webhook service presents ORA through Twilio Sandbox (or Meta). ORA-only mode is the default and bypasses the legacy Clinic classifier, catalogue, and new-booking state machine. An exact standalone `cleaner` command selects a persistent Cleaner presentation shell without enabling unapproved booking logic. The retained Clinic path can be explicitly enabled for regression; only that path calls the OpenAI-compatible classifier and uses Supabase, Google Calendar, and Stripe for new bookings.
 
 ## Components
 
@@ -51,6 +51,8 @@ Use stable component IDs such as `COMP-AUTH-SERVICE`.
 ## Constraints
 
 - One process, one clinic, one calendar, no queue or dashboard; free-tier services may sleep.
-- Conversation context reuses the existing conversation row, stores only workflow/package/concern/name/date-time fields, stores no raw transcript, and expires after 24 hours of inactivity.
+- Conversation context reuses the existing conversation row, stores only business mode/workflow/package/concern/name/date-time fields, stores no raw transcript, and expires after 24 hours of inactivity.
 - Deterministic safety rules run before the LLM; the classifier also returns a constrained handover category as a second safety layer for paraphrases.
 - The classifier may extract FAQ, booking intent, package, preferred name, and local date/time from one message; application code rejects ambiguous packages and inferred clock times, validates and persists fields, executes actions, and asks only for missing booking data.
+- `ENABLE_CLINIC_DEMO=false` is the default runtime boundary. ORA-only mode permits welcome, capability information, callback/human handover, and status recovery for an existing test booking, but blocks new Clinic enquiries and bookings.
+- Cleaner selection is deterministic and handled before model classification. Only the entire trimmed message `cleaner` activates it; `START OVER` clears it, and normal conversation expiry removes it.

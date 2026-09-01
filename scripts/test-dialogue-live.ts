@@ -206,7 +206,7 @@ const explorationScenarios: Scenario[] = (
 
 const faqScenarios: Scenario[] = (
   [
-    ["informal services", "what services do u guys do", /three demonstration packages/i],
+    ["informal services", "what services do u guys do", /three appointment services/i],
     ["package prices", "how much are the packages?", /Package 1 is £50/i],
     ["short duration question", "appointment duration?", /Package 1 is 15 minutes/i],
     ["short deposit question", "deposit needed?", /test deposits are £10/i],
@@ -358,12 +358,12 @@ const ukGreetingScenarios: Scenario[] = [
   label: `UK greeting/register ${index + 1}: ${message}`,
   messages: [message],
   state: "new",
-  replyIncludes: [/Welcome to Aesthetic Clinic Leeds/i],
+  replyIncludes: [/my name is ORA/i],
 }));
 
 const ukFaqScenarios: Scenario[] = (
   [
-    ["services: have you got", "What treatments have you got?", /three demonstration packages/i],
+    ["services: have you got", "What treatments have you got?", /three appointment services/i],
     ["package one: then", "What's package one then?", /Hair & Scalp Consultation/i],
     ["package two: comes with", "What comes with package two?", /Personalised Skin Consultation/i],
     ["package three: wrinkle package", "What's the wrinkle package all about?", /Anti-Wrinkle Consultation/i],
@@ -414,7 +414,7 @@ const ukExplorationScenarios: Scenario[] = (
   messages: [message],
   state: label === "acne right pain" ? "new" : "offering_booking",
   packageId: label === "acne right pain" ? undefined : packageId,
-  replyIncludes: label === "acne right pain" ? [/three demonstration packages/i] : undefined,
+  replyIncludes: label === "acne right pain" ? [/three appointment services/i] : undefined,
 }));
 
 const ukBookingScenarios: Scenario[] = (
@@ -532,7 +532,7 @@ const blindNavigationScenarios: Scenario[] = [
 
 const blindFaqScenarios: Scenario[] = (
   [
-    ["what do you actually do here?", /three demonstration packages/i],
+    ["what do you actually do here?", /three appointment services/i],
     ["what's included in the hair one?", /Hair & Scalp Consultation/i],
     ["skin package details please", /Personalised Skin Consultation/i],
     ["tell me about your botox consultation", /Anti-Wrinkle Consultation/i],

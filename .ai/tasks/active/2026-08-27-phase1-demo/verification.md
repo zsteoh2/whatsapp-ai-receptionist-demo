@@ -84,3 +84,25 @@
 - Passed: the three direct model suites disabled Twilio/WhatsApp, Supabase, Google Calendar, and Stripe network calls; only the configured model API was used.
 - Failed then fixed: the deployed smoke test did not recognise `tmr` because the shared normaliser handled weekday/package abbreviations but no today/tomorrow shortcuts.
 - Passed: `npm run check` completed 26/26 after adding exact London-date assertions for `tdy`, `2day`, `tmr`, `tmrw`, `tmw`, `tmoro`, `2moro`, `2morrow`, `tmoz`, and `tomoz`, plus a regression proving `tmr` cannot be stored as a customer name.
+- Passed: `npm run build` and the focused Node test suite after the ORA presentation update; 27/27 checks cover the four-option welcome, exact product/service and general-question choices, callback handoff, Founder contact details, booking confirmation CTA, and emergency precedence over callback routing.
+- Failed then fixed: the first post-ORA real-Luna regression passed 197/200 because three assertions still expected the retired service-list sentence; no intent, state, or safety case failed. The assertions were updated to the approved ORA copy.
+- Passed final: `npm run test:dialogue:live` completed 200/200 against real `gpt-5.6-luna`; Twilio/WhatsApp, Supabase, Google Calendar, and Stripe network calls were disabled.
+- Passed: `git diff --check` reported no whitespace errors and the changed-file secret-shape scan found no provider credential patterns.
+- Passed with review recommendations: the bundled-Python context validator reports 0 errors; the two undated session files and graph metadata without a source commit remain its three recommendations.
+- Not run: Railway deployment and live WhatsApp smoke test for the ORA welcome, callback request, and post-booking Founder CTA.
+- Not available: a cleaner-business content conversion and Calendly link because the cleaner's approved process data and meeting URL have not been supplied.
+- Passed: `npm run build` and the focused Node test suite after taking Clinic offline; 28/28 checks pass.
+- Passed: the ORA-only regression proves the welcome and safety copy contain no Clinic/package/service names, Clinic-style messages do not call the model classifier, new booking requests return the approved pending-template response, and stale Clinic booking state is reset before ORA handling.
+- Passed: production dependency construction passes the disabled-by-default `ENABLE_CLINIC_DEMO` setting into the conversation engine; the retained direct-engine Clinic tests remain enabled and continue to pass.
+- Passed: medical/emergency and callback routing still run before the ORA-only boundary, while new Clinic FAQ, package, Calendar, and payment flows are unreachable in default mode.
+- Passed with review recommendations: project-context validation reports 0 errors and the same three recommendations for undated session files and graph metadata without a source commit.
+- Not run: the 200-case live Luna suite after Clinic was disabled because ORA-only mode deliberately bypasses the model; the retained Clinic suite last passed 200/200 immediately before this change.
+- Not run: Railway deployment and live WhatsApp verification of ORA-only mode.
+- Passed: `npm run build` and the focused Node test suite after adding Cleaner Demo; 30/30 checks pass.
+- Passed: exact case-insensitive standalone `cleaner` activates and persists Cleaner Demo, while `cleaner please` and `I need a cleaner` remain in main ORA without calling the model classifier.
+- Passed: Cleaner greetings remain in Cleaner Demo, booking-like enquiries return the honest pending-template reply, `START OVER` clears the mode, and a conversation older than 24 hours returns to main ORA.
+- Passed: emergency detection still pre-empts Cleaner replies, and the resulting handover remains paused on a later greeting.
+- Passed: `git diff --check` reported no whitespace errors after the Cleaner change.
+- Not run: the idempotent `business_mode` Supabase migration, Railway deployment, and live WhatsApp Cleaner smoke test require the user-owned services.
+- Passed with review recommendations: final project-context validation reports 0 errors; the undated session files and graph metadata without a source commit remain its three recommendations.
+- Passed: `npm run check` after the ORA capability-Q&A update builds successfully and passes 30/30 offline checks, including knowledge, booking/calendar, test-payment, integration, explicit closing, and no-Clinic-copy assertions.

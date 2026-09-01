@@ -2,8 +2,8 @@
   "$schema": "../schemas/active-task.schema.json",
   "taskId": "2026-08-27-phase1-demo",
   "stage": "verification",
-  "lastUpdated": "2026-08-31T00:50:47+08:00",
-  "currentGoal": "Ship the date-shortcut normalization fix after the live WhatsApp smoke test exposed `tmr` as unsupported.",
-  "nextAction": "Wait for Railway to deploy the date-shortcut fix, then retry one WhatsApp booking using `tmr at 2pm`.",
+  "lastUpdated": "2026-09-02T03:00:00+08:00",
+  "currentGoal": "Deploy an ORA-only prospect experience that demonstrates ORA's own capabilities without exposing Clinic content or inventing customer-business facts.",
+  "nextAction": "Rerun the Supabase schema, deploy the verified ORA capability update, then smoke-test the welcome, capability questions, explicit closing CTA, callback, and Cleaner boundaries.",
   "blocked": false
 }

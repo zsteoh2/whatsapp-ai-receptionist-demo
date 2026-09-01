@@ -17,10 +17,14 @@
 - Added a separate exact-outcome UK date/time harness with 200 cases and no WhatsApp, Supabase, Calendar, or Stripe traffic. It checks the stored London-local minute rather than merely checking for a date, and keeps difficult failures unchanged for repair.
 - Hardened the shared date/time layer without changing the benchmark: deterministic validated values now outrank model output; approximate, range, missing-date, and invalid-date requests never create an exact slot; and additional UK clock/date forms are parsed locally. The exact-time suite now passes 200/200.
 - Naturalised customer-facing copy: date prompts now use UK examples instead of ISO syntax, and chat messages no longer expose timezone, Stripe Checkout, Google Calendar, or internal approval/handover/service terminology. Required demo, medical, payment, and confirmation disclosures remain.
+- Added ORA as the reusable prospect-facing identity while retaining the fictional clinic as the current working content example. The welcome presents booking, product/service enquiry, a general question, and callback in a compact list and explicitly allows natural free text.
+- Reframed the main ORA-only welcome and knowledge around ORA itself: prospects can ask about approved business knowledge, booking/calendar automation, test payments, integrations, and human handover without seeing Clinic content or fabricated customer-business facts. Short explicit endings return the Founder CTA.
+- Added deterministic callback handoff and a Founder CTA using `07955 506757` and `hau@convertbydigital.com` after confirmed bookings and human-follow-up flows. Emergency and medical safety checks still run before callback routing.
+- Took Clinic customer behavior offline behind `ENABLE_CLINIC_DEMO`, which defaults to false. ORA-only mode does not call the Clinic classifier, show Clinic/package copy, or create new Clinic bookings; it explains ORA, accepts callback/human requests, and refuses to invent business-template facts.
 
 ## Current Status
 
-- Railway, Supabase, VectorEngine, signed Twilio inbound replies, Google Calendar, and Stripe Test Checkout are working through Calendar event creation. The new blind language suite passes 100/100, both the general dialogue and exact UK date/time suites pass 200/200 against real Luna, and offline checks pass 26/26 after adding today/tomorrow shortcut support.
+- Railway, Supabase, VectorEngine, signed Twilio inbound replies, Google Calendar, and Stripe Test Checkout remain implemented. The locally verified, not-yet-deployed default is now ORA-only with ORA capability Q&A and an exact-command Cleaner shell; the Clinic template is dormant. Offline checks pass 30/30. Before the shutdown boundary, the retained Clinic template passed blind 100/100, general dialogue 200/200, and exact UK date/time 200/200 against real Luna.
 
 ## Verification
 
@@ -47,10 +51,14 @@
 - The untouched 100-case blind language baseline passed 78/100; after fixing every discovered language, correction, precedence, and safety gap, the final blind suite passes 100/100.
 - Final post-fix regressions: `npm run check` 25/25, general real-Luna dialogue 200/200, and exact UK date/time 200/200. Direct model tests used no Twilio/WhatsApp, Supabase, Google Calendar, or Stripe traffic.
 - The live WhatsApp smoke test exposed unsupported `tmr`; the shared normaliser now accepts common `today`/`tomorrow` shortcuts and prevents them from being captured as customer names. `npm run check` passes 26/26.
+- The ORA-focused offline regression passes 27/27, including emergency precedence over callback requests, and the full real-Luna dialogue suite passes 200/200 with all non-model provider traffic disabled.
+- The ORA-only shutdown regression passes as part of 28/28 offline checks: Clinic language and new bookings are blocked, the model classifier is not called, and the production factory defaults the Clinic flag off.
+- The hidden Cleaner Demo is implemented without reactivating Clinic: only exact standalone `cleaner` selects it, the selection persists in bounded conversation memory, `START OVER` and 24-hour expiry clear it, and non-exact mentions do not switch modes. Build and offline checks pass 30/30.
+- The ORA capability regression covers knowledge, booking/calendar, test-payment, integration, and explicit closing questions; `npm run check` passes 30/30 and the tested ORA copy contains no Clinic, treatment, or package terminology.
 
 ## Documentation Updated
 
-- README, requirements, architecture, ADR-003, task records, and project memory.
+- AI context, README, vision, requirements, business rules, glossary, architecture, task records, and project memory.
 
 ## Known Limitations
 
@@ -62,15 +70,20 @@
 - One approved FAQ can be selected per message; a FAQ can coexist with one booking request and all supplied booking fields.
 - Date/time extraction deliberately accepts only locally validated forms; unsupported, approximate, range, missing-date, and invalid-date requests ask for clarification instead of trusting an LLM-generated slot.
 - The original ignored `Key.txt` still exists; remove it manually after confirming `.env.local` works.
+- The ORA shell is reusable, but the approved FAQs, packages, hours, prices, policies, and medical safety rules are still the clinic example. Cleaner-specific content requires the cleaner's real process.
+- No Calendly URL has been supplied, so the CTA includes the approved phone and email only.
+- ORA-only mode cannot demonstrate a full service enquiry, new booking, payment, or Calendar journey until an approved replacement business template is supplied. This is intentional and prevents fabricated business data.
+- Existing Supabase deployments must rerun `supabase/schema.sql` once before this version is deployed so the conversation table has the nullable `business_mode` column.
 
 ## Remaining Work
 
-- Wait for Railway to deploy the date-shortcut fix, then retry one compact WhatsApp flow using `tmr at 2pm`.
+- Rerun the Supabase schema, push and deploy ORA-only mode, ensure Railway has no true `ENABLE_CLINIC_DEMO` variable, then smoke-test `cleaner`, `cleaner please`, Cleaner greeting, `START OVER`, and callback handling in WhatsApp.
+- Obtain the cleaner service/process data and Calendly URL before activating a replacement booking journey.
 
 ## Blocker
 
-- No direct dialogue blocker remains. Automatic outbound confirmation separately still requires a Twilio upgrade.
+- ORA identity and callback handling are unblocked. Full enquiry/booking/payment/calendar demonstration is blocked on approved cleaner data; the meeting CTA is blocked on the missing Calendly URL. Automatic outbound confirmation separately still requires a Twilio upgrade.
 
 ## Next Recommended Action
 
-- Wait for Railway to deploy the date-shortcut fix, then retry WhatsApp with `Book Package 2 tmr at 2pm, name Alex`.
+- Rerun `supabase/schema.sql`, push the verified change, confirm `ENABLE_CLINIC_DEMO` is absent or false in Railway, wait for deployment, then send `cleaner`, `hello`, `cleaner please`, `START OVER`, and `Request a callback` from fresh test conversations.

@@ -58,7 +58,7 @@ export function createDependencies(): AppDependencies {
     : config.meta.accessToken && config.meta.phoneNumberId ? new WhatsAppSender() : new UnavailableSender();
   return {
     store,
-    engine: new ConversationEngine(store, classifier, calendar, checkout, sender),
+    engine: new ConversationEngine(store, classifier, calendar, checkout, sender, config.demo.clinicEnabled),
     sender,
     stripeClient,
     storeMode: store instanceof SupabaseStore ? "supabase" : "memory",

@@ -1,23 +1,28 @@
-# WhatsApp AI Receptionist Demo
+# ORA WhatsApp AI Receptionist Demo
 
-Phase 1 demonstration backend for a fictional **Aesthetic Clinic** in Leeds. It handles English WhatsApp text messages, fixed approved FAQs, booking details, Google Calendar availability, Stripe Test Checkout deposits, confirmations, and safety-first human handover.
+ORA is a reusable WhatsApp business-assistant demonstration. ORA is now the only active customer-facing identity: it explains its capabilities, handles callback requests, and directs prospects to the Founder without exposing an industry-specific business template.
 
-This is not a production clinic system. Use synthetic test data only. It does not diagnose conditions, assess treatment suitability, or process real money.
+This is not a production business system. Use synthetic test data only. It does not provide professional advice or process real money.
 
 ## What is implemented
 
 - `GET /health`
 - Signed Twilio Sandbox and Meta webhook ingestion
 - Twilio Sandbox or WhatsApp Cloud API text replies
-- 20 fixed approved FAQ answers
+- ORA capability information and safe pending-template replies
+- A hidden Cleaner Demo selected only by sending the standalone command `cleaner`
 - Deterministic emergency, medical, complaint, under-18, and human-request handover
-- OpenAI-compatible Chat Completions classification with strict, multi-field structured output
-- Stateful booking flow that preserves supplied fields, asks only for missing data, and enforces a two-hour minimum notice
-- Google Calendar free/busy lookup, alternatives, and event creation
+- A retained, disabled Clinic regression template with OpenAI-compatible classification and stateful booking
+- Google Calendar free/busy lookup, alternatives, and event creation for an enabled business template
 - Google OAuth with signed state and service-only refresh-token storage
 - Stripe Test Checkout and signed webhook confirmation
 - WhatsApp and Stripe webhook idempotency
 - Supabase persistence with an in-memory local fallback
+- Clean ORA welcome menu and post-booking Founder call to action
+
+The old Clinic template is retained for regression only and is disabled by default. Do not set `ENABLE_CLINIC_DEMO=true` in Railway while it is offline. Until an approved business template is supplied, ORA will not invent services, prices, availability, or booking rules. The Founder CTA uses `07955 506757` and `hau@convertbydigital.com`; a Calendly link has not yet been supplied.
+
+Send exactly `cleaner` (case-insensitive, with no other words) to enter the Cleaner Demo. Mentioning cleaner in a normal sentence does not switch modes. The selected mode persists in bounded conversation memory for up to 24 hours; `START OVER` immediately returns to the main ORA demo. The Cleaner Demo is currently a safe presentation shell rather than a working quote or booking journey because its approved catalogue and operating rules have not been supplied.
 
 ## Local setup
 
@@ -29,6 +34,8 @@ npm run check
 ```
 
 Copy the non-secret settings from `.env.example` into `.env.local` and fill the provider values. `.env.local`, `Key.txt`, build output, logs, and dependencies are ignored by Git.
+
+`ENABLE_CLINIC_DEMO` defaults to `false`. The `true` setting exists only to run the retained Clinic regression template and must not be enabled for the current ORA presentation.
 
 The demo uses the OpenAI-compatible VectorEngine endpoint at `https://api.vectorengine.cn/v1` through `OPENAI_BASE_URL`. Keep the API key only in `.env.local` or Railway Variables; the configured model is `gpt-5.6-luna`.
 
@@ -50,6 +57,8 @@ Then open `http://localhost:3000/health`. The response reports only configured/n
 4. Never expose the service-role key to a browser or client application.
 
 All tables have Row Level Security enabled and no client policies. The backend service role is the only intended caller.
+
+Run the schema again on an existing project before deploying this version; its idempotent migration adds the nullable `business_mode` field used to remember Cleaner Demo selection.
 
 ## Google Calendar
 
