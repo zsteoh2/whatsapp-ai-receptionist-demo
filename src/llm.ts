@@ -1,7 +1,7 @@
 import OpenAI from "openai";
 import { config } from "./config.js";
 import { FAQS } from "./faq.js";
-import type { Conversation, PackageId } from "./types.js";
+import type { ClinicPackageId, Conversation } from "./types.js";
 
 export type IntentContext = Pick<Conversation, "state" | "packageId" | "concernCategory" | "customerName" | "requestedStart">;
 
@@ -10,7 +10,7 @@ export interface LlmDecision {
   handover: "none" | "medical" | "general" | "emergency";
   wantsBooking: boolean;
   faqId: number | null;
-  packageId: PackageId | null;
+  packageId: ClinicPackageId | null;
   customerName: string | null;
   localDateTime: string | null;
 }

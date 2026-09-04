@@ -6,8 +6,29 @@ export const WELCOME_MESSAGE = [
   "• Explore bookings, payments and follow-up",
   "• Speak with our Founder",
   "",
+  "To try the complete booking and £1 test-payment journey, reply START DEMO.",
+  "",
   "Choose an option above or type naturally.",
 ].join("\n");
+
+export const ORA_DEMO_START_MESSAGE = [
+  "ORA Interactive Demo started ✅",
+  "",
+  "Here is the journey I’ll demonstrate:",
+  "1. Collect the booking details",
+  "2. Check sample calendar availability",
+  "3. Confirm the demonstration policy",
+  "4. Create a secure £1 Stripe test-payment link",
+  "5. Confirm the demo appointment after payment",
+  "6. Offer a Founder follow-up",
+  "",
+  "No real appointment will be booked and Stripe remains in Test Mode.",
+  "",
+  "First, what name would you like on the demo booking?",
+].join("\n");
+
+export const ORA_DEMO_POLICY_MESSAGE =
+  "This is a demonstration only. The £1 payment uses Stripe Test Mode, no real appointment is created, and the selected time is only used to demonstrate the workflow. Reply YES to continue to test payment, or NO to stop.";
 
 export const FOUNDER_CTA_MESSAGE = [
   "Would you like to see what ORA could do for your business?",
@@ -27,14 +48,27 @@ export const ORA_INFO_MESSAGE = [
   "Ask me about knowledge, bookings, payments, integrations, safety, or human handover.",
 ].join("\n");
 
-export const ORA_KNOWLEDGE_MESSAGE =
-  "ORA can answer from business-approved FAQs, services, policies and operating information. Answers are limited to the information the business has supplied; when something is missing or needs judgement, ORA should say so and hand it to a person instead of guessing.";
+export const ORA_KNOWLEDGE_MESSAGE = [
+  "ORA Business Knowledge Showcase 🧠",
+  "",
+  "A business can give ORA approved knowledge such as:",
+  "• Products and services — names, descriptions, prices and available options",
+  "• Operations — opening hours, service areas, availability and policies",
+  "• Sales guidance — qualifying questions, approved comparisons and next steps",
+  "• Customer support — FAQs, order or booking guidance and human escalation rules",
+  "",
+  "Using that knowledge, ORA can understand natural questions, find the relevant approved answer, explain or compare options, capture customer intent, and continue into a quote, booking, payment or human follow-up workflow.",
+  "",
+  "ORA does not invent missing products, prices or policies. If the approved knowledge does not contain an answer, it says so and directs the request to a person.",
+  "",
+  "This generic showcase contains no real company catalogue. Reply START DEMO to try the complete booking and £1 test-payment journey.",
+].join("\n");
 
 export const ORA_BOOKING_MESSAGE =
-  "ORA can collect the details a business needs, check connected calendar availability, offer suitable times and record a confirmed appointment. The exact questions, availability rules and confirmation steps are configured for that business.";
+  "ORA can collect the details a business needs, check connected calendar availability, offer suitable times and record a confirmed appointment. The exact questions, availability rules and confirmation steps are configured for that business. Reply START DEMO to try the complete demonstration.";
 
 export const ORA_PAYMENT_MESSAGE =
-  "ORA can provide a secure payment link at the appropriate point in a configured journey and continue after a successful payment event. This demonstration uses test payments only and does not take real money.";
+  "ORA can provide a secure payment link at the appropriate point in a configured journey and continue after a successful payment event. This demonstration uses test payments only and does not take real money. Reply START DEMO to go through the £1 Stripe test-payment journey.";
 
 export const ORA_INTEGRATION_MESSAGE =
   "ORA can connect approved business tools through their supported APIs. This demonstration already includes WhatsApp, an AI model, structured storage, Google Calendar and Stripe Test Mode. Any additional integration must be checked and configured for the business rather than assumed.";

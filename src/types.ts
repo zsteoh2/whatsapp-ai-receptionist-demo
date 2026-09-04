@@ -1,4 +1,5 @@
-export type PackageId = "package_1" | "package_2" | "package_3";
+export type ClinicPackageId = "package_1" | "package_2" | "package_3";
+export type PackageId = ClinicPackageId | "ora_demo";
 
 export type ConversationState =
   | "new"

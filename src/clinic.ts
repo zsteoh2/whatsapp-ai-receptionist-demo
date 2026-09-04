@@ -1,4 +1,4 @@
-import type { PackageId } from "./types.js";
+import type { ClinicPackageId, PackageId } from "./types.js";
 
 export const CLINIC = {
   name: "Aesthetic Clinic",
@@ -41,6 +41,14 @@ export const PACKAGES = {
     pricePence: 15000,
     depositPence: 3000,
   },
+  ora_demo: {
+    id: "ora_demo",
+    number: 0,
+    name: "ORA Demo Appointment",
+    durationMinutes: 30,
+    pricePence: 100,
+    depositPence: 100,
+  },
 } satisfies Record<PackageId, {
   id: PackageId;
   number: number;
@@ -50,19 +58,19 @@ export const PACKAGES = {
   depositPence: number;
 }>;
 
-export function packageMentions(text: string): PackageId[] {
+export function packageMentions(text: string): ClinicPackageId[] {
   const normalized = text.toLowerCase();
-  if (/^\s*[123]\s*$/.test(normalized)) return [`package_${normalized.trim()}` as PackageId];
+  if (/^\s*[123]\s*$/.test(normalized)) return [`package_${normalized.trim()}` as ClinicPackageId];
   return [
     (/\b((?:p\s*1|package\s*(?:1|one))|hair|scalp|hairline|hair loss|hair fall|thinning hair|hair in my brush)\b/.test(normalized)
       || /\bhair\b.{0,35}\bthinning\b/.test(normalized)) && "package_1",
     (/\b((?:p\s*2|package\s*(?:2|two))|skin|acne|breakouts?|pigmentation|uneven skin tone|dull skin|skin texture|dark marks?|dark spots?|dry skin|oily skin)\b/.test(normalized)
       || /\bskin tone\b.{0,25}\buneven\b/.test(normalized)) && "package_2",
     /\b(?:p\s*3|package\s*(?:3|three)|anti[- ]?wrinkle|wrinkles?|botox|forehead (?:lines?|creases?)|frown lines?|eleven lines?|lines? between (?:my )?brows?|lines? (?:around|round) my eyes|crow'?s feet)\b/.test(normalized) && "package_3",
-  ].filter(Boolean) as PackageId[];
+  ].filter(Boolean) as ClinicPackageId[];
 }
 
-export function parsePackage(text: string): PackageId | undefined {
+export function parsePackage(text: string): ClinicPackageId | undefined {
   const matches = packageMentions(text);
   return matches.length === 1 ? matches[0] : undefined;
 }

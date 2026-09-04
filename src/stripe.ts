@@ -26,7 +26,12 @@ export class StripeCheckoutGateway implements CheckoutGateway {
         price_data: {
           currency: "gbp",
           unit_amount: booking.depositPence,
-          product_data: { name: `Test deposit — ${pack.name}`, description: "Demonstration only; no real booking or treatment." },
+          product_data: {
+            name: `Test deposit — ${pack.name}`,
+            description: booking.packageId === "ora_demo"
+              ? "ORA interactive demonstration; no real appointment."
+              : "Demonstration only; no real booking or treatment.",
+          },
         },
       }],
       metadata: { booking_id: booking.id, whatsapp_id: booking.waId, demo: "true" },

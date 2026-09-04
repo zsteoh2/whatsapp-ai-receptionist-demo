@@ -17,7 +17,7 @@ create table if not exists bookings (
   id uuid primary key,
   wa_id text not null,
   customer_name text not null,
-  package_id text not null check (package_id in ('package_1', 'package_2', 'package_3')),
+  package_id text not null check (package_id in ('package_1', 'package_2', 'package_3', 'ora_demo')),
   requested_start timestamptz not null,
   confirmed_start timestamptz,
   deposit_pence integer not null check (deposit_pence > 0),
@@ -27,6 +27,11 @@ create table if not exists bookings (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+-- Extend existing deployments for the generic ORA interactive demo.
+alter table bookings drop constraint if exists bookings_package_id_check;
+alter table bookings add constraint bookings_package_id_check
+  check (package_id in ('package_1', 'package_2', 'package_3', 'ora_demo'));
 
 create table if not exists processed_events (
   provider text not null check (provider in ('meta', 'stripe')),
