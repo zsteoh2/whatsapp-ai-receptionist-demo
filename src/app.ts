@@ -2,6 +2,7 @@ import express, { type Request, type Response } from "express";
 import type Stripe from "stripe";
 import { GoogleCalendarGateway, type CalendarGateway } from "./calendar.js";
 import { config, readiness } from "./config.js";
+import { WELCOME_MESSAGE } from "./messages.js";
 import { ConversationEngine } from "./conversation.js";
 import { createOAuthState, googleOAuthClient, verifyOAuthState } from "./google-oauth.js";
 import { OpenAiIntentClassifier, type IntentClassifier, type LlmDecision } from "./llm.js";
@@ -113,6 +114,14 @@ export function createApp(deps = createDependencies()) {
     if (!message) return res.status(200).type("text/xml").send(twimlResponse());
     try {
       const reply = await deps.engine.handleMessage(message);
+      if (reply === WELCOME_MESSAGE && config.twilio.menuContentSid && deps.sender.sendTemplate) {
+        try {
+          await deps.sender.sendTemplate(message.from, config.twilio.menuContentSid);
+          return res.status(200).type("text/xml").send(twimlResponse());
+        } catch {
+          console.error("twilio_menu_failed_using_text_fallback");
+        }
+      }
       return res.status(200).type("text/xml").send(twimlResponse(reply));
     } catch (error) {
       await deps.store.forgetEvent("meta", message.id).catch(() => undefined);

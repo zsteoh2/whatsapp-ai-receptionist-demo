@@ -31,6 +31,7 @@ export const config = {
     accountSid: env("TWILIO_ACCOUNT_SID"),
     authToken: env("TWILIO_AUTH_TOKEN"),
     whatsappFrom: env("TWILIO_WHATSAPP_FROM"),
+    menuContentSid: env("TWILIO_MENU_CONTENT_SID"),
   },
   supabase: {
     url: env("SUPABASE_URL"),

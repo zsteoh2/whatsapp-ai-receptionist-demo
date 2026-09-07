@@ -4,6 +4,7 @@ import type { IncomingMessage } from "./types.js";
 
 export interface MessageSender {
   sendText(to: string, text: string): Promise<void>;
+  sendTemplate?(to: string, contentSid: string): Promise<void>;
 }
 
 export const twilioErrorCode = (payload: unknown) =>
@@ -30,9 +31,18 @@ export class WhatsAppSender implements MessageSender {
 
 export class TwilioWhatsAppSender implements MessageSender {
   async sendText(to: string, text: string) {
+    await this.send(to, { Body: text });
+  }
+
+  async sendTemplate(to: string, contentSid: string) {
+    if (!/^HX[0-9a-f]{32}$/i.test(contentSid)) throw new Error("Invalid Twilio Content SID");
+    await this.send(to, { ContentSid: contentSid });
+  }
+
+  private async send(to: string, content: Record<string, string>) {
     const { accountSid, authToken, whatsappFrom } = config.twilio;
     if (!accountSid || !authToken || !whatsappFrom) throw new Error("Twilio WhatsApp is not configured");
-    const body = new URLSearchParams({ To: to, From: whatsappFrom, Body: text });
+    const body = new URLSearchParams({ To: to, From: whatsappFrom, ...content });
     const response = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`, {
       method: "POST",
       headers: {
@@ -88,6 +98,16 @@ export function verifyTwilioSignature(
 export function extractTwilioIncomingMessage(payload: Record<string, unknown>): IncomingMessage | undefined {
   const id = typeof payload.MessageSid === "string" ? payload.MessageSid : undefined;
   const from = typeof payload.From === "string" ? payload.From : undefined;
-  const text = typeof payload.Body === "string" ? payload.Body.trim() : undefined;
+  const selections: Record<string, string> = {
+    book_appointment: "START DEMO",
+    service_enquiry: "What business knowledge can ORA answer?",
+    general_question: "General question",
+    ask_question: "General question",
+    request_callback: "Request callback",
+  };
+  const selection = typeof payload.ListId === "string" ? payload.ListId : payload.ButtonPayload;
+  const text = typeof selection === "string" && Object.hasOwn(selections, selection)
+    ? selections[selection]
+    : typeof payload.Body === "string" ? payload.Body.trim() : undefined;
   return id && from && text ? { id, from, text } : undefined;
 }
