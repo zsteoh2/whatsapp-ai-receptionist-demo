@@ -1,0 +1,231 @@
+{
+  "model": "gpt-5.6-luna",
+  "usage": {
+    "prompt_tokens": 2400,
+    "completion_tokens": 1202,
+    "total_tokens": 3602,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0,
+      "cache_write_tokens": 2397
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 18,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    },
+    "latency_checkpoint": {
+      "engine_tbt_ms": 7,
+      "engine_ttft_ms": 147,
+      "engine_ttlt_ms": 8357,
+      "pre_inference_ms": 133,
+      "service_tbt_ms": 7,
+      "service_ttft_ms": 451,
+      "service_ttlt_ms": 8630,
+      "user_visible_ttft_ms": 318
+    }
+  },
+  "cases": [
+    {
+      "id": 2851,
+      "text": "Please start the interactive demo booking now."
+    },
+    {
+      "id": 2852,
+      "text": "Start the demo booking now, please."
+    },
+    {
+      "id": 2853,
+      "text": "I would like to start the interactive demo booking now and see how it works."
+    },
+    {
+      "id": 2854,
+      "text": "Please start the interactive demo booking now; I want to assess the process myself."
+    },
+    {
+      "id": 2855,
+      "text": "Could we perhaps start the interactive demo booking now, please?"
+    },
+    {
+      "id": 2856,
+      "text": "I think I am ready, so please start the interactive demo booking now."
+    },
+    {
+      "id": 2857,
+      "text": "Right, let us get going with the interactive demo booking now, hey."
+    },
+    {
+      "id": 2858,
+      "text": "Cool, can we kick off the interactive demo booking now? Just start it please."
+    },
+    {
+      "id": 2859,
+      "text": "Please start the booking—sorry, the interactive demo booking—now."
+    },
+    {
+      "id": 2860,
+      "text": "Start the interactive demo booking now, please."
+    },
+    {
+      "id": 2861,
+      "text": "I would like to resume my existing booking. Please advise what is required next."
+    },
+    {
+      "id": 2862,
+      "text": "Resume my booking. What do you need next?"
+    },
+    {
+      "id": 2863,
+      "text": "Can we carry on with my booking? I am not sure what information you need from me next."
+    },
+    {
+      "id": 2864,
+      "text": "I want to continue the existing booking. What exactly is needed next?"
+    },
+    {
+      "id": 2865,
+      "text": "May we please continue with the booking, and could you let me know what is needed next?"
+    },
+    {
+      "id": 2866,
+      "text": "I would like to carry on with the booking, but I am unsure what you need next."
+    },
+    {
+      "id": 2867,
+      "text": "Hi, can we pick up where we left off with my booking? Please tell me what you need next."
+    },
+    {
+      "id": 2868,
+      "text": "Can we carry on with the booking now? What do you need from me next?"
+    },
+    {
+      "id": 2869,
+      "text": "Let us continue with my booking—sorry, I mean resume it. What is needed next?"
+    },
+    {
+      "id": 2870,
+      "text": "Please continue my booking. What do you need next?"
+    },
+    {
+      "id": 2871,
+      "text": "Please use Avery Vale Evans as the booking name."
+    },
+    {
+      "id": 2872,
+      "text": "Booking name: Riley Vale Evans."
+    },
+    {
+      "id": 2873,
+      "text": "The booking name should be Quinn Vale Evans. Is that all you need?"
+    },
+    {
+      "id": 2874,
+      "text": "Use Cameron Vale Evans as the booking name."
+    },
+    {
+      "id": 2875,
+      "text": "If it is suitable, please put the booking under Reese Vale Evans."
+    },
+    {
+      "id": 2876,
+      "text": "I think you can use Skyler Vale Evans as the booking name."
+    },
+    {
+      "id": 2877,
+      "text": "Please book it under Rowan Vale Evans, that is the name to use."
+    },
+    {
+      "id": 2878,
+      "text": "Use Emery Vale Evans for the booking name, please."
+    },
+    {
+      "id": 2879,
+      "text": "The name is Blake Vale Evans—sorry, Blake Vale Evans for the booking."
+    },
+    {
+      "id": 2880,
+      "text": "My booking name is Parker Vale Evans."
+    },
+    {
+      "id": 2881,
+      "text": "Please schedule the appointment for 18 November 2030 at exactly 2:30pm London time."
+    },
+    {
+      "id": 2882,
+      "text": "18 November 2030, 2:30pm London time."
+    },
+    {
+      "id": 2883,
+      "text": "Could I book it for 18 November 2030 at exactly 2:30pm in London time?"
+    },
+    {
+      "id": 2884,
+      "text": "Set the appointment for 18 November 2030 at 2:30pm London time, exactly."
+    },
+    {
+      "id": 2885,
+      "text": "Would 2:30pm London time on 18 November 2030 please be possible for the appointment?"
+    },
+    {
+      "id": 2886,
+      "text": "I would prefer 18 November 2030 at exactly 2:30pm London time, if available."
+    },
+    {
+      "id": 2887,
+      "text": "Let us put the appointment in for 18 November 2030 at exactly 2:30pm London time."
+    },
+    {
+      "id": 2888,
+      "text": "Please slot me in for 18 November 2030, 2:30pm London time sharp."
+    },
+    {
+      "id": 2889,
+      "text": "Book it for 18 November 2030—sorry, at exactly 2:30pm London time."
+    },
+    {
+      "id": 2890,
+      "text": "Appointment: 18 November 2030 at exactly 2:30pm London time."
+    },
+    {
+      "id": 2891,
+      "text": "Please change the existing appointment to tomorrow afternoon."
+    },
+    {
+      "id": 2892,
+      "text": "Move it to tomorrow afternoon."
+    },
+    {
+      "id": 2893,
+      "text": "Can you change the appointment to sometime next week? I do not mind which day."
+    },
+    {
+      "id": 2894,
+      "text": "Change the existing appointment to tomorrow afternoon, but do not set an exact time yet."
+    },
+    {
+      "id": 2895,
+      "text": "Would it be possible to move the appointment to sometime next week, please?"
+    },
+    {
+      "id": 2896,
+      "text": "Could we shift the appointment to tomorrow afternoon? That would suit me better."
+    },
+    {
+      "id": 2897,
+      "text": "Please move the existing appointment to sometime next week; any suitable day should be fine."
+    },
+    {
+      "id": 2898,
+      "text": "Can you shift it to tomorrow afternoon, please? No exact slot needed for now."
+    },
+    {
+      "id": 2899,
+      "text": "Change the appointment to next week—sorry, I mean sometime next week, without fixing a date and time."
+    },
+    {
+      "id": 2900,
+      "text": "Move my existing appointment to tomorrow afternoon."
+    }
+  ]
+}

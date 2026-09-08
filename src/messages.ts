@@ -11,9 +11,7 @@ export const WELCOME_MESSAGE = [
   "Choose an option above or type naturally.",
 ].join("\n");
 
-export const ORA_DEMO_START_MESSAGE = [
-  "ORA Interactive Demo started ✅",
-  "",
+export const ORA_DEMO_JOURNEY_MESSAGE = [
   "Here is the journey I’ll demonstrate:",
   "1. Collect the booking details",
   "2. Check sample calendar availability",
@@ -23,9 +21,9 @@ export const ORA_DEMO_START_MESSAGE = [
   "6. Offer a Founder follow-up",
   "",
   "No real appointment will be booked and Stripe remains in Test Mode.",
-  "",
-  "First, what name would you like on the demo booking?",
 ].join("\n");
+
+export const ORA_DEMO_START_MESSAGE = `ORA Interactive Demo started ✅\n\n${ORA_DEMO_JOURNEY_MESSAGE}\n\nFirst, what name would you like on the demo booking?`;
 
 export const ORA_DEMO_POLICY_MESSAGE =
   "This is a demonstration only. The £1 payment uses Stripe Test Mode, no real appointment is created, and the selected time is only used to demonstrate the workflow. Reply YES to continue to test payment, or NO to stop.";

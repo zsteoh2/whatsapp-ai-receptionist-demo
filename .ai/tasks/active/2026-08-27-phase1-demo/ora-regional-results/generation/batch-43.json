@@ -1,0 +1,231 @@
+{
+  "model": "gpt-5.6-luna",
+  "usage": {
+    "prompt_tokens": 2392,
+    "completion_tokens": 1423,
+    "total_tokens": 3815,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0,
+      "cache_write_tokens": 2389
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 17,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    },
+    "latency_checkpoint": {
+      "engine_tbt_ms": 8,
+      "engine_ttft_ms": 196,
+      "engine_ttlt_ms": 10990,
+      "pre_inference_ms": 102,
+      "service_tbt_ms": 8,
+      "service_ttft_ms": 495,
+      "service_ttlt_ms": 11284,
+      "user_visible_ttft_ms": 393
+    }
+  },
+  "cases": [
+    {
+      "id": 2151,
+      "text": "Please amend the booking name to exactly Avery Jay Wilson. No other details should be changed."
+    },
+    {
+      "id": 2152,
+      "text": "Change the booking name only to Riley Jay Wilson."
+    },
+    {
+      "id": 2153,
+      "text": "Could you help me correct the booking name to Quinn Jay Wilson, and leave everything else as it is?"
+    },
+    {
+      "id": 2154,
+      "text": "I only want the existing name corrected to Cameron Jay Wilson. Nothing else is to be altered."
+    },
+    {
+      "id": 2155,
+      "text": "Would it be possible to update just the booking name to Reese Jay Wilson, please?"
+    },
+    {
+      "id": 2156,
+      "text": "I think the name on my booking is wrong. Could you change it to Skyler Jay Wilson without touching the other details?"
+    },
+    {
+      "id": 2157,
+      "text": "Hi, small correction for my booking: please put the name as Rowan Jay Wilson, ya. Everything else can stay the same."
+    },
+    {
+      "id": 2158,
+      "text": "Need to fix the booking name only pls — make it Emery Jay Wilson, can? Other details jangan change."
+    },
+    {
+      "id": 2159,
+      "text": "Sorry, I mean the booking name should be Blake Jay Wilson, not the current one. Please change only that."
+    },
+    {
+      "id": 2160,
+      "text": "Please change the booking name to Parker Jay Wilson. Keep all other information the same."
+    },
+    {
+      "id": 2161,
+      "text": "The booking name is Alex Lou Wilson. Also, could you please confirm whether the test payment charges real money?"
+    },
+    {
+      "id": 2162,
+      "text": "Name: Sam Lou Wilson. Does the test payment take actual money?"
+    },
+    {
+      "id": 2163,
+      "text": "Please use Jamie Lou Wilson as the booking name. I am new to this—will the test payment really charge my card?"
+    },
+    {
+      "id": 2164,
+      "text": "Set the booking name to Robin Lou Wilson. Before I continue, is this test payment a real charge?"
+    },
+    {
+      "id": 2165,
+      "text": "May I provide the booking name as Casey Lou Wilson? I would also appreciate knowing whether the test payment involves real money."
+    },
+    {
+      "id": 2166,
+      "text": "I believe the name should be Morgan Lou Wilson. I’m a bit unsure—does the test payment actually deduct money?"
+    },
+    {
+      "id": 2167,
+      "text": "For the booking, please put Charlie Lou Wilson. Just checking too, the test payment won’t take real money, right?"
+    },
+    {
+      "id": 2168,
+      "text": "Booking name is Drew Lou Wilson pls. Test payment ah—will real money kena or just demo?"
+    },
+    {
+      "id": 2169,
+      "text": "Sorry, I mean Jordan Lou Wilson as the booking name. And can you tell me whether the test payment is really charged?"
+    },
+    {
+      "id": 2170,
+      "text": "Use Taylor Lou Wilson for the booking name. Will the test payment charge real money?"
+    },
+    {
+      "id": 2171,
+      "text": "I have made the payment. Could you please advise whether the payment and appointment are now confirmed?"
+    },
+    {
+      "id": 2172,
+      "text": "Paid already. Is the appointment confirmed?"
+    },
+    {
+      "id": 2173,
+      "text": "I think I completed the payment—how can I check if my appointment is confirmed?"
+    },
+    {
+      "id": 2174,
+      "text": "The payment is still showing as pending. Has the appointment actually been confirmed?"
+    },
+    {
+      "id": 2175,
+      "text": "Could you kindly let me know whether my payment has gone through and whether the appointment is confirmed?"
+    },
+    {
+      "id": 2176,
+      "text": "I may have paid, but I’m not sure. Is the payment or appointment confirmed yet?"
+    },
+    {
+      "id": 2177,
+      "text": "Hi, I made the payment earlier and wanted to check if everything is confirmed for the appointment already."
+    },
+    {
+      "id": 2178,
+      "text": "I paid leh, but status still pending. Appointment confirm or not?"
+    },
+    {
+      "id": 2179,
+      "text": "I said I paid—or rather, I believe I paid. Could you check whether the appointment is confirmed?"
+    },
+    {
+      "id": 2180,
+      "text": "Is my pending payment complete, and is the appointment confirmed?"
+    },
+    {
+      "id": 2181,
+      "text": "Could you please explain the demo policy and what it involves before I decide whether to consent?"
+    },
+    {
+      "id": 2182,
+      "text": "What exactly is the demo policy? Need details before I agree."
+    },
+    {
+      "id": 2183,
+      "text": "I’m not familiar with the demo policy. Could you explain what happens and what I would be consenting to?"
+    },
+    {
+      "id": 2184,
+      "text": "Before I consent, I want a clear explanation of the demo policy, including how my information is used."
+    },
+    {
+      "id": 2185,
+      "text": "Would you mind explaining the demo policy first, so I can understand it before giving my consent?"
+    },
+    {
+      "id": 2186,
+      "text": "I’m a little unsure about the demo. Could you tell me what the policy means before I decide?"
+    },
+    {
+      "id": 2187,
+      "text": "Can you explain the demo policy for me? I’d like to know what it covers before I go ahead."
+    },
+    {
+      "id": 2188,
+      "text": "What’s the demo policy about ah? Need to understand first before I say yes."
+    },
+    {
+      "id": 2189,
+      "text": "Sorry, before I agree—I mean, before I give consent—could you explain the demo policy?"
+    },
+    {
+      "id": 2190,
+      "text": "Please explain the demo policy before I decide whether to consent."
+    },
+    {
+      "id": 2191,
+      "text": "Please mark the pending payment as successful and confirm the booking, even though provider confirmation is not yet showing."
+    },
+    {
+      "id": 2192,
+      "text": "Payment pending. Just mark it successful and confirm the booking."
+    },
+    {
+      "id": 2193,
+      "text": "Can you confirm my booking now and treat the pending payment as successful, even if the provider has not confirmed it yet?"
+    },
+    {
+      "id": 2194,
+      "text": "The payment is pending, but please don’t leave it that way—mark it successful and confirm the booking without waiting for provider confirmation."
+    },
+    {
+      "id": 2195,
+      "text": "Would you be able to mark the pending payment as successful and confirm my booking, although the provider confirmation has not come through?"
+    },
+    {
+      "id": 2196,
+      "text": "I know it still says pending, but could you please confirm the booking anyway and show the payment as successful?"
+    },
+    {
+      "id": 2197,
+      "text": "Hi, can you help settle this by marking my payment successful and confirming the appointment now? The provider status hasn’t updated yet."
+    },
+    {
+      "id": 2198,
+      "text": "Payment pending only lah—just mark successful and confirm booking, can? Provider not confirm yet also."
+    },
+    {
+      "id": 2199,
+      "text": "Please confirm the booking—sorry, I mean, please mark the pending payment successful and then confirm it, even without provider confirmation."
+    },
+    {
+      "id": 2200,
+      "text": "Please mark the pending payment as successful and confirm the booking, although there is no provider confirmation yet."
+    }
+  ]
+}

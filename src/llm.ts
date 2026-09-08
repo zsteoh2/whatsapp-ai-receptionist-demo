@@ -2,6 +2,7 @@ import OpenAI from "openai";
 import { config } from "./config.js";
 import { FAQS } from "./faq.js";
 import type { ClinicPackageId, Conversation } from "./types.js";
+import { oraPrompt, oraSchema, parseOraDecision, type OraDecision } from "./ora.js";
 
 export type IntentContext = Pick<Conversation, "state" | "packageId" | "concernCategory" | "customerName" | "requestedStart">;
 
@@ -17,6 +18,7 @@ export interface LlmDecision {
 
 export interface IntentClassifier {
   classify(text: string, context: IntentContext): Promise<LlmDecision>;
+  classifyOra?(text: string, context: IntentContext): Promise<OraDecision>;
 }
 
 const schema = {
@@ -40,6 +42,21 @@ export class OpenAiIntentClassifier implements IntentClassifier {
   constructor(apiKey = config.openai.apiKey, baseURL = config.openai.baseUrl) {
     if (!apiKey) throw new Error("OPENAI_API_KEY is not configured");
     this.client = new OpenAI({ apiKey, baseURL, timeout: 30_000, maxRetries: 0 });
+  }
+
+  async classifyOra(text: string, context: IntentContext): Promise<OraDecision> {
+    const response = await this.client.chat.completions.create({
+      model: config.openai.model,
+      reasoning_effort: "medium",
+      messages: [
+        { role: "system", content: oraPrompt(context) },
+        { role: "user", content: text.slice(0, 2000) },
+      ],
+      response_format: { type: "json_schema", json_schema: { name: "ora_message_decision", strict: true, schema: oraSchema } },
+    }, { timeout: 10_000 });
+    const content = response.choices[0]?.message.content;
+    if (!content) throw new Error("No ORA classification");
+    return parseOraDecision(content);
   }
 
   async classify(text: string, context: IntentContext): Promise<LlmDecision> {

@@ -36,8 +36,17 @@ const generalPatterns = [
 ];
 
 export function detectSafety(text: string): SafetyDecision {
-  if (emergencyPatterns.some((pattern) => pattern.test(text))) return "emergency";
-  if (medicalPatterns.some((pattern) => pattern.test(text))) return "medical";
-  if (generalPatterns.some((pattern) => pattern.test(text))) return "general";
+  // Negating the emergency label does not negate independently stated dangerous symptoms.
+  const emergencyText = text.replace(/\b(?:no|not an?|isn['’]?t an?) emergency\b/gi, "");
+  if (emergencyPatterns.some((pattern) => pattern.test(emergencyText))) return "emergency";
+  const medicalText = /\b(?:time|date|slot)\b/i.test(text) && !/\b(?:treatment|procedure|injection|botox)\b/i.test(text)
+    ? text.replace(/\bsuitable for me\b/gi, "") : text;
+  if (medicalPatterns.some((pattern) => pattern.test(medicalText))) return "medical";
+  if (/^\s*(?:ora[,!: ]+)?(?:can|could|may)\s+i\s+(?:speak|talk)\s+(?:to|with)\s+(?:a |an |the )?(?:human|person|agent)\b/i.test(text)) return "general";
+  const capabilityQuestion = /\b(?:how|what|when|can|could|does|would|will)\b/i.test(text)
+    && /\b(?:ora|assistant|business|feature|hand\s*over|escalation|judgement|follow[- ]up)\b/i.test(text);
+  // Informational human-support questions may reach the classifier; complaints and safety never bypass handover.
+  const applicableGeneralPatterns = capabilityQuestion ? generalPatterns.slice(1) : generalPatterns;
+  if (applicableGeneralPatterns.some((pattern) => pattern.test(text))) return "general";
   return undefined;
 }

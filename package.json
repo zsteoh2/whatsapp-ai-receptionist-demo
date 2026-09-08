@@ -14,6 +14,9 @@
     "test": "tsx --test test/core.test.ts",
     "test:dialogue:live": "tsx scripts/test-dialogue-live.ts",
     "test:dialogue:blind:live": "tsx scripts/test-dialogue-live.ts blind",
+    "test:ora-product": "tsx scripts/test-ora-product.ts",
+    "test:ora-semantic:live": "tsx scripts/test-ora-semantic-live.ts",
+    "test:ora-random:live": "tsx scripts/test-ora-random-live.ts",
     "test:uk-time:live": "tsx scripts/test-uk-time-live.ts",
     "check": "npm run build && npm test"
   },

@@ -1,5 +1,8 @@
 # Verification
 
+- Passed (2026-09-07): Zen Railway UI saved the user-confirmed registered sender and abc Content SID, applied exactly two staged variable changes, and returned Online after Building.
+- Blocked (2026-09-07): menu code upload requires Railway CLI login; device authorization is pending user action. No phone/menu end-to-end check has run.
+
 - Passed: `npm run build` compiles the TypeScript service.
 - Passed: `npm test` runs 7 focused tests covering 20 FAQs, safety routing, opening rules, full test booking confirmation, idempotency, Meta parsing, and Meta/Twilio signatures.
 - Passed: local `/health` returns `ok` from the compiled service.
@@ -106,3 +109,89 @@
 - Not run: the idempotent `business_mode` Supabase migration, Railway deployment, and live WhatsApp Cleaner smoke test require the user-owned services.
 - Passed with review recommendations: final project-context validation reports 0 errors; the undated session files and graph metadata without a source commit remain its three recommendations.
 - Passed: `npm run check` after the ORA capability-Q&A update builds successfully and passes 30/30 offline checks, including knowledge, booking/calendar, test-payment, integration, explicit closing, and no-Clinic-copy assertions.
+- Passed: `npm run check` after Supabase Auth integration builds successfully and passes 32/32 offline checks. The focused HTTP check covers missing, invalid, and valid bearer tokens and proves Google OAuth initiation rejects unauthenticated requests.
+- Passed: `git diff --check` reports no whitespace errors after the Auth change.
+- Not available: live Supabase Auth verification because `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` are not populated in the local environment.
+- Passed with review recommendations: project-context validation reports 0 errors and the existing three recommendations for undated session files and graph metadata without a source commit.
+- Failed then fixed: the new ORA product-enquiry suite initially passed 190/200, exposing missing plural handling for `FAQs` and `integrations`.
+- Passed final: `npm run test:ora-product` completed 200/200 across five 40-case customer-intent groups. It made 0 AI model, WhatsApp, Supabase, Calendar, and Stripe network calls, created no booking or handoff, and rejected Clinic copy.
+- Passed final: `npm run check` builds successfully and passes 32/32 focused offline checks after the routing fix.
+- Failed then fixed: the expanded UK-language ORA product suite initially passed 856/1,000. All 144 failures were booking/calendar capability questions prefixed with conversational wording such as `Hiya`, `mate`, `quick one`, `aye`, and `no faff`.
+- Passed final: `npm run test:ora-product` completed 1,000/1,000 across 25 UK registers/slang styles and five 200-case capability groups. It made 0 AI model, WhatsApp, Supabase, Calendar, and Stripe calls and created no booking or handoff.
+- Passed final: `npm run check` remains green with 32/32 focused offline checks after the UK-language routing fix.
+# Registered sender and abc verification
+
+- Passed: Twilio API returned abc content and the registered sender ONLINE.
+- Passed: sender webhook update followed by GET verified the exact Railway callback and POST method.
+- Passed: npm run check, build plus 33/33 tests including signed HTTP menu routing, duplicate handling, active-booking greeting preservation and text fallback.
+- Not run: live phone delivery, Railway variable update and deployment; Railway CLI is unauthenticated and browser automation timed out.
+
+## 2026-09-07 - Screenshot regression
+- Passed: npm run check (build and 34/34 tests), including both screenshot utterances, name/date/policy/payment state preservation, old-session recovery, and handover pause.
+- Failed then fixed: initial process matcher missed work and later intercepted two integration questions; narrowed matching and reran.
+- Passed: npm run test:ora-product 1000/1000, zero model/provider calls.
+- Not run: deployment and live WhatsApp replay; current deployed revision not verified.
+
+## 2026-09-08 - Semantic migration
+- Passed: npm run check, TypeScript build plus 36/36 offline tests, including real SDK against a local mock endpoint and output validation.
+- Passed: state tests cover screenshot routing through classifyOra, topic context, name grounding, ambiguous date correction, consent, payment status, safety and model failure.
+- Passed: npm run test:ora-product 1000/1000 deterministic fallback cases; these do not prove real-model understanding.
+- Blocked: npm run test:ora-semantic:live reached the existing VectorEngine endpoint; first semantic request failed with HTTP 403, user quota is not enough. The two initial deterministic commands passed; no semantic live case passed.
+- Passed: separate source review confirmed production factory already constructs the extended classifier; Cleaner/Clinic boundaries and no-transcript memory remain intact.
+- Not run: WhatsApp live replay and Railway deployment. No Calendar, Stripe, WhatsApp or Supabase network calls in semantic harness.
+
+## 2026-09-08 - RelayRouter verification
+- Failed initially: two requests exceeded the 10-second runtime timeout. A diagnostic request with a longer allowance then completed in 2,982 ms with the expected journey decision.
+- Failed then fixed: first full live run passed 16 steps but found missing persisted new state for a status request without a booking. No false payment/booking confirmation occurred.
+- Passed final: npm run check, build and 36/36 offline tests including the shared status regression.
+- Passed final: npm run test:ora-semantic:live, 17/17 steps and 13 real model calls through the new endpoint. Screenshots, topic follow-up, booking details, policy, payment status and instruction injection covered.
+- Passed: git diff --check. No external WhatsApp, Calendar, Stripe or Supabase calls were made by the live harness.
+- Not run: Railway configuration verification/deployment and phone smoke test. A single successful suite does not establish production latency reliability.
+
+## 2026-09-08 - Random English results
+- Passed execution: all 1,000 unique seeded cases completed against actual bot routing and the real configured model.
+- Failed baseline: 914/1,000 passed, 53 behavior failures, 33 model unavailable; 867 model requests, eight workers.
+- Passed behavior replay: 83/86 passed after initial fixes, zero behavior failures, three unavailable.
+- Full regression: 936/1,000 passed, one behavior failure, 63 unavailable; 898 model requests, eight workers.
+- Passed final targeted replay: 64/64 after recognized-topic handling guard, two workers, zero behavior/model failures. No subsequent full 1,000-case run claimed.
+- Passed: final npm run check (build and 36/36 offline tests); deterministic test:ora-product 1,000/1,000 after initial fixes.
+- Total: 2,150 executions, 1,915 real-model requests; no WhatsApp, Calendar, Stripe or Supabase network calls.
+- Not run: deployment, phone test, or proof of sustained production latency reliability. Full reports and corpus retained in ora-random-results/.
+
+## 2026-09-08 - 3,000 regional English first pass
+- Passed execution: 3,000 unique frozen model-generated messages, 12 regions x 25 intents x 10 persona styles; 3,000 distinct user IDs and names; zero prior-corpus text reuse.
+- First-pass result: 2,837/3,000 (94.57%); 96 assertion failures, 65 model timeouts, two HTTP 429 errors. Eight workers, production 10-second timeout, 2,600 runtime model calls.
+- Generation: 71 successful API calls, 239,003 reported tokens. Total recorded calls this batch: 2,671; runtime token/currency cost not recorded.
+- Passed: final shared-store conversation/booking snapshot isolation checks, zero cross-user mutations detected. No real messaging, Calendar, Stripe or Supabase traffic.
+- Passed: npm run check (build and 36/36); separate tsc --ignoreConfig --noEmit check for all three generation/runner/report scripts. Initial tsc invocation needed --ignoreConfig for TypeScript 7.
+- Findings: 77 informational handover false positives; nine polite rescheduling failures; four date failures; one name correction lost time; one negated-emergency severity error; four topic mismatches include overlapping scoring labels.
+- Not run: fixes, post-fix replay, deployment or phone test. Production source unchanged during this batch. Synthetic same-model corpus does not establish native-speaker or demographic accuracy.
+- Reports: ora-regional-results/REPORT.md, failures.md, frozen corpus.json and complete baseline JSON.
+
+## 2026-09-08 - Regional fixes verified
+- Passed: npm run check, build and 37/37 tests; deterministic ORA product 1000/1000.
+- Partial interrupted replay: 121/125 persisted passes, one behavior failure fixed, three unavailable; 38 not persisted. Completed continuation: 42/42, zero behavior/unavailable, four workers.
+- Passed independent ID coverage check: all 163 original failed cases have passing replay records across reports; not a one-pass 163/163 or full 3000/3000 claim.
+- Passed: real semantic multi-turn 17/17 with 13 actual model calls.
+- Not run: full post-fix 3000 regression, deployment, phone test. Provider reliability not claimed fixed. See ora-regional-results/FIXES.md.
+
+## 2026-09-08 - Requested full rerun / two-worker follow-up
+- Passed coverage: 3000 unique IDs attempted; unchanged SHA256 corpus.
+- Eight-worker interrupted segment: 2400 completed, 2291 passed, 109 model timeouts, zero behavior assertions; final isolation loop not reached.
+- Two-worker completed continuation: 706/709 passed, three timeouts, zero behavior assertions; final isolation snapshots passed.
+- Same-case comparison: 106/109 former timeouts passed at two workers; three still timed out. p95 10001ms versus 5093ms; provider cap not verified.
+- Latest-result union: 2997 pass, three unavailable; not a single-pass 3000-case rate.
+- Not run: new build/offline checks (no code changes), deployment or phone test. Raw reports and interpretation: ora-regional-results/POST_FIX_RERUN.md.
+
+## Final three case verification
+- Passed: exact real-model replay 3/3, three calls, 3421/6426/4765ms, unchanged 10-second timeout.
+- Passed: expanded real semantic multi-turn suite 20/20, 16 calls, includes original three texts and retained booking-name/date assertions.
+- No production bug reproduced; provider latency/concurrency cause remains unverified. No hardcoded utterance routing added.
+- Not run: deployment or repeat production build/offline suite; only live test/documentation changed. See ora-regional-results/FINAL_THREE.md.
+
+## GitHub publication preparation
+- Passed: fresh npm run check (build and 37/37 offline tests). Existing live semantic 20/20 and regional evidence retained.
+- Passed: scan of all 121 changed/untracked files against configured secret values and token/private-key patterns; only .env.example is tracked, local credentials remain ignored.
+- Passed: authenticated remote check; origin/main matched local base c7fbfdbe3f73cde57faea8622ebcc16a6f355437.
+- Passed: context validator with zero errors and three existing metadata recommendations. Graph may be outdated.
+- Not run: Railway deployment verification or phone testing. GitHub push outcome is verified against the remote ref in this publication turn.

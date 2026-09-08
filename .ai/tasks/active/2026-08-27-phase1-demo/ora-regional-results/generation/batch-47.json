@@ -1,0 +1,231 @@
+{
+  "model": "gpt-5.6-luna",
+  "usage": {
+    "prompt_tokens": 2350,
+    "completion_tokens": 1079,
+    "total_tokens": 3429,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0,
+      "cache_write_tokens": 2347
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 15,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    },
+    "latency_checkpoint": {
+      "engine_tbt_ms": 7,
+      "engine_ttft_ms": 105,
+      "engine_ttlt_ms": 7431,
+      "pre_inference_ms": 107,
+      "service_tbt_ms": 7,
+      "service_ttft_ms": 300,
+      "service_ttlt_ms": 7621,
+      "user_visible_ttft_ms": 192
+    }
+  },
+  "cases": [
+    {
+      "id": 2351,
+      "text": "Please start the interactive demo booking now."
+    },
+    {
+      "id": 2352,
+      "text": "Start the demo booking now, please."
+    },
+    {
+      "id": 2353,
+      "text": "I would like to begin the interactive demo booking now."
+    },
+    {
+      "id": 2354,
+      "text": "Please initiate the interactive demo booking now."
+    },
+    {
+      "id": 2355,
+      "text": "Could we perhaps start the interactive demo booking now?"
+    },
+    {
+      "id": 2356,
+      "text": "I think I am ready to start the interactive demo booking now."
+    },
+    {
+      "id": 2357,
+      "text": "Alright, let us get started with the interactive demo booking now."
+    },
+    {
+      "id": 2358,
+      "text": "Okay, let's kick off the interactive demo booking now."
+    },
+    {
+      "id": 2359,
+      "text": "Actually, yes—please start the interactive demo booking now."
+    },
+    {
+      "id": 2360,
+      "text": "Please start booking the interactive demo now."
+    },
+    {
+      "id": 2361,
+      "text": "I am resuming my booking. What information is needed next?"
+    },
+    {
+      "id": 2362,
+      "text": "Back to the booking. What next?"
+    },
+    {
+      "id": 2363,
+      "text": "I am continuing the booking—what do I need to provide now?"
+    },
+    {
+      "id": 2364,
+      "text": "To continue this booking, what exactly is required next?"
+    },
+    {
+      "id": 2365,
+      "text": "May I know what would be needed next to resume the booking?"
+    },
+    {
+      "id": 2366,
+      "text": "I would like to continue, but what should I provide next?"
+    },
+    {
+      "id": 2367,
+      "text": "I am back to finish the booking. What do you need from me next?"
+    },
+    {
+      "id": 2368,
+      "text": "Back again—what details do you need next to continue?"
+    },
+    {
+      "id": 2369,
+      "text": "Let me continue the booking—sorry, what do you need next?"
+    },
+    {
+      "id": 2370,
+      "text": "I want to continue the booking. What is needed next?"
+    },
+    {
+      "id": 2371,
+      "text": "Please use Avery Lou Taylor as the booking name."
+    },
+    {
+      "id": 2372,
+      "text": "Booking name: Riley Lou Taylor."
+    },
+    {
+      "id": 2373,
+      "text": "The name for the booking should be Quinn Lou Taylor."
+    },
+    {
+      "id": 2374,
+      "text": "Use Cameron Lou Taylor for the booking."
+    },
+    {
+      "id": 2375,
+      "text": "You may put the booking under Reese Lou Taylor, please."
+    },
+    {
+      "id": 2376,
+      "text": "I think the booking name can be Skyler Lou Taylor."
+    },
+    {
+      "id": 2377,
+      "text": "Please book it under Rowan Lou Taylor."
+    },
+    {
+      "id": 2378,
+      "text": "Use Emery Lou Taylor as the booking name, okay?"
+    },
+    {
+      "id": 2379,
+      "text": "Blake Lou Taylor—yes, that is the booking name."
+    },
+    {
+      "id": 2380,
+      "text": "The booking name is Parker Lou Taylor."
+    },
+    {
+      "id": 2381,
+      "text": "Please schedule the appointment for 18 November 2030 at exactly 2:30pm London time."
+    },
+    {
+      "id": 2382,
+      "text": "18 November 2030, 2:30pm London time."
+    },
+    {
+      "id": 2383,
+      "text": "Can I have the appointment on 18 November 2030 at exactly 2:30pm London time?"
+    },
+    {
+      "id": 2384,
+      "text": "Book it for 18 November 2030 at 2:30pm London time, exactly."
+    },
+    {
+      "id": 2385,
+      "text": "Would it be possible to arrange it for 18 November 2030 at exactly 2:30pm London time?"
+    },
+    {
+      "id": 2386,
+      "text": "I would prefer 18 November 2030 at exactly 2:30pm London time, if available."
+    },
+    {
+      "id": 2387,
+      "text": "Let us fix it for 18 November 2030 at exactly 2:30pm London time."
+    },
+    {
+      "id": 2388,
+      "text": "Please lock in 18 November 2030, 2:30pm London time exactly."
+    },
+    {
+      "id": 2389,
+      "text": "I mean, please set it for 18 November 2030 at exactly 2:30pm London time."
+    },
+    {
+      "id": 2390,
+      "text": "Appointment on 18 November 2030 at exactly 2:30pm London time, please."
+    },
+    {
+      "id": 2391,
+      "text": "Please change the appointment to tomorrow afternoon."
+    },
+    {
+      "id": 2392,
+      "text": "Move it to tomorrow afternoon."
+    },
+    {
+      "id": 2393,
+      "text": "Can we change the appointment to sometime next week?"
+    },
+    {
+      "id": 2394,
+      "text": "I want to change the existing appointment to a later time, perhaps tomorrow afternoon."
+    },
+    {
+      "id": 2395,
+      "text": "Could you please move the appointment to sometime next week?"
+    },
+    {
+      "id": 2396,
+      "text": "I am not sure of the exact time, but could we shift it to tomorrow afternoon?"
+    },
+    {
+      "id": 2397,
+      "text": "Please change the existing appointment to sometime next week instead."
+    },
+    {
+      "id": 2398,
+      "text": "Can we move it to tomorrow afternoon, please?"
+    },
+    {
+      "id": 2399,
+      "text": "Change it—actually, move the appointment to sometime next week."
+    },
+    {
+      "id": 2400,
+      "text": "Please move the appointment to tomorrow afternoon."
+    }
+  ]
+}

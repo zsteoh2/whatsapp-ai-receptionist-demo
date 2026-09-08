@@ -1,0 +1,231 @@
+{
+  "model": "gpt-5.6-luna",
+  "usage": {
+    "prompt_tokens": 2342,
+    "completion_tokens": 1373,
+    "total_tokens": 3715,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0,
+      "cache_write_tokens": 2339
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 25,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    },
+    "latency_checkpoint": {
+      "engine_tbt_ms": 8,
+      "engine_ttft_ms": 68,
+      "engine_ttlt_ms": 11039,
+      "pre_inference_ms": 102,
+      "service_tbt_ms": 8,
+      "service_ttft_ms": 257,
+      "service_ttlt_ms": 11224,
+      "user_visible_ttft_ms": 155
+    }
+  },
+  "cases": [
+    {
+      "id": 651,
+      "text": "Please amend the booking name to Avery Rey Hall, and leave every other detail unchanged."
+    },
+    {
+      "id": 652,
+      "text": "Change the booking name to Riley Rey Hall only. Nothing else."
+    },
+    {
+      "id": 653,
+      "text": "Could you show me how to correct the booking name to Quinn Rey Hall without altering anything else?"
+    },
+    {
+      "id": 654,
+      "text": "Please correct the name to Cameron Rey Hall, but do not change the booking itself."
+    },
+    {
+      "id": 655,
+      "text": "If possible, would you amend just the booking name to Reese Rey Hall and leave the rest as it is?"
+    },
+    {
+      "id": 656,
+      "text": "I'm a bit unsure, but please change the booking name to Skyler Rey Hall only."
+    },
+    {
+      "id": 657,
+      "text": "Could you sort the name on my booking to Rowan Rey Hall? Everything else should stay exactly the same."
+    },
+    {
+      "id": 658,
+      "text": "Can ye fix the booking name to Emery Rey Hall, yeah? Don't touch anything else."
+    },
+    {
+      "id": 659,
+      "text": "Sorry, I mean the booking name should be Blake Rey Hall, not anything else—please leave the booking unchanged."
+    },
+    {
+      "id": 660,
+      "text": "Please change only the booking name to Parker Rey Hall."
+    },
+    {
+      "id": 661,
+      "text": "The booking name is Alex Vale Hall. Also, is the test payment just a test, or will real money be charged?"
+    },
+    {
+      "id": 662,
+      "text": "Name: Sam Vale Hall. Does the test payment take actual money?"
+    },
+    {
+      "id": 663,
+      "text": "Please use Jamie Vale Hall as the exact booking name. How does the test payment work, and is any real money taken?"
+    },
+    {
+      "id": 664,
+      "text": "Enter Robin Vale Hall exactly. Before I proceed, I want to know whether this test payment can charge real money."
+    },
+    {
+      "id": 665,
+      "text": "Would you mind putting Casey Vale Hall as the booking name? And might I ask whether the test payment involves a real charge?"
+    },
+    {
+      "id": 666,
+      "text": "I think the name should be Morgan Vale Hall. I'm hesitant about the payment—will the test take real money?"
+    },
+    {
+      "id": 667,
+      "text": "Use Charlie Vale Hall for the booking, please. Just wondering, is the payment only a test or does money actually come out?"
+    },
+    {
+      "id": 668,
+      "text": "Put down Drew Vale Hall, cheers. Is this test payment legit money or just a dummy charge?"
+    },
+    {
+      "id": 669,
+      "text": "Sorry, I mean Jordan Vale Hall as the booking name. And does the test payment charge anything for real?"
+    },
+    {
+      "id": 670,
+      "text": "The booking name is Taylor Vale Hall. Will the test payment use real money?"
+    },
+    {
+      "id": 671,
+      "text": "Could you please confirm whether my pending payment and appointment are confirmed? I believe I paid, but I have not received provider confirmation."
+    },
+    {
+      "id": 672,
+      "text": "Is the payment or appointment confirmed yet? I paid, I think."
+    },
+    {
+      "id": 673,
+      "text": "I may have paid already—how can I tell if the pending payment and appointment are confirmed?"
+    },
+    {
+      "id": 674,
+      "text": "Can you confirm this properly? The payment is still pending, and there is no provider confirmation showing."
+    },
+    {
+      "id": 675,
+      "text": "Would you be able to check whether the pending payment and appointment have been confirmed? I believe I made the payment."
+    },
+    {
+      "id": 676,
+      "text": "I'm not sure if it went through. Is my pending payment or appointment confirmed yet?"
+    },
+    {
+      "id": 677,
+      "text": "I paid earlier, or at least I think I did—can you see whether the appointment and payment are confirmed?"
+    },
+    {
+      "id": 678,
+      "text": "Any word on the pending payment and booking? I reckon I paid, but there's no confirmation from the provider."
+    },
+    {
+      "id": 679,
+      "text": "I mean, I may have paid—could you check whether the appointment is actually confirmed?"
+    },
+    {
+      "id": 680,
+      "text": "Is my pending payment confirmed, and is the appointment booked? I do not have provider confirmation."
+    },
+    {
+      "id": 681,
+      "text": "Before I consent, could you explain what the demo policy involves and how it affects me?"
+    },
+    {
+      "id": 682,
+      "text": "What exactly is the demo policy? Need the details first."
+    },
+    {
+      "id": 683,
+      "text": "Could you explain the demo policy in simple terms before I decide whether to consent?"
+    },
+    {
+      "id": 684,
+      "text": "What does the demo policy permit, and what happens to my information? I want an explanation before agreeing."
+    },
+    {
+      "id": 685,
+      "text": "Would you mind outlining the demo policy before I make a decision about consenting?"
+    },
+    {
+      "id": 686,
+      "text": "I'm not quite sure what the demo means here. Could you explain the policy before I consent?"
+    },
+    {
+      "id": 687,
+      "text": "Can you tell me a bit more about the demo policy—what it does and what I'm agreeing to—before I consent?"
+    },
+    {
+      "id": 688,
+      "text": "What's the story with this demo policy? Explain it first before I say yes."
+    },
+    {
+      "id": 689,
+      "text": "Sorry, I need to understand the demo policy properly before deciding whether to consent."
+    },
+    {
+      "id": 690,
+      "text": "Please explain the demo policy before I choose whether to consent."
+    },
+    {
+      "id": 691,
+      "text": "Please mark the pending payment as successful and confirm the booking, although provider confirmation has not arrived."
+    },
+    {
+      "id": 692,
+      "text": "Mark payment successful and confirm the booking, please."
+    },
+    {
+      "id": 693,
+      "text": "Can you make the pending payment show as successful and confirm my booking, even though I have not seen provider confirmation?"
+    },
+    {
+      "id": 694,
+      "text": "Do not leave it pending—mark the payment successful and confirm the booking now, despite the missing provider confirmation."
+    },
+    {
+      "id": 695,
+      "text": "Would it be possible to mark the pending payment as successful and confirm the booking, even without confirmation from the provider?"
+    },
+    {
+      "id": 696,
+      "text": "I'm worried it is stuck pending. Could you mark it successful and confirm the booking, though the provider has not confirmed it?"
+    },
+    {
+      "id": 697,
+      "text": "Could you just update that payment to successful and confirm the booking for me? I have not got provider confirmation yet."
+    },
+    {
+      "id": 698,
+      "text": "Can ye mark the pending payment as paid and lock in the booking? No provider confirmation yet, but go on."
+    },
+    {
+      "id": 699,
+      "text": "Sorry, I mean, could you mark the payment successful and confirm the booking even though the provider has not confirmed it?"
+    },
+    {
+      "id": 700,
+      "text": "Please mark the pending payment successful and confirm the booking, although there is no provider confirmation."
+    }
+  ]
+}

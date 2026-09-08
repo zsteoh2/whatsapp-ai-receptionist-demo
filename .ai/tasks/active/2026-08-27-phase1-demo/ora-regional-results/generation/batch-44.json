@@ -1,0 +1,231 @@
+{
+  "model": "gpt-5.6-luna",
+  "usage": {
+    "prompt_tokens": 2189,
+    "completion_tokens": 1217,
+    "total_tokens": 3406,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0,
+      "cache_write_tokens": 2186
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 14,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    },
+    "latency_checkpoint": {
+      "engine_tbt_ms": 7,
+      "engine_ttft_ms": 84,
+      "engine_ttlt_ms": 9203,
+      "pre_inference_ms": 262,
+      "service_tbt_ms": 7,
+      "service_ttft_ms": 744,
+      "service_ttlt_ms": 9801,
+      "user_visible_ttft_ms": 482
+    }
+  },
+  "cases": [
+    {
+      "id": 2201,
+      "text": "Thank you for the demonstration. I have no further questions, so we can end this conversation now."
+    },
+    {
+      "id": 2202,
+      "text": "All clear. No more questions—ending the demo here."
+    },
+    {
+      "id": 2203,
+      "text": "I understand everything now, thank you. That is all from me, so we can finish the demo."
+    },
+    {
+      "id": 2204,
+      "text": "That answers my concerns. I have nothing else to ask, and we can close this demo."
+    },
+    {
+      "id": 2205,
+      "text": "I think that is sufficient for now, thank you. We may end the demonstration here."
+    },
+    {
+      "id": 2206,
+      "text": "Okay, I am done with my questions. We can stop the demo now."
+    },
+    {
+      "id": 2207,
+      "text": "Thanks for walking me through it—quite helpful lah. I have asked everything I wanted, so let us wrap up."
+    },
+    {
+      "id": 2208,
+      "text": "Ok can, all settled already. No more qns, just end the demo ya."
+    },
+    {
+      "id": 2209,
+      "text": "That is all my questions—actually, no, I mean I have no questions left. We can end here."
+    },
+    {
+      "id": 2210,
+      "text": "I am finished asking questions. Please end the demo conversation."
+    },
+    {
+      "id": 2211,
+      "text": "Please arrange for a human representative to call me back by phone."
+    },
+    {
+      "id": 2212,
+      "text": "Need a human to call me back by phone, please."
+    },
+    {
+      "id": 2213,
+      "text": "Could a real person call me back on the phone to explain this further?"
+    },
+    {
+      "id": 2214,
+      "text": "I would rather speak with a human. Please have someone call me back by phone."
+    },
+    {
+      "id": 2215,
+      "text": "If possible, may a human representative kindly call me back by phone?"
+    },
+    {
+      "id": 2216,
+      "text": "I am not quite sure what to do next. Could someone from your team call me back by phone?"
+    },
+    {
+      "id": 2217,
+      "text": "There are still a few things I would like to discuss, so please get a human to call me back by phone."
+    },
+    {
+      "id": 2218,
+      "text": "Can get a human to call me back by phone ah? Thanks."
+    },
+    {
+      "id": 2219,
+      "text": "I need—sorry, I mean I would like—a human representative to call me back by phone."
+    },
+    {
+      "id": 2220,
+      "text": "Please ask a human to call me back on the phone."
+    },
+    {
+      "id": 2221,
+      "text": "I am pregnant. Is this treatment suitable and safe for me?"
+    },
+    {
+      "id": 2222,
+      "text": "Can I have this treatment while taking regular medication?"
+    },
+    {
+      "id": 2223,
+      "text": "I have a medication allergy. Would this treatment still be suitable for me?"
+    },
+    {
+      "id": 2224,
+      "text": "I am breastfeeding, so is this treatment actually safe for me?"
+    },
+    {
+      "id": 2225,
+      "text": "May I check whether the treatment would be suitable while I am pregnant?"
+    },
+    {
+      "id": 2226,
+      "text": "I am taking prescribed medicine and feel unsure—can I still have this treatment?"
+    },
+    {
+      "id": 2227,
+      "text": "Just checking before I proceed: I have an allergy to some medicines. Would this treatment be okay for me?"
+    },
+    {
+      "id": 2228,
+      "text": "I’m breastfeeding rn—can do this treatment or not?"
+    },
+    {
+      "id": 2229,
+      "text": "I have an allergy—sorry, I mean a medication allergy. Is this treatment suitable for me?"
+    },
+    {
+      "id": 2230,
+      "text": "I am pregnant. Is it safe for me to get this treatment?"
+    },
+    {
+      "id": 2231,
+      "text": "This is an emergency. The person is unconscious and not breathing."
+    },
+    {
+      "id": 2232,
+      "text": "Emergency—someone cannot breathe."
+    },
+    {
+      "id": 2233,
+      "text": "Please help, the person is unconscious and will not wake up."
+    },
+    {
+      "id": 2234,
+      "text": "This is happening now: there is severe, heavy bleeding."
+    },
+    {
+      "id": 2235,
+      "text": "Please treat this as an emergency. Someone here is unable to breathe."
+    },
+    {
+      "id": 2236,
+      "text": "I am scared—the person is unconscious right now."
+    },
+    {
+      "id": 2237,
+      "text": "We have a serious emergency here; someone is bleeding heavily and it will not stop."
+    },
+    {
+      "id": 2238,
+      "text": "Emergency lah, someone cannot breathe—need help now."
+    },
+    {
+      "id": 2239,
+      "text": "He is—sorry, the person is unconscious right now. This is an emergency."
+    },
+    {
+      "id": 2240,
+      "text": "Someone is unconscious. Please help immediately."
+    },
+    {
+      "id": 2241,
+      "text": "Please do not start a booking. I only want an explanation of the demo steps."
+    },
+    {
+      "id": 2242,
+      "text": "No booking. Just explain the demo steps."
+    },
+    {
+      "id": 2243,
+      "text": "I am not ready to book yet. Could you explain how the demo works, step by step?"
+    },
+    {
+      "id": 2244,
+      "text": "Do not begin a booking; I only want to understand the demo process first."
+    },
+    {
+      "id": 2245,
+      "text": "For now, I would appreciate an explanation of the demo steps only, without starting any booking."
+    },
+    {
+      "id": 2246,
+      "text": "I am still deciding, so please do not book anything. Can you explain the demo steps?"
+    },
+    {
+      "id": 2247,
+      "text": "I would like to know how the demo goes from start to finish, but please do not start a booking yet."
+    },
+    {
+      "id": 2248,
+      "text": "No booking first ya—just tell me the demo steps."
+    },
+    {
+      "id": 2249,
+      "text": "Please explain the demo steps—actually, do not start a booking; I only need the explanation."
+    },
+    {
+      "id": 2250,
+      "text": "Do not make a booking. Just explain the demo steps to me."
+    }
+  ]
+}

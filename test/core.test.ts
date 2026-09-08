@@ -1,19 +1,26 @@
 import assert from "node:assert/strict";
 import { createHmac } from "node:crypto";
+import type { AddressInfo } from "node:net";
+import { createServer } from "node:http";
 import test from "node:test";
 import { DateTime } from "luxon";
+import { createApp } from "../src/app.js";
+import { config } from "../src/config.js";
+import type { AuthVerifier } from "../src/auth.js";
 import { validateBusinessSlot, type CalendarGateway } from "../src/calendar.js";
 import { packageMentions, parsePackage } from "../src/clinic.js";
 import { ConversationEngine } from "../src/conversation.js";
 import { FAQS, matchFaq } from "../src/faq.js";
 import type { IntentClassifier, LlmDecision } from "../src/llm.js";
+import { OpenAiIntentClassifier } from "../src/llm.js";
 import {
   CALLBACK_REQUEST_MESSAGE, CLEANER_TEMPLATE_PENDING_MESSAGE, CLEANER_WELCOME_MESSAGE, EMERGENCY_MESSAGE, FOUNDER_CTA_MESSAGE, GENERAL_HANDOVER_MESSAGE, INTEGRATION_FAILURE_MESSAGE,
-  MEDICAL_HANDOVER_MESSAGE, ORA_BOOKING_MESSAGE, ORA_DEMO_CLOSING_MESSAGE, ORA_INFO_MESSAGE, ORA_INTEGRATION_MESSAGE, ORA_KNOWLEDGE_MESSAGE,
+  MEDICAL_HANDOVER_MESSAGE, ORA_BOOKING_MESSAGE, ORA_DEMO_CLOSING_MESSAGE, ORA_DEMO_POLICY_MESSAGE, ORA_DEMO_START_MESSAGE, ORA_INFO_MESSAGE, ORA_INTEGRATION_MESSAGE, ORA_KNOWLEDGE_MESSAGE,
   ORA_PAYMENT_MESSAGE, ORA_TEMPLATE_PENDING_MESSAGE, UNKNOWN_HELP_MESSAGE,
   WELCOME_MESSAGE,
 } from "../src/messages.js";
 import { detectSafety } from "../src/safety.js";
+import { parseOraDecision, type OraDecision } from "../src/ora.js";
 import { MemoryStore } from "../src/store.js";
 import type { CheckoutGateway } from "../src/stripe.js";
 import type { Booking, PackageId } from "../src/types.js";
@@ -21,6 +28,187 @@ import {
   extractIncomingMessages, extractTwilioIncomingMessage, verifyMetaSignature,
   twilioErrorCode, twimlResponse, verifyTwilioSignature, type MessageSender,
 } from "../src/whatsapp.js";
+
+test("ORA SDK uses the dedicated schema and validates provider output", async () => {
+  let output: unknown = { action: "question", topic: "journey", customerName: null, handover: "none" };
+  const requests: { messages: { content: string }[]; response_format: { json_schema: { name: string } } }[] = [];
+  const server = createServer(async (req, res) => {
+    let body = "";
+    for await (const chunk of req) body += chunk;
+    requests.push(JSON.parse(body));
+    res.setHeader("Content-Type", "application/json");
+    res.end(JSON.stringify({ choices: [{ message: { content: JSON.stringify(output) } }] }));
+  });
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  try {
+    const classifier = new OpenAiIntentClassifier("offline-test-key", `http://127.0.0.1:${(server.address() as AddressInfo).port}/v1`);
+    assert.equal((await classifier.classifyOra("So demo?", { state: "awaiting_name", concernCategory: "ora:journey" })).topic, "journey");
+    assert.equal(requests[0]?.response_format.json_schema.name, "ora_message_decision");
+    assert.match(requests[0]?.messages[0]?.content ?? "", /awaiting_name/);
+    assert.match(requests[0]?.messages[0]?.content ?? "", /ora:journey/);
+    assert.equal(requests[0]?.messages[1]?.content, "So demo?");
+    output = { action: "confirm_payment", topic: null, customerName: null, handover: "none" };
+    await assert.rejects(classifier.classifyOra("Confirm it", { state: "awaiting_payment" }), /Invalid ORA decision/);
+  } finally {
+    await new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
+  }
+});
+
+test("ORA semantic decisions preserve context and cannot bypass booking validation", async () => {
+  const store = new MemoryStore();
+  const calendar = new FakeCalendar();
+  let decision: OraDecision = { action: "question", topic: "journey", customerName: null, handover: "none" };
+  let calls = 0;
+  let fail = false;
+  const contexts: unknown[] = [];
+  const engine = new ConversationEngine(store, {
+    async classify() { throw new Error("Clinic must not run"); },
+    async classifyOra(_text, context) {
+      calls++; contexts.push(structuredClone(context));
+      if (fail) throw new Error("model unavailable");
+      return decision;
+    },
+  }, calendar, new FakeCheckout(), new FakeSender(), false);
+  let id = 0;
+  const send = (text: string) => engine.handleMessage({ id: `semantic-${++id}`, from: "semantic", text });
+  decision = { ...decision, action: "status", topic: null };
+  assert.match(await send("Confirm my appointment") ?? "", /find an active test booking/);
+  assert.equal((await store.getConversation("semantic"))?.state, "new");
+  assert.equal(store.bookings.size, 0);
+  calls = 0;
+  decision = { ...decision, action: "question", topic: "journey" };
+  await send("START DEMO");
+  await send("General question");
+  assert.match(await send("Yea, so how the whole process run?") ?? "", /Collect the booking details/);
+  assert.equal(calls, 1);
+  assert.match(await send("So demo?") ?? "", /What name/i);
+  assert.equal((contexts.at(-1) as { concernCategory: string }).concernCategory, "ora:journey");
+  decision = { ...decision, action: "unknown", topic: "unavailable" };
+  assert.match(await send("What are ur company's actual opening hours?") ?? "", /currently being configured/);
+  assert.equal((await store.getConversation("semantic"))?.state, "awaiting_name");
+  decision = { ...decision, action: "details", topic: null, customerName: "Alex" };
+  await send("Call me Alex");
+  assert.equal((await store.getConversation("semantic"))?.customerName, "Alex");
+  decision = { ...decision, customerName: null };
+  await send("Just to be clear, 18 November 2030 at 2:30pm");
+  assert.equal((await store.getConversation("semantic"))?.state, "awaiting_policy");
+  decision = { ...decision, action: "continue" };
+  await send("Tell me more before I agree");
+  assert.equal(store.bookings.size, 0);
+  decision = { ...decision, action: "question", topic: "payment" };
+  assert.match(await send("Am I spending actual money here?") ?? "", /does not take real money/);
+  assert.equal((await store.getConversation("semantic"))?.state, "awaiting_policy");
+  decision = { ...decision, action: "details", topic: null, customerName: "Sam" };
+  await send("Change my name to Sam and make it tomorrow afternoon");
+  assert.equal((await store.getConversation("semantic"))?.customerName, "Sam");
+  assert.equal((await store.getConversation("semantic"))?.requestedStart, undefined);
+  assert.equal(store.bookings.size, 0);
+  decision = { ...decision, customerName: null };
+  await send("18 November 2030 at 2:30pm");
+  await send("YES");
+  assert.equal(store.bookings.size, 1);
+  decision = { ...decision, action: "status", topic: null };
+  assert.match(await send("I've paid, confirm it") ?? "", /waiting for payment/);
+  assert.equal([...store.bookings.values()][0]?.status, "awaiting_payment");
+  await send("START OVER");
+  decision = { ...decision, action: "start_demo" };
+  assert.match(await send("Let's give it a go") ?? "", /Interactive Demo started/);
+  fail = true;
+  assert.match(await send("Anything else needed?") ?? "", /progress is saved/);
+  assert.equal((await store.getConversation("semantic"))?.customerName, undefined);
+  assert.equal((await store.getConversation("semantic"))?.state, "awaiting_name");
+  fail = false;
+  decision = { ...decision, action: "details", customerName: "Invented" };
+  await send("Call me Sam");
+  assert.equal((await store.getConversation("semantic"))?.customerName, undefined);
+  const beforeSafety = calls;
+  await send("I cannot breathe");
+  assert.equal(calls, beforeSafety);
+  await send("So demo?");
+  assert.equal(calls, beforeSafety);
+  assert.equal((await store.getConversation("semantic"))?.state, "handover");
+  for (const bad of ["null", "{}", '{"action":"pay","topic":null,"customerName":null,"handover":"none"}']) {
+    assert.throws(() => parseOraDecision(bad));
+  }
+});
+
+test("ORA date corrections preserve names, precise times and ambiguity boundaries", async () => {
+  const store = new MemoryStore();
+  let decision: OraDecision = { action: "details", topic: null, customerName: null, handover: "none" };
+  const engine = new ConversationEngine(store, {
+    async classify() { throw new Error("Clinic must not run"); },
+    async classifyOra() { return decision; },
+  }, new FakeCalendar(), new FakeCheckout(), new FakeSender(), false);
+  let id = 0;
+  const send = (text: string) => engine.handleMessage({ id: `regional-${++id}`, from: "regional", text });
+  for (const [text, exact] of [
+    ["How about 18 November 2030 at exactly 2:30pm London time?", true],
+    ["18 November 2030 by 2:30pm London time—exactly 2:30pm", true],
+    ["18 November 2030 by 2:30pm", false],
+    ["18 November 2030 by 2:30pm—exactly 3:30pm", false],
+    ["How about 18 November 2030 around 2:30pm?", false],
+  ] as const) {
+    await store.saveConversation({ waId: "regional", state: "awaiting_datetime", packageId: "ora_demo", customerName: "Alex", updatedAt: new Date().toISOString() });
+    await send(text);
+    const after = await store.getConversation("regional");
+    assert.equal(after?.state, exact ? "awaiting_policy" : "awaiting_datetime", text);
+    assert.equal(after?.requestedStart, exact ? "2030-11-18T14:30:00.000Z" : undefined, text);
+  }
+  await send("18 November 2030 at 2:30pm");
+  decision = { ...decision, customerName: "Casey Jean Taylor" };
+  await send("May I request the booking name be changed to Casey Jean Taylor, with all other details left as they are?");
+  assert.equal((await store.getConversation("regional"))?.state, "awaiting_policy");
+  assert.equal((await store.getConversation("regional"))?.requestedStart, "2030-11-18T14:30:00.000Z");
+  await send("May I use Casey Jean Taylor and move the booking to May next year?");
+  assert.equal((await store.getConversation("regional"))?.requestedStart, undefined);
+  assert.equal(store.bookings.size, 0);
+});
+
+test("general questions preserve demo progress and process questions explain the journey", async () => {
+  const store = new MemoryStore();
+  let classifierCalls = 0;
+  const engine = new ConversationEngine(store, {
+    async classify() { classifierCalls++; return llmDecision({}); },
+  }, new FakeCalendar(), new FakeCheckout(), new FakeSender(), false);
+  let id = 0;
+  const send = (text: string) => engine.handleMessage({ id: `process-${++id}`, from: "process-user", text });
+  await send("START DEMO");
+  await send("General question");
+  assert.equal((await store.getConversation("process-user"))?.state, "awaiting_name");
+  for (const question of ["Yea, so how the whole process run?", "How does it work?", "Can you walk me through the steps?", "So demo?"]) {
+    const reply = await send(question);
+    assert.match(reply ?? "", /Collect the booking details/);
+    assert.match(reply ?? "", /What name/i);
+    assert.equal((await store.getConversation("process-user"))?.customerName, undefined);
+  }
+  await send("Alex Demo");
+  assert.equal((await store.getConversation("process-user"))?.state, "awaiting_datetime");
+  await send("General question");
+  assert.match(await send("Explain the process") ?? "", /What date and time/i);
+  assert.equal((await store.getConversation("process-user"))?.customerName, "Alex Demo");
+  await send("18 November 2030 at 2:30pm");
+  assert.equal((await store.getConversation("process-user"))?.state, "awaiting_policy");
+  await send("General question");
+  const policyReply = await send("How does this demo work?");
+  assert.match(policyReply ?? "", /Reply YES/);
+  assert.doesNotMatch(policyReply ?? "", /clinic|48 hours/i);
+  await send("YES");
+  assert.equal((await store.getConversation("process-user"))?.state, "awaiting_payment");
+  const bookingId = (await store.getConversation("process-user"))?.bookingId;
+  await send("General question");
+  assert.match(await send("How does the process work?") ?? "", /waiting for payment/);
+  assert.equal((await store.getConversation("process-user"))?.bookingId, bookingId);
+  await send("callback");
+  assert.equal(await send("General question"), GENERAL_HANDOVER_MESSAGE);
+  assert.equal((await store.getConversation("process-user"))?.state, "handover");
+  await send("START OVER");
+  assert.match(await send("Yea, so how the whole process run?") ?? "", /Reply START DEMO/);
+  assert.equal((await store.getConversation("process-user"))?.packageId, undefined);
+  await store.saveConversation({ waId: "process-user", state: "clarifying_twice", packageId: "ora_demo", updatedAt: new Date().toISOString() });
+  assert.match(await send("So demo?") ?? "", /What name/i);
+  assert.equal((await store.getConversation("process-user"))?.state, "awaiting_name");
+  assert.equal(classifierCalls, 0);
+});
 
 test("all 20 approved FAQ questions match their fixed answers", () => {
   assert.equal(FAQS.length, 20);
@@ -50,6 +238,19 @@ test("all 20 approved FAQ questions match their fixed answers", () => {
 });
 
 test("safety rules distinguish general information from personal medical and emergency messages", () => {
+  assert.equal(detectSafety("Give me an explanation: how does ORA hand over to a human?"), undefined);
+  assert.equal(detectSafety("How does the human handover thing work, then?"), undefined);
+  assert.equal(detectSafety("Would you mind explaining how the option to hand over to a human works?"), undefined);
+  assert.equal(detectSafety("18 November 2030 at 2:30pm London time seems suitable for me"), undefined);
+  assert.equal(detectSafety("Is this treatment time suitable for me? I take medication"), "medical");
+  assert.equal(detectSafety("I am breastfeeding; no emergency, is this treatment suitable for me?"), "medical");
+  assert.equal(detectSafety("No emergency, but I cannot breathe"), "emergency");
+  assert.equal(detectSafety("How does human escalation work as a feature?"), undefined);
+  assert.equal(detectSafety("Can a business set up human follow-up?"), undefined);
+  assert.equal(detectSafety("Does ORA know when human judgement is needed?"), undefined);
+  assert.equal(detectSafety("Can I speak to a human about this business?"), "general");
+  assert.equal(detectSafety("How does human escalation work? I cannot breathe"), "emergency");
+  assert.equal(detectSafety("Does ORA handle a refund complaint with human escalation?"), "general");
   assert.equal(detectSafety("Are there risks or side effects?"), undefined);
   assert.equal(detectSafety("I am experiencing side effects after my treatment"), "medical");
   assert.equal(detectSafety("my face is swelling after treatment"), "medical");
@@ -142,6 +343,38 @@ class FailingSender implements MessageSender {
   async sendText() { throw new Error("Twilio Trial blocked asynchronous Body send"); }
 }
 
+test("Supabase bearer auth protects administrative routes", async () => {
+  const store = new MemoryStore();
+  const sender = new FakeSender();
+  const auth: AuthVerifier = {
+    async getUser(token) {
+      return token === "valid-token" ? { id: "user-1", email: "owner@example.test" } : undefined;
+    },
+  };
+  const app = createApp({
+    store,
+    engine: new ConversationEngine(store, new FakeClassifier(), new FakeCalendar(), new FakeCheckout(), sender),
+    sender,
+    auth,
+    storeMode: "memory",
+  });
+  const server = app.listen(0, "127.0.0.1");
+  await new Promise<void>((resolve) => server.once("listening", resolve));
+  const { port } = server.address() as AddressInfo;
+  const url = `http://127.0.0.1:${port}`;
+
+  try {
+    assert.equal((await fetch(`${url}/api/me`)).status, 401);
+    assert.equal((await fetch(`${url}/auth/google`)).status, 401);
+    assert.equal((await fetch(`${url}/api/me`, { headers: { authorization: "Bearer invalid" } })).status, 401);
+    const response = await fetch(`${url}/api/me`, { headers: { authorization: "Bearer valid-token" } });
+    assert.equal(response.status, 200);
+    assert.deepEqual(await response.json(), { id: "user-1", email: "owner@example.test" });
+  } finally {
+    await new Promise<void>((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
+  }
+});
+
 test("booking flow creates test checkout then confirms exactly one calendar event", async () => {
   const store = new MemoryStore();
   const calendar = new FakeCalendar();
@@ -211,8 +444,13 @@ test("ORA-only mode keeps the clinic template offline", async () => {
   assert.equal((await store.getConversation("ora-off"))?.state, "new");
 
   assert.equal(await engine.handleMessage({ id: "ora-knowledge", from: "ora-knowledge", text: "What knowledge can this AI use?" }), ORA_KNOWLEDGE_MESSAGE);
+  assert.equal(await engine.handleMessage({ id: "ora-products", from: "ora-products", text: "What products and services can you tell customers about?" }), ORA_KNOWLEDGE_MESSAGE);
+  assert.match(ORA_KNOWLEDGE_MESSAGE, /Products and services — names, descriptions, prices and available options/i);
+  assert.match(ORA_KNOWLEDGE_MESSAGE, /quote, booking, payment or human follow-up workflow/i);
+  assert.match(ORA_KNOWLEDGE_MESSAGE, /does not invent missing products, prices or policies/i);
   assert.equal(await engine.handleMessage({ id: "ora-booking", from: "ora-booking", text: "Can ORA manage bookings and calendar availability?" }), ORA_BOOKING_MESSAGE);
   assert.equal(await engine.handleMessage({ id: "ora-payment", from: "ora-payment", text: "How does the payment flow work?" }), ORA_PAYMENT_MESSAGE);
+  assert.match(ORA_PAYMENT_MESSAGE, /START DEMO/i);
   assert.equal(await engine.handleMessage({ id: "ora-integration", from: "ora-integration", text: "Can it integrate with our existing system?" }), ORA_INTEGRATION_MESSAGE);
   assert.equal(await engine.handleMessage({ id: "ora-closing", from: "ora-closing", text: "Thanks" }), ORA_DEMO_CLOSING_MESSAGE);
   assert.doesNotMatch([
@@ -228,6 +466,47 @@ test("ORA-only mode keeps the clinic template offline", async () => {
   assert.equal(resetConversation?.state, "new");
   assert.equal(resetConversation?.packageId, undefined);
   assert.equal(resetConversation?.concernCategory, undefined);
+});
+
+test("ORA-only interactive demo reaches £1 test checkout and confirmation", async () => {
+  let classifierCalls = 0;
+  const store = new MemoryStore();
+  const calendar = new FakeCalendar();
+  const sender = new FakeSender();
+  const engine = new ConversationEngine(store, {
+    async classify() { classifierCalls += 1; return llmDecision(); },
+  }, calendar, new FakeCheckout(), sender, false);
+  const send = (id: string, text: string) => engine.handleMessage({ id, from: "ora-demo-user", text });
+
+  assert.equal(await send("ora-demo-1", "START DEMO"), ORA_DEMO_START_MESSAGE);
+  assert.match(ORA_DEMO_START_MESSAGE, /1\. Collect the booking details/i);
+  assert.match(ORA_DEMO_START_MESSAGE, /£1 Stripe test-payment link/i);
+  assert.equal((await store.getConversation("ora-demo-user"))?.state, "awaiting_name");
+  assert.equal((await store.getConversation("ora-demo-user"))?.packageId, "ora_demo");
+
+  assert.match(await send("ora-demo-2", "Taylor Demo") ?? "", /date and time/i);
+  const policyReply = await send("ora-demo-3", "18 November 2030 at 2pm") ?? "";
+  assert.match(policyReply, /test slot .* is available/i);
+  assert.match(policyReply, new RegExp(ORA_DEMO_POLICY_MESSAGE.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  assert.match(await send("ora-demo-4", "YES") ?? "", /£1\.00 test deposit/i);
+  assert.match(await send("ora-demo-4b", "hello") ?? "", /waiting for payment/i);
+
+  const booking = [...store.bookings.values()][0];
+  assert.ok(booking);
+  assert.equal(booking.packageId, "ora_demo");
+  assert.equal(booking.depositPence, 100);
+  assert.equal(booking.status, "awaiting_payment");
+
+  await engine.confirmPaidBooking(booking.id);
+  assert.equal((await store.getBooking(booking.id))?.status, "confirmed");
+  assert.equal(calendar.events.length, 1);
+  assert.match(sender.sent[0]?.text ?? "", /ORA Demo Appointment/i);
+  assert.match(sender.sent[0]?.text ?? "", /Speak with our Founder/i);
+  assert.doesNotMatch(sender.sent[0]?.text ?? "", /clinic|treatment|package/i);
+  assert.equal(classifierCalls, 0);
+
+  assert.equal(await send("ora-demo-5", "START OVER"), WELCOME_MESSAGE);
+  assert.equal((await store.getConversation("ora-demo-user"))?.packageId, undefined);
 });
 
 test("Cleaner Demo activates only from the exact standalone cleaner command", async () => {
@@ -316,23 +595,23 @@ test("booking details can be corrected before consent and the latest stated date
   const from = "447700900097";
   const send = (id: string, text: string) => engine.handleMessage({ id, from, text });
 
-  await send("correction-1", "Book p2 on 1 September at 2pm, name Alice.");
+  await send("correction-1", "Book p2 on 18 November 2030 at 2pm, name Alice.");
   await send("correction-2", "Actually make it Package 3 instead.");
   await send("correction-3", "The name should be Alicia, not Alice.");
-  await send("correction-4", "Actually Thursday 3 September at 3pm instead.");
+  await send("correction-4", "Actually Thursday 21 November 2030 at 3pm instead.");
 
   const conversation = await store.getConversation(from);
   assert.equal(conversation?.state, "awaiting_policy");
   assert.equal(conversation?.packageId, "package_3");
   assert.equal(conversation?.customerName, "Alicia");
   assert.equal(DateTime.fromISO(conversation?.requestedStart ?? "", { setZone: true })
-    .setZone("Europe/London").toFormat("cccc yyyy-MM-dd HH:mm"), "Thursday 2026-09-03 15:00");
+    .setZone("Europe/London").toFormat("cccc yyyy-MM-dd HH:mm"), "Thursday 2030-11-21 15:00");
 
   const oneShotStore = new MemoryStore();
   const oneShot = new ConversationEngine(oneShotStore, new FakeClassifier(), new FakeCalendar(), new FakeCheckout(), new FakeSender());
-  await oneShot.handleMessage({ id: "latest-date", from: "latest-date", text: "Book p2 Tuesday 1 September at 2pm, sorry, Thursday 3 September at 3pm, name Noor." });
+  await oneShot.handleMessage({ id: "latest-date", from: "latest-date", text: "Book p2 Monday 18 November 2030 at 2pm, sorry, Thursday 21 November 2030 at 3pm, name Noor." });
   assert.equal(DateTime.fromISO((await oneShotStore.getConversation("latest-date"))?.requestedStart ?? "", { setZone: true })
-    .setZone("Europe/London").toFormat("cccc yyyy-MM-dd HH:mm"), "Thursday 2026-09-03 15:00");
+    .setZone("Europe/London").toFormat("cccc yyyy-MM-dd HH:mm"), "Thursday 2030-11-21 15:00");
 
   const hypotheticalStore = new MemoryStore();
   const hypothetical = new ConversationEngine(hypotheticalStore, {
@@ -720,13 +999,13 @@ test("one natural message can answer a FAQ and fill every booking slot", async (
     async classify() {
       return llmDecision({
         intent: "book", wantsBooking: true, faqId: 5, packageId: "package_2",
-        customerName: "Alex", localDateTime: "2026-09-02T14:30",
+        customerName: "Alex", localDateTime: "2030-11-18T14:30",
       });
     },
   };
   const engine = new ConversationEngine(store, classifier, new FakeCalendar(), new FakeCheckout(), new FakeSender());
   const reply = await engine.handleMessage({
-    id: "slots-1", from: "8", text: "Hi, I'm Alex. How much is Package 2, and can I book it on 2 September at 2:30pm?",
+    id: "slots-1", from: "8", text: "Hi, I'm Alex. How much is Package 2, and can I book it on 18 November 2030 at 2:30pm?",
   });
 
   assert.match(reply ?? "", /Package 1 is £50, Package 2 is £100/i);
@@ -734,7 +1013,7 @@ test("one natural message can answer a FAQ and fill every booking slot", async (
   assert.equal((await store.getConversation("8"))?.state, "awaiting_policy");
   assert.equal((await store.getConversation("8"))?.customerName, "Alex");
   assert.equal((await store.getConversation("8"))?.packageId, "package_2");
-  assert.match((await store.getConversation("8"))?.requestedStart ?? "", /^2026-09-02T13:30/);
+  assert.match((await store.getConversation("8"))?.requestedStart ?? "", /^2030-11-18T14:30/);
 });
 
 test("captured booking fields survive while the bot asks only for missing data", async () => {
@@ -742,15 +1021,15 @@ test("captured booking fields survive while the bot asks only for missing data",
   const classifier: IntentClassifier = {
     async classify() {
       return llmDecision({
-        intent: "book", wantsBooking: true, packageId: "package_1", localDateTime: "2026-09-03T13:00",
+        intent: "book", wantsBooking: true, packageId: "package_1", localDateTime: "2030-11-18T13:00",
       });
     },
   };
   const engine = new ConversationEngine(store, classifier, new FakeCalendar(), new FakeCheckout(), new FakeSender());
-  const first = await engine.handleMessage({ id: "missing-1", from: "9", text: "Book me a hair consultation Thursday at 1pm" });
+  const first = await engine.handleMessage({ id: "missing-1", from: "9", text: "Book me a hair consultation on 18 November 2030 at 1pm" });
   assert.match(first ?? "", /What name/i);
   assert.equal((await store.getConversation("9"))?.state, "awaiting_name");
-  assert.match((await store.getConversation("9"))?.requestedStart ?? "", /^2026-09-03T12:00/);
+  assert.match((await store.getConversation("9"))?.requestedStart ?? "", /^2030-11-18T13:00/);
 
   const second = await engine.handleMessage({ id: "missing-2", from: "9", text: "Alice Demo" });
   assert.match(second ?? "", /Reply YES/i);
@@ -830,4 +1109,55 @@ test("Twilio signature and payload parsing accept signed text messages", () => {
   assert.equal(twimlResponse("Hair & Skin <Demo>"),
     '<?xml version="1.0" encoding="UTF-8"?><Response><Message>Hair &amp; Skin &lt;Demo&gt;</Message></Response>');
   assert.equal(twimlResponse(), '<?xml version="1.0" encoding="UTF-8"?><Response></Response>');
+});
+
+test("abc menu sends once, handles selections, and falls back to text on send failure", async () => {
+  const previous = { ...config.twilio };
+  const oldUrl = config.appBaseUrl;
+  config.twilio.authToken = "test-token";
+  config.twilio.menuContentSid = "HXc9e5fc1f1fe65f9d4e0801d6d7bb99c3";
+  const store = new MemoryStore();
+  let sends = 0;
+  let fail = false;
+  const sender: MessageSender = {
+    async sendText() {},
+    async sendTemplate(to, sid) {
+      assert.equal(to, "whatsapp:+447700900001");
+      assert.equal(sid, config.twilio.menuContentSid);
+      sends++;
+      if (fail) throw new Error("Rejected");
+    },
+  };
+  const engine = new ConversationEngine(store, new FakeClassifier(), new FakeCalendar(), new FakeCheckout(), sender, false);
+  const server = createApp({ store, engine, sender, storeMode: "memory" }).listen(0, "127.0.0.1");
+  await new Promise<void>((resolve) => server.once("listening", resolve));
+  config.appBaseUrl = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
+  const url = `${config.appBaseUrl}/webhooks/twilio/whatsapp`;
+  const post = async (id: string, body: string, selection?: string) => {
+    const params: Record<string, string> = { MessageSid: id, From: "whatsapp:+447700900001", Body: body };
+    if (selection) params.ListId = selection;
+    const data = Object.keys(params).sort().reduce((value, key) => value + key + params[key], url);
+    const signature = createHmac("sha1", "test-token").update(data).digest("base64");
+    return (await fetch(url, { method: "POST", headers: { "x-twilio-signature": signature }, body: new URLSearchParams(params) })).text();
+  };
+  try {
+    assert.equal(await post("menu1", "Hi"), twimlResponse());
+    assert.equal(await post("menu1", "Hi"), twimlResponse());
+    assert.equal(sends, 1);
+    assert.match(await post("menu2", "Book appointment", "book_appointment"), /ORA Interactive Demo started/);
+    assert.match(await post("menu3", "Hi"), /name/i);
+    assert.equal(sends, 1, "greeting during booking must preserve the workflow");
+    fail = true;
+    assert.match(await post("menu4", "START OVER"), /my name is ORA/);
+    for (const [id, expected] of Object.entries({ service_enquiry: "What business knowledge can ORA answer?", general_question: "General question", request_callback: "Request callback", ask_question: "General question" })) {
+      assert.equal(extractTwilioIncomingMessage({ MessageSid: "selection", From: "test", ButtonPayload: id })?.text, expected);
+    }
+    assert.match(await post("menu5", "General question", "general_question"), /what would you like to know/);
+    assert.match(await post("menu6", "Request callback", "request_callback"), /Founder/);
+    assert.equal(store.handoffs.length, 1);
+  } finally {
+    Object.assign(config.twilio, previous);
+    config.appBaseUrl = oldUrl;
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+  }
 });

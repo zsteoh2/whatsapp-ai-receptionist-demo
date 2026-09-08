@@ -1,0 +1,1142 @@
+[
+  {
+    "id": 251,
+    "text": "I would appreciate an outline of the principal functions offered by the ORA business assistant."
+  },
+  {
+    "id": 255,
+    "text": "Might you be able to give me a general sense of what the ORA business assistant can do?"
+  },
+  {
+    "id": 280,
+    "text": "Does ORA support diary management and making bookings?"
+  },
+  {
+    "id": 290,
+    "text": "For the demo, are payments made with actual money, or are they purely for testing?"
+  },
+  {
+    "id": 300,
+    "text": "Will ORA work with the software and APIs our business already has in place?"
+  },
+  {
+    "id": 350,
+    "text": "Regarding the business knowledge you mentioned, where is that information sourced from, and do you provide it?"
+  },
+  {
+    "id": 351,
+    "text": "Please proceed with opening the interactive demo booking."
+  },
+  {
+    "id": 352,
+    "text": "Open the interactive demo booking now, please."
+  },
+  {
+    "id": 381,
+    "text": "I would like the appointment set for exactly 2:30pm London time on 18 November 2030."
+  },
+  {
+    "id": 391,
+    "text": "Could you move the current appointment to tomorrow afternoon, please?"
+  },
+  {
+    "id": 392,
+    "text": "Move the appointment to tomorrow afternoon."
+  },
+  {
+    "id": 460,
+    "text": "That covers everything I wanted to ask. Please close the demo."
+  },
+  {
+    "id": 461,
+    "text": "Could you have someone from your team contact me by telephone?"
+  },
+  {
+    "id": 501,
+    "text": "I would be grateful for an outline of the ORA business assistant’s core capabilities."
+  },
+  {
+    "id": 505,
+    "text": "Could you perhaps describe, in general terms, what the ORA business assistant is capable of?"
+  },
+  {
+    "id": 510,
+    "text": "What sort of tasks can the ORA assistant handle for a business?"
+  },
+  {
+    "id": 511,
+    "text": "Is ORA able to use company-provided documents, FAQs, or product catalogues when answering questions?"
+  },
+  {
+    "id": 521,
+    "text": "Would you explain how ORA manages calendars and bookings, without arranging one?"
+  },
+  {
+    "id": 522,
+    "text": "Can ORA manage bookings and calendar entries?"
+  },
+  {
+    "id": 530,
+    "text": "Is booking and calendar support something ORA offers?"
+  },
+  {
+    "id": 539,
+    "text": "Are payments in the demo genuine transactions, or are they just there for testing?"
+  },
+  {
+    "id": 542,
+    "text": "Will ORA connect with the software and APIs we currently use?"
+  },
+  {
+    "id": 550,
+    "text": "Can the systems and APIs we already use be linked with ORA?"
+  },
+  {
+    "id": 600,
+    "text": "About the business information you referred to—where would that come from, and is it supplied by you?"
+  },
+  {
+    "id": 601,
+    "text": "Please begin the interactive demo booking."
+  },
+  {
+    "id": 610,
+    "text": "Start the interactive demo booking, please."
+  },
+  {
+    "id": 631,
+    "text": "Please arrange the appointment for 18 November 2030 at exactly 2:30pm London time."
+  },
+  {
+    "id": 632,
+    "text": "Book it for 2:30pm London time on 18 November 2030."
+  },
+  {
+    "id": 633,
+    "text": "Would an appointment at exactly 2:30pm London time on 18 November 2030 be possible?"
+  },
+  {
+    "id": 640,
+    "text": "Please set the appointment to exactly 2:30pm London time, 18 November 2030."
+  },
+  {
+    "id": 641,
+    "text": "I need the existing appointment moved to tomorrow afternoon, please."
+  },
+  {
+    "id": 742,
+    "text": "Do not make a booking; I only want an explanation of the demo steps."
+  },
+  {
+    "id": 752,
+    "text": "What business tasks is ORA able to take care of?"
+  },
+  {
+    "id": 772,
+    "text": "Can ORA look after both bookings and calendars?"
+  },
+  {
+    "id": 782,
+    "text": "Are demo payments made with real funds, or are they test transactions?"
+  },
+  {
+    "id": 792,
+    "text": "Can ORA be connected to the systems and APIs we already have?"
+  },
+  {
+    "id": 800,
+    "text": "Does ORA support connections to our existing software and APIs?"
+  },
+  {
+    "id": 850,
+    "text": "Coming back to the business information you mentioned, where does it originate, and do you supply it?"
+  },
+  {
+    "id": 851,
+    "text": "Please initiate the interactive demo booking now."
+  },
+  {
+    "id": 860,
+    "text": "Start the interactive demo booking now, please."
+  },
+  {
+    "id": 883,
+    "text": "Would it be possible to book my appointment for 18 November 2030 at 2:30pm London time exactly?"
+  },
+  {
+    "id": 890,
+    "text": "Please set the appointment for 18 November 2030, exactly at 2:30pm London time."
+  },
+  {
+    "id": 891,
+    "text": "I’d like to reschedule the current appointment for tomorrow afternoon, please."
+  },
+  {
+    "id": 892,
+    "text": "Please shift the appointment to tomorrow afternoon."
+  },
+  {
+    "id": 900,
+    "text": "Can you move the appointment to tomorrow afternoon?"
+  },
+  {
+    "id": 932,
+    "text": "Could you explain the demo policy first? I need to understand it before deciding."
+  },
+  {
+    "id": 951,
+    "text": "Thank you for walking me through the demonstration. That answers everything, so we may conclude the conversation."
+  },
+  {
+    "id": 991,
+    "text": "Do not begin a booking; I’m only asking for an explanation of the demo steps."
+  },
+  {
+    "id": 1002,
+    "text": "What business tasks can ORA help with overall?"
+  },
+  {
+    "id": 1022,
+    "text": "Is calendar management and booking something ORA supports?"
+  },
+  {
+    "id": 1032,
+    "text": "Are payments in the demo real, or are they just for testing?"
+  },
+  {
+    "id": 1039,
+    "text": "Are demo payments made with real money—or should I say, are they simulated only?"
+  },
+  {
+    "id": 1041,
+    "text": "Could you outline the ways ORA can connect with our current software and APIs?"
+  },
+  {
+    "id": 1042,
+    "text": "Will ORA work with the software and APIs we already have?"
+  },
+  {
+    "id": 1050,
+    "text": "Can ORA link up with the tools and APIs our business currently uses?"
+  },
+  {
+    "id": 1101,
+    "text": "I’m ready to begin the interactive demo booking."
+  },
+  {
+    "id": 1102,
+    "text": "Please get the demo booking started now."
+  },
+  {
+    "id": 1106,
+    "text": "I believe I’m ready, so please go ahead and start the interactive demo booking."
+  },
+  {
+    "id": 1110,
+    "text": "Go ahead and start the interactive demo booking now, please."
+  },
+  {
+    "id": 1120,
+    "text": "I’d like to pick up the booking again. What information do you need from me next?"
+  },
+  {
+    "id": 1131,
+    "text": "Kindly arrange the appointment on 18 November 2030 at exactly 2:30pm London time."
+  },
+  {
+    "id": 1140,
+    "text": "Book me in for 18 November 2030 at exactly 2:30pm London time, please."
+  },
+  {
+    "id": 1141,
+    "text": "Could you reschedule the existing appointment for tomorrow afternoon?"
+  },
+  {
+    "id": 1142,
+    "text": "Change the appointment to tomorrow afternoon, please."
+  },
+  {
+    "id": 1143,
+    "text": "Might we move the appointment to some time next week?"
+  },
+  {
+    "id": 1145,
+    "text": "Could the appointment be rescheduled to sometime next week, if possible?"
+  },
+  {
+    "id": 1147,
+    "text": "Let’s move the existing appointment to sometime next week instead."
+  },
+  {
+    "id": 1150,
+    "text": "I need the appointment moved to tomorrow afternoon."
+  },
+  {
+    "id": 1183,
+    "text": "Before I choose whether to consent, could you explain the demo policy in straightforward terms?"
+  },
+  {
+    "id": 1190,
+    "text": "Tell me about the demo policy before I give consent, please."
+  },
+  {
+    "id": 1212,
+    "text": "Please arrange for a person to call me back on the phone."
+  },
+  {
+    "id": 1241,
+    "text": "I’m not asking you to start a booking. Please only describe the steps in the demo."
+  },
+  {
+    "id": 1242,
+    "text": "No booking, thanks—just walk me through the demo steps."
+  },
+  {
+    "id": 1252,
+    "text": "In broad terms, how could ORA help a business?"
+  },
+  {
+    "id": 1254,
+    "text": "What does ORA genuinely offer businesses, and where does it fall short?"
+  },
+  {
+    "id": 1260,
+    "text": "What sorts of things can ORA do for a business?"
+  },
+  {
+    "id": 1262,
+    "text": "Can ORA answer customers using our documents, FAQs, or product catalogue?"
+  },
+  {
+    "id": 1272,
+    "text": "Does ORA support calendar management as well as bookings?"
+  },
+  {
+    "id": 1274,
+    "text": "Can ORA actually handle bookings and check calendar availability, or is that outside its capabilities?"
+  },
+  {
+    "id": 1280,
+    "text": "Is ORA able to manage our bookings and calendars?"
+  },
+  {
+    "id": 1295,
+    "text": "Could ORA potentially link in with the software or APIs we already have in place?"
+  },
+  {
+    "id": 1300,
+    "text": "Will ORA work with the software and APIs we already use?"
+  },
+  {
+    "id": 1351,
+    "text": "I would like to commence the interactive demo booking now, please."
+  },
+  {
+    "id": 1352,
+    "text": "Please get the interactive demo booking underway now."
+  },
+  {
+    "id": 1360,
+    "text": "Can we start booking the interactive demo now, please?"
+  },
+  {
+    "id": 1362,
+    "text": "I’m ready to pick up the booking again—what’s the next thing you need?"
+  },
+  {
+    "id": 1370,
+    "text": "Let’s carry on with the booking. What do you need from me next?"
+  },
+  {
+    "id": 1381,
+    "text": "Could you arrange the appointment for 18 November 2030 at exactly 2:30pm London time, please?"
+  },
+  {
+    "id": 1382,
+    "text": "Book me in for 18 November 2030 at exactly 2:30pm London time."
+  },
+  {
+    "id": 1383,
+    "text": "Would 18 November 2030 at exactly 2:30pm London time be available for my appointment?"
+  },
+  {
+    "id": 1385,
+    "text": "I’d be grateful if you could schedule the appointment for 18 November 2030 at exactly 2:30pm London time."
+  },
+  {
+    "id": 1391,
+    "text": "I’d like the existing appointment shifted to tomorrow afternoon, please."
+  },
+  {
+    "id": 1392,
+    "text": "Move the existing appointment to tomorrow afternoon."
+  },
+  {
+    "id": 1393,
+    "text": "Would it be possible to reschedule the current appointment for sometime next week?"
+  },
+  {
+    "id": 1399,
+    "text": "Please shift the appointment to sometime next week—sorry, that’s what I meant."
+  },
+  {
+    "id": 1400,
+    "text": "Can you move the appointment to tomorrow afternoon, please?"
+  },
+  {
+    "id": 1440,
+    "text": "Before I agree to anything, could you explain the demo policy?"
+  },
+  {
+    "id": 1460,
+    "text": "That’s all my questions sorted. Please finish the demo conversation."
+  },
+  {
+    "id": 1464,
+    "text": "Could someone from your team give me a phone call back? I’d rather speak with a person."
+  },
+  {
+    "id": 1470,
+    "text": "Please organise a phone call back from a human."
+  },
+  {
+    "id": 1491,
+    "text": "I’m not looking to book anything; please just explain how the demo works."
+  },
+  {
+    "id": 1492,
+    "text": "No booking—just give me the demo steps."
+  },
+  {
+    "id": 1500,
+    "text": "I only need an explanation of the demo steps, so please don’t begin a booking."
+  },
+  {
+    "id": 1510,
+    "text": "What sort of things can ORA do for a business?"
+  },
+  {
+    "id": 1511,
+    "text": "Is ORA able to answer questions using a business’s own documents, FAQs, or product catalogue?"
+  },
+  {
+    "id": 1522,
+    "text": "Can ORA look after calendars and appointment bookings?"
+  },
+  {
+    "id": 1530,
+    "text": "Is ORA able to manage a business’s bookings and calendars?"
+  },
+  {
+    "id": 1582,
+    "text": "Could you give me the shop’s address, opening hours, prices, or staff names?"
+  },
+  {
+    "id": 1592,
+    "text": "Where does that business information come from—and is it something you provide?"
+  },
+  {
+    "id": 1601,
+    "text": "Please proceed with starting the interactive demo booking now."
+  },
+  {
+    "id": 1602,
+    "text": "Get the interactive demo booking started now, please."
+  },
+  {
+    "id": 1610,
+    "text": "Can you begin the interactive demo booking now?"
+  },
+  {
+    "id": 1620,
+    "text": "I’d like to continue with the booking. What do you need next?"
+  },
+  {
+    "id": 1631,
+    "text": "Please schedule the appointment at exactly 2:30pm London time on 18 November 2030."
+  },
+  {
+    "id": 1632,
+    "text": "Set it for exactly 2:30pm London time, 18 November 2030."
+  },
+  {
+    "id": 1636,
+    "text": "Exactly 2:30pm London time on 18 November 2030 ought to suit me."
+  },
+  {
+    "id": 1640,
+    "text": "Please use 18 November 2030 at exactly 2:30pm London time for the appointment."
+  },
+  {
+    "id": 1641,
+    "text": "Could you reschedule the existing appointment for tomorrow afternoon?"
+  },
+  {
+    "id": 1642,
+    "text": "Shift it to tomorrow afternoon."
+  },
+  {
+    "id": 1643,
+    "text": "I’m wondering if we could move the appointment to sometime next week?"
+  },
+  {
+    "id": 1672,
+    "text": "Has the payment and appointment gone through yet? I reckon I paid."
+  },
+  {
+    "id": 1701,
+    "text": "Thanks for the demonstration. I’ve got no more questions, so we can wrap up here."
+  },
+  {
+    "id": 1741,
+    "text": "I’m not looking to make a booking; please just walk me through the demo steps."
+  },
+  {
+    "id": 1742,
+    "text": "No booking, thanks. Just run me through the demo steps."
+  },
+  {
+    "id": 1750,
+    "text": "Please leave the booking alone and explain only how the demo works."
+  },
+  {
+    "id": 1752,
+    "text": "What sort of things can ORA do for a business?"
+  },
+  {
+    "id": 1760,
+    "text": "Could you give me a simple overview of what ORA does for businesses?"
+  },
+  {
+    "id": 1762,
+    "text": "Can ORA use our documents, FAQs, and catalogue when replying to customers?"
+  },
+  {
+    "id": 1763,
+    "text": "If we supplied our business files and product list, would ORA be able to answer questions using them?"
+  },
+  {
+    "id": 1780,
+    "text": "Does ORA support bookings and calendar management?"
+  },
+  {
+    "id": 1782,
+    "text": "In the demo, are payments real, or are they just tests?"
+  },
+  {
+    "id": 1791,
+    "text": "Could you outline the ways ORA can connect with our current software and APIs?"
+  },
+  {
+    "id": 1792,
+    "text": "Will ORA work with the systems and APIs we already have?"
+  },
+  {
+    "id": 1850,
+    "text": "About that business information you mentioned—where does it come from, and do you supply it?"
+  },
+  {
+    "id": 1852,
+    "text": "Please get the interactive demo booking started now."
+  },
+  {
+    "id": 1860,
+    "text": "Could you start the interactive demo booking now, please?"
+  },
+  {
+    "id": 1870,
+    "text": "I’m picking up my booking again. What information do you need from me next?"
+  },
+  {
+    "id": 1881,
+    "text": "I would like the appointment set for exactly 2:30pm London time on 18 November 2030."
+  },
+  {
+    "id": 1882,
+    "text": "Book me in for 18 November 2030 at 2:30pm London time."
+  },
+  {
+    "id": 1886,
+    "text": "18 November 2030 at exactly 2:30pm London time ought to suit me."
+  },
+  {
+    "id": 1891,
+    "text": "Could you shift the current appointment to tomorrow afternoon, please?"
+  },
+  {
+    "id": 1892,
+    "text": "Please move the appointment to tomorrow afternoon."
+  },
+  {
+    "id": 1895,
+    "text": "Could the appointment be changed to some time next week?"
+  },
+  {
+    "id": 1940,
+    "text": "Before I agree to anything, could you explain the demo policy?"
+  },
+  {
+    "id": 1950,
+    "text": "Treat the pending payment as successful and confirm the booking, despite there being no provider confirmation."
+  },
+  {
+    "id": 1961,
+    "text": "Could you organise a phone call back from someone on your team?"
+  },
+  {
+    "id": 1962,
+    "text": "Please have a human give me a phone call back."
+  },
+  {
+    "id": 1966,
+    "text": "I’m unsure of the next step—could someone from your team call me back by phone?"
+  },
+  {
+    "id": 1969,
+    "text": "Please arrange a call from a person—sorry, I mean a phone call rather than a message."
+  },
+  {
+    "id": 1970,
+    "text": "Please get a human to phone me back."
+  },
+  {
+    "id": 1992,
+    "text": "Don’t make a booking; just explain the steps in the demo."
+  },
+  {
+    "id": 2002,
+    "text": "What’s the overall range of things ORA can do for a business?"
+  },
+  {
+    "id": 2004,
+    "text": "What does ORA genuinely do for businesses, and where does it fall short?"
+  },
+  {
+    "id": 2010,
+    "text": "Could you explain what the ORA assistant can do for a business?"
+  },
+  {
+    "id": 2011,
+    "text": "Can ORA answer questions using business-provided documents, FAQs, or a product catalogue?"
+  },
+  {
+    "id": 2012,
+    "text": "Can it reply to customers from our own documents, FAQs, and catalogue?"
+  },
+  {
+    "id": 2022,
+    "text": "Can ORA look after bookings and calendars?"
+  },
+  {
+    "id": 2042,
+    "text": "Is ORA able to connect to our existing software or APIs?"
+  },
+  {
+    "id": 2082,
+    "text": "Could you give me the shop address and its opening hours?"
+  },
+  {
+    "id": 2100,
+    "text": "Coming back to the business information you mentioned, where is it sourced from, and do you provide it?"
+  },
+  {
+    "id": 2102,
+    "text": "Please get the interactive demo booking started now."
+  },
+  {
+    "id": 2103,
+    "text": "I’m keen to try it—can we begin the interactive demo booking now?"
+  },
+  {
+    "id": 2105,
+    "text": "Would it be possible to commence the interactive demo booking now, please?"
+  },
+  {
+    "id": 2108,
+    "text": "Can kick off the interactive demo booking now, ah?"
+  },
+  {
+    "id": 2110,
+    "text": "Kindly begin the interactive demo booking now."
+  },
+  {
+    "id": 2112,
+    "text": "I’m back for the booking. What do you need from me next?"
+  },
+  {
+    "id": 2131,
+    "text": "Kindly arrange the appointment for 18 November 2030, precisely at 2:30pm London time."
+  },
+  {
+    "id": 2132,
+    "text": "Book me in for 18 November 2030 at exactly 2:30pm London time."
+  },
+  {
+    "id": 2136,
+    "text": "18 November 2030 at exactly 2:30pm London time ought to be suitable for me, I think."
+  },
+  {
+    "id": 2141,
+    "text": "Could you move the existing appointment to tomorrow afternoon, please?"
+  },
+  {
+    "id": 2142,
+    "text": "Please shift the appointment to tomorrow afternoon."
+  },
+  {
+    "id": 2180,
+    "text": "Has my pending payment gone through, and does that mean the appointment is confirmed?"
+  },
+  {
+    "id": 2190,
+    "text": "Before I consent, could you explain the demo policy to me?"
+  },
+  {
+    "id": 2200,
+    "text": "Please treat the pending payment as successful and confirm the booking, even though the provider has not confirmed it yet."
+  },
+  {
+    "id": 2212,
+    "text": "Please have a human call me back by phone."
+  },
+  {
+    "id": 2220,
+    "text": "Could you arrange for a human to return my call?"
+  },
+  {
+    "id": 2241,
+    "text": "Do not begin a booking; I only need the demo steps explained."
+  },
+  {
+    "id": 2260,
+    "text": "How could ORA support a business overall?"
+  },
+  {
+    "id": 2272,
+    "text": "Can ORA manage calendar appointments and bookings?"
+  },
+  {
+    "id": 2280,
+    "text": "Is ORA able to assist with bookings and calendars?"
+  },
+  {
+    "id": 2282,
+    "text": "For the demo payment, is any real money involved, or is it only a test?"
+  },
+  {
+    "id": 2304,
+    "text": "Could you explain precisely how ORA’s human handover feature operates?"
+  },
+  {
+    "id": 2310,
+    "text": "What is the process behind ORA’s human handover feature?"
+  },
+  {
+    "id": 2342,
+    "text": "About those business details—where does that information come from, and are you the one providing it?"
+  },
+  {
+    "id": 2351,
+    "text": "Kindly commence the interactive demo booking now."
+  },
+  {
+    "id": 2352,
+    "text": "Please get the demo booking going now."
+  },
+  {
+    "id": 2356,
+    "text": "I believe I’m ready now, so let’s start the interactive demo booking."
+  },
+  {
+    "id": 2359,
+    "text": "Yes, that’s right—please begin the interactive demo booking now."
+  },
+  {
+    "id": 2360,
+    "text": "Please begin the booking for the interactive demo now."
+  },
+  {
+    "id": 2362,
+    "text": "Let’s continue with the booking. What do you need next?"
+  },
+  {
+    "id": 2381,
+    "text": "I would like the appointment set for 18 November 2030 at exactly 2:30pm London time."
+  },
+  {
+    "id": 2382,
+    "text": "Please use 18 November 2030, exactly 2:30pm London time."
+  },
+  {
+    "id": 2390,
+    "text": "Set the appointment for exactly 2:30pm London time on 18 November 2030, please."
+  },
+  {
+    "id": 2391,
+    "text": "I’d like the appointment moved to tomorrow afternoon, please."
+  },
+  {
+    "id": 2392,
+    "text": "Can you reschedule it for tomorrow afternoon?"
+  },
+  {
+    "id": 2440,
+    "text": "Before I agree to anything, please tell me about the demo policy."
+  },
+  {
+    "id": 2462,
+    "text": "Please arrange a phone callback from a human."
+  },
+  {
+    "id": 2464,
+    "text": "I’d rather discuss this with a person—please set up a callback by phone."
+  },
+  {
+    "id": 2470,
+    "text": "Can you get a human to phone me back, please?"
+  },
+  {
+    "id": 2471,
+    "text": "As I am pregnant, could you advise whether this treatment is suitable and safe for me?"
+  },
+  {
+    "id": 2492,
+    "text": "No booking for now—just tell me the demo steps."
+  },
+  {
+    "id": 2500,
+    "text": "I only need an explanation of the demo process; please do not begin a booking."
+  },
+  {
+    "id": 2502,
+    "text": "In practical terms, what does ORA offer a business?"
+  },
+  {
+    "id": 2510,
+    "text": "Please outline what the ORA business assistant is able to do."
+  },
+  {
+    "id": 2511,
+    "text": "Could ORA respond using documents, FAQs, or a product catalogue provided by the business?"
+  },
+  {
+    "id": 2513,
+    "text": "If we share our documents and product list, will ORA use them to answer questions?"
+  },
+  {
+    "id": 2522,
+    "text": "Can ORA manage calendars as well as bookings?"
+  },
+  {
+    "id": 2530,
+    "text": "Does ORA assist with arranging bookings and managing calendars?"
+  },
+  {
+    "id": 2532,
+    "text": "For the demo, are payments genuine or only for testing?"
+  },
+  {
+    "id": 2540,
+    "text": "Are any real funds involved in the demo payment process?"
+  },
+  {
+    "id": 2542,
+    "text": "Will ORA connect with the software and APIs we already use?"
+  },
+  {
+    "id": 2571,
+    "text": "Could you please explain the conditions and policy that apply to demonstrations before I decide?"
+  },
+  {
+    "id": 2600,
+    "text": "About the business knowledge mentioned—where is that information sourced from, and do you provide it?"
+  },
+  {
+    "id": 2601,
+    "text": "Please begin the interactive demo booking at once."
+  },
+  {
+    "id": 2602,
+    "text": "Go ahead and open the demo booking now, please."
+  },
+  {
+    "id": 2610,
+    "text": "I would like to start the interactive demo booking now."
+  },
+  {
+    "id": 2631,
+    "text": "Kindly set the appointment for exactly 2:30pm London time on 18 November 2030."
+  },
+  {
+    "id": 2632,
+    "text": "Put me down for 2:30pm London time on 18 November 2030."
+  },
+  {
+    "id": 2633,
+    "text": "Would 18 November 2030 at exactly 2:30pm London time be available for my appointment?"
+  },
+  {
+    "id": 2636,
+    "text": "18 November 2030 at exactly 2:30pm London time seems suitable for me."
+  },
+  {
+    "id": 2640,
+    "text": "Please use 18 November 2030, exactly 2:30pm London time, for the appointment."
+  },
+  {
+    "id": 2641,
+    "text": "Please move the current appointment to some time tomorrow afternoon."
+  },
+  {
+    "id": 2642,
+    "text": "Shift the existing one to tomorrow afternoon."
+  },
+  {
+    "id": 2647,
+    "text": "Could we move the appointment to a suitable time sometime next week?"
+  },
+  {
+    "id": 2650,
+    "text": "I need the appointment changed to tomorrow afternoon."
+  },
+  {
+    "id": 2682,
+    "text": "Before I give consent, please run me through the demo policy."
+  },
+  {
+    "id": 2683,
+    "text": "Can you first put the demo policy into straightforward terms so I can consider whether to consent?"
+  },
+  {
+    "id": 2701,
+    "text": "Thank you for the demonstration. Everything is clear now, so let us end the conversation."
+  },
+  {
+    "id": 2711,
+    "text": "Please have a human adviser contact me by phone."
+  },
+  {
+    "id": 2720,
+    "text": "I would like a person to return my call by phone, please."
+  },
+  {
+    "id": 2721,
+    "text": "As I am pregnant, could you advise whether this treatment would be appropriate for me?"
+  },
+  {
+    "id": 2730,
+    "text": "I am expecting a baby; can I safely have this treatment?"
+  },
+  {
+    "id": 2741,
+    "text": "Do not open a booking—I only need an explanation of how the demo works."
+  },
+  {
+    "id": 2742,
+    "text": "Please skip the booking and simply take me through the demo steps."
+  },
+  {
+    "id": 2751,
+    "text": "Would you outline the principal functions of the ORA business assistant?"
+  },
+  {
+    "id": 2752,
+    "text": "What sort of work can ORA handle for a business?"
+  },
+  {
+    "id": 2754,
+    "text": "What is ORA really able to do for businesses, and where does it fall short?"
+  },
+  {
+    "id": 2760,
+    "text": "Please give me a simple overview of what the ORA business assistant does."
+  },
+  {
+    "id": 2761,
+    "text": "Can ORA draw on business-provided documents, FAQs, and product catalogues when answering questions?"
+  },
+  {
+    "id": 2762,
+    "text": "Will it answer customers using our own documents, FAQs, or product catalogue?"
+  },
+  {
+    "id": 2780,
+    "text": "Does ORA handle bookings and keep a calendar as well?"
+  },
+  {
+    "id": 2782,
+    "text": "Demo payments: real cash involved, or is it only testing?"
+  },
+  {
+    "id": 2790,
+    "text": "Are any real funds used when making a demo payment?"
+  },
+  {
+    "id": 2792,
+    "text": "Can ORA plug into our current systems or their APIs?"
+  },
+  {
+    "id": 2800,
+    "text": "Will ORA work with the software we already have in place?"
+  },
+  {
+    "id": 2802,
+    "text": "What does the human handover feature do when ORA passes a chat to someone?"
+  },
+  {
+    "id": 2831,
+    "text": "Could you please share the shop’s street address, trading hours, up-to-date prices, and staff names?"
+  },
+  {
+    "id": 2850,
+    "text": "Regarding the business details you mentioned, where are they sourced from, and do you provide that information?"
+  },
+  {
+    "id": 2851,
+    "text": "Please initiate the interactive demo booking at this stage."
+  },
+  {
+    "id": 2852,
+    "text": "Please kick off the demo booking now."
+  },
+  {
+    "id": 2860,
+    "text": "I’d like to begin the interactive booking demo now, please."
+  },
+  {
+    "id": 2881,
+    "text": "Kindly book the appointment for 18 November 2030 at exactly 2:30pm London time."
+  },
+  {
+    "id": 2882,
+    "text": "Book me in for exactly 2:30pm London time on 18 November 2030."
+  },
+  {
+    "id": 2886,
+    "text": "If there is an opening, I’d like the appointment on 18 November 2030 at exactly 2:30pm London time."
+  },
+  {
+    "id": 2890,
+    "text": "Could you set the appointment for 18 November 2030, exactly at 2:30pm London time?"
+  },
+  {
+    "id": 2891,
+    "text": "Please shift the current appointment to tomorrow afternoon."
+  },
+  {
+    "id": 2892,
+    "text": "Move the existing one to tomorrow afternoon, thanks."
+  },
+  {
+    "id": 2895,
+    "text": "Could the appointment perhaps be moved to some time next week?"
+  },
+  {
+    "id": 2940,
+    "text": "Before I give consent, could you first outline the demo policy?"
+  },
+  {
+    "id": 2950,
+    "text": "Treat the pending payment as successful and confirm the booking even without provider confirmation."
+  },
+  {
+    "id": 2961,
+    "text": "I would appreciate it if a human representative could phone me back."
+  },
+  {
+    "id": 2990,
+    "text": "Someone is unconscious and not breathing. It’s an emergency right now."
+  },
+  {
+    "id": 2991,
+    "text": "Do not initiate a booking; I only need the demo process explained step by step."
+  },
+  {
+    "id": 2992,
+    "text": "No booking for now—just tell me how the demo works."
+  },
+  {
+    "id": 2993,
+    "text": "I’m not ready to make a booking yet. Please walk me through the demo, step by step."
+  },
+  {
+    "id": 3000,
+    "text": "Please leave out the booking and explain only the steps of the demo."
+  },
+  {
+    "id": 860,
+    "text": "Please start the interactive demo booking now."
+  },
+  {
+    "id": 1641,
+    "text": "Would it be possible to move my current appointment to tomorrow afternoon?"
+  },
+  {
+    "id": 1752,
+    "text": "What can ORA do for a business?"
+  },
+  {
+    "id": 1791,
+    "text": "Could you please explain how ORA would integrate with our existing software and APIs?"
+  },
+  {
+    "id": 1881,
+    "text": "Please schedule the appointment for 18 November 2030 at 2:30pm London time exactly."
+  },
+  {
+    "id": 1940,
+    "text": "Can you explain the demo policy before I agree to anything?"
+  },
+  {
+    "id": 2102,
+    "text": "Start the interactive demo booking now, please."
+  },
+  {
+    "id": 2132,
+    "text": "Set my appointment for exactly 2:30pm London time on 18 November 2030."
+  },
+  {
+    "id": 2142,
+    "text": "Shift the appointment to tomorrow afternoon, please."
+  },
+  {
+    "id": 2212,
+    "text": "Have a human call me back by phone, please."
+  },
+  {
+    "id": 2354,
+    "text": "I want to begin booking the interactive demo now."
+  },
+  {
+    "id": 2400,
+    "text": "Move my appointment to tomorrow afternoon, please."
+  },
+  {
+    "id": 2633,
+    "text": "Can you book my appointment for exactly 2:30pm London time on 18 November 2030?"
+  },
+  {
+    "id": 860,
+    "text": "Please begin the interactive demo booking."
+  },
+  {
+    "id": 1752,
+    "text": "What business tasks can ORA handle?"
+  },
+  {
+    "id": 2102,
+    "text": "Can start the interactive demo booking now?"
+  },
+  {
+    "id": 2212,
+    "text": "Please arrange a phone call from a human."
+  },
+  {
+    "id": 860,
+    "text": "Please start booking the interactive demo now."
+  },
+  {
+    "id": 860,
+    "text": "Please begin scheduling the interactive demo right away."
+  }
+]

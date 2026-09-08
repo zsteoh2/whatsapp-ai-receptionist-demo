@@ -17,7 +17,7 @@ Use stable component IDs such as `COMP-AUTH-SERVICE`.
 
 ## System Context
 
-系统边界：A single TypeScript/Express webhook service presents ORA through Twilio Sandbox (or Meta). ORA-only mode is the default and bypasses the legacy Clinic classifier, catalogue, and new-booking state machine. An exact standalone `cleaner` command selects a persistent Cleaner presentation shell without enabling unapproved booking logic. The retained Clinic path can be explicitly enabled for regression; only that path calls the OpenAI-compatible classifier and uses Supabase, Google Calendar, and Stripe for new bookings.
+系统边界：A single TypeScript/Express webhook service presents ORA through Twilio (or Meta). ORA-only mode is the default and uses its own OpenAI-compatible semantic intent schema, separate from the dormant Clinic classifier and catalogue. The synthetic ORA booking journey reuses persistence, Calendar validation, Stripe Test Mode and confirmation code. An exact standalone `cleaner` command selects a persistent Cleaner presentation shell without enabling unapproved booking logic. The retained Clinic path can be explicitly enabled for regression.
 
 ## Components
 
@@ -27,6 +27,7 @@ Use stable component IDs such as `COMP-AUTH-SERVICE`.
 | COMP-CONVERSATION | Conversation engine | Safety-first intent routing, shorthand normalization, ambiguity/time validation, multi-field extraction, bounded structured memory, clarification, and booking state machine | Text and stored booking context | Approved reply/action |
 | COMP-INTEGRATIONS | External adapters | WhatsApp, OpenAI, Google Calendar, Stripe | Typed application calls | Provider responses |
 | COMP-STORE | Persistence | Conversations, bookings, idempotency, handoffs, OAuth token | Application records | Supabase rows |
+| COMP-AUTH | Supabase Auth guard | Validate bearer access tokens before administrative routes | Authorization header | Authenticated user or 401/503 |
 
 ## Dependencies
 
@@ -56,3 +57,8 @@ Use stable component IDs such as `COMP-AUTH-SERVICE`.
 - The classifier may extract FAQ, booking intent, package, preferred name, and local date/time from one message; application code rejects ambiguous packages and inferred clock times, validates and persists fields, executes actions, and asks only for missing booking data.
 - `ENABLE_CLINIC_DEMO=false` is the default runtime boundary. ORA-only mode permits welcome, capability information, callback/human handover, and status recovery for an existing test booking, but blocks new Clinic enquiries and bookings.
 - Cleaner selection is deterministic and handled before model classification. Only the entire trimmed message `cleaner` activates it; `START OVER` clears it, and normal conversation expiry removes it.
+
+- ORA natural messages use `classifyOra` with a validated action/topic/name/handover result. Fixed commands and deterministic safety checks run first. Approved topic replies preserve the booking step; application code owns dates, policy consent and all provider actions. Missing model configuration retains deterministic fallback; model errors preserve progress and prompt retry, with a 10-second request timeout.
+- ORA remembers its last topic as `ora:<topic>` in the existing `concern_category` field, alongside workflow/name/date fields. No raw transcript or new schema column is required. This supports topic follow-ups and current-step references, not unlimited conversational recall.
+
+- Informational human-handover questions may reach semantic classification even when they contain first-person language; clear danger, medical context and complaints retain priority. Negated emergency labels do not mask independently stated danger. Date hints exclude polite modal May, and exact-clock restatements preserve ambiguity checks.

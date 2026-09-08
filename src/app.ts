@@ -1,5 +1,6 @@
 import express, { type Request, type Response } from "express";
 import type Stripe from "stripe";
+import { requireUser, SupabaseAuthVerifier, type AuthVerifier, type AuthUser } from "./auth.js";
 import { GoogleCalendarGateway, type CalendarGateway } from "./calendar.js";
 import { config, readiness } from "./config.js";
 import { WELCOME_MESSAGE } from "./messages.js";
@@ -37,6 +38,7 @@ export interface AppDependencies {
   engine: ConversationEngine;
   sender: MessageSender;
   stripeClient?: Stripe;
+  auth?: AuthVerifier;
   storeMode: "supabase" | "memory";
 }
 
@@ -62,12 +64,16 @@ export function createDependencies(): AppDependencies {
     engine: new ConversationEngine(store, classifier, calendar, checkout, sender, config.demo.clinicEnabled),
     sender,
     stripeClient,
+    auth: config.supabase.url && config.supabase.publishableKey
+      ? new SupabaseAuthVerifier(config.supabase.url, config.supabase.publishableKey)
+      : undefined,
     storeMode: store instanceof SupabaseStore ? "supabase" : "memory",
   };
 }
 
 export function createApp(deps = createDependencies()) {
   const app = express();
+  const authenticated = requireUser(deps.auth);
   app.disable("x-powered-by");
 
   app.get("/health", (_req, res) => {
@@ -150,7 +156,12 @@ export function createApp(deps = createDependencies()) {
     });
   });
 
-  app.get("/auth/google", (_req, res) => {
+  app.get("/api/me", authenticated, (_req, res) => {
+    const user = res.locals.user as AuthUser;
+    return res.json({ id: user.id, email: user.email });
+  });
+
+  app.get("/auth/google", authenticated, (_req, res) => {
     try {
       const url = googleOAuthClient().generateAuthUrl({
         access_type: "offline", prompt: "consent", state: createOAuthState(),

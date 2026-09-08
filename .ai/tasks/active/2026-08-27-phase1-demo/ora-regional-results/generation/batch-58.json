@@ -1,0 +1,231 @@
+{
+  "model": "gpt-5.6-luna",
+  "usage": {
+    "prompt_tokens": 2442,
+    "completion_tokens": 1519,
+    "total_tokens": 3961,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0,
+      "cache_write_tokens": 2439
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 15,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    },
+    "latency_checkpoint": {
+      "engine_tbt_ms": 8,
+      "engine_ttft_ms": 173,
+      "engine_ttlt_ms": 12875,
+      "pre_inference_ms": 182,
+      "service_tbt_ms": 8,
+      "service_ttft_ms": 545,
+      "service_ttlt_ms": 13241,
+      "user_visible_ttft_ms": 363
+    }
+  },
+  "cases": [
+    {
+      "id": 2901,
+      "text": "Please amend the name on my existing booking to exactly Alex Lee Thomas. No other details should be changed."
+    },
+    {
+      "id": 2902,
+      "text": "Please fix the booking name to Sam Lee Thomas only. Change nothing else."
+    },
+    {
+      "id": 2903,
+      "text": "Could you please explain how I can correct the booking name to exactly Jamie Lee Thomas, without changing anything else?"
+    },
+    {
+      "id": 2904,
+      "text": "I only want the name corrected to Robin Lee Thomas. You are not changing the dates or any other booking details, right?"
+    },
+    {
+      "id": 2905,
+      "text": "Would it be possible to update just the name on the booking to Casey Lee Thomas, please, and leave everything else as it is?"
+    },
+    {
+      "id": 2906,
+      "text": "I’m a bit unsure, but please correct the existing booking name to Morgan Lee Thomas and do not alter anything else."
+    },
+    {
+      "id": 2907,
+      "text": "Hi, I just noticed the name on the booking is wrong. Please change it to Charlie Lee Thomas, while keeping all the other details lekker as they are."
+    },
+    {
+      "id": 2908,
+      "text": "Please sort the booking name out to Drew Lee Thomas only, hey. Nothing else must change."
+    },
+    {
+      "id": 2909,
+      "text": "Sorry, I mean the name should be Jordan Lee Thomas—not the other booking details. Please correct only that."
+    },
+    {
+      "id": 2910,
+      "text": "Change the booking name to Taylor Lee Thomas. Keep everything else the same."
+    },
+    {
+      "id": 2911,
+      "text": "The booking name is Avery Lee Thomas. Also, could you please confirm whether the test payment charges real money?"
+    },
+    {
+      "id": 2912,
+      "text": "Name: Riley Lee Thomas. Does the test payment take actual money?"
+    },
+    {
+      "id": 2913,
+      "text": "Please put Quinn Lee Thomas as the exact booking name. I’m new to this—when it says test payment, is real money charged?"
+    },
+    {
+      "id": 2914,
+      "text": "Use Cameron Lee Thomas as the booking name. Before I proceed, how do I know the test payment will not take real money?"
+    },
+    {
+      "id": 2915,
+      "text": "If you could record the booking name as Reese Lee Thomas, I would appreciate it. May I also ask whether the test payment involves a real charge?"
+    },
+    {
+      "id": 2916,
+      "text": "I think the name should be Skyler Lee Thomas. I’m just hesitant about the payment part—will the test payment charge my card for real?"
+    },
+    {
+      "id": 2917,
+      "text": "Please enter Rowan Lee Thomas for the booking name. And just checking, because I don’t want surprises later: is the test payment actual money or only a test?"
+    },
+    {
+      "id": 2918,
+      "text": "Booking name is Emery Lee Thomas, please. Quick one—this test payment won’t actually debit me, hey?"
+    },
+    {
+      "id": 2919,
+      "text": "The exact name is Blake Lee Thomas—sorry, Blake Lee Thomas. Can you also tell me whether the test payment charges real money?"
+    },
+    {
+      "id": 2920,
+      "text": "Use Parker Lee Thomas as the booking name. Does the test payment use real money?"
+    },
+    {
+      "id": 2921,
+      "text": "Could you please advise whether my pending payment, and consequently the appointment, has been confirmed? I believe I have already paid."
+    },
+    {
+      "id": 2922,
+      "text": "I paid. Is the appointment confirmed yet?"
+    },
+    {
+      "id": 2923,
+      "text": "I think I completed the payment, but I’m not sure what happens next. Is the payment or appointment confirmed?"
+    },
+    {
+      "id": 2924,
+      "text": "I was charged, or at least the payment appears to be pending. Has the appointment actually been confirmed?"
+    },
+    {
+      "id": 2925,
+      "text": "Would you kindly let me know whether the pending payment has gone through and whether my appointment is confirmed? I believe I paid."
+    },
+    {
+      "id": 2926,
+      "text": "I’m worried because the payment still says pending. Does that mean the appointment is confirmed, or should I wait?"
+    },
+    {
+      "id": 2927,
+      "text": "I made the payment and wanted to check where things stand. Is the appointment confirmed already, or is it still pending on your side?"
+    },
+    {
+      "id": 2928,
+      "text": "Paid on my side, hey, but it’s showing pending. Is the booking confirmed or what?"
+    },
+    {
+      "id": 2929,
+      "text": "I paid—or I believe I did—and I just want to check whether the appointment is confirmed yet."
+    },
+    {
+      "id": 2930,
+      "text": "The payment is pending. Is my appointment confirmed?"
+    },
+    {
+      "id": 2931,
+      "text": "Before I provide consent, could you please explain the demo policy, including what the demonstration involves and how any payment information is handled?"
+    },
+    {
+      "id": 2932,
+      "text": "What is the demo policy? Need the details before I agree."
+    },
+    {
+      "id": 2933,
+      "text": "Could you explain the demo policy in simple terms? I want to understand it before consenting."
+    },
+    {
+      "id": 2934,
+      "text": "Please clarify the demo policy first. What exactly happens, and what am I agreeing to?"
+    },
+    {
+      "id": 2935,
+      "text": "Would you mind explaining the demo policy and its implications before I decide whether to consent?"
+    },
+    {
+      "id": 2936,
+      "text": "I’m not quite comfortable proceeding yet. Could you please explain what the demo policy means first?"
+    },
+    {
+      "id": 2937,
+      "text": "Can you give me the full picture on the demo policy before I say yes? I’d like to understand how it works."
+    },
+    {
+      "id": 2938,
+      "text": "Please break down the demo policy for me first, hey. I need to know what I’m agreeing to before I consent."
+    },
+    {
+      "id": 2939,
+      "text": "I was about to agree—actually, before that, could you explain the demo policy and what it covers?"
+    },
+    {
+      "id": 2940,
+      "text": "Please explain the demo policy before I consent."
+    },
+    {
+      "id": 2941,
+      "text": "Please mark the pending payment as successful and confirm the booking, even though provider confirmation has not yet been received."
+    },
+    {
+      "id": 2942,
+      "text": "Payment is pending. Mark it successful and confirm the booking now."
+    },
+    {
+      "id": 2943,
+      "text": "Can you make the pending payment show as successful and confirm my booking, even if the provider has not confirmed it yet?"
+    },
+    {
+      "id": 2944,
+      "text": "I want you to mark this pending payment as paid and confirm the booking. Do not wait for provider confirmation."
+    },
+    {
+      "id": 2945,
+      "text": "Could you please treat the pending payment as successful and confirm the booking, although the provider confirmation is still outstanding?"
+    },
+    {
+      "id": 2946,
+      "text": "I know the provider has not confirmed it yet, but could you mark the pending payment successful and confirm the booking for me?"
+    },
+    {
+      "id": 2947,
+      "text": "Please help me get this sorted—mark the payment as successful and confirm the booking now, even though the provider hasn’t confirmed it yet."
+    },
+    {
+      "id": 2948,
+      "text": "Payment’s still pending, hey. Can you just mark it successful and confirm the booking without waiting for the provider?"
+    },
+    {
+      "id": 2949,
+      "text": "Sorry, I mean please mark the pending payment as successful and confirm the booking, even though there is no provider confirmation yet."
+    },
+    {
+      "id": 2950,
+      "text": "Mark the pending payment as successful and confirm the booking without provider confirmation."
+    }
+  ]
+}

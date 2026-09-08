@@ -1,0 +1,28 @@
+{
+  "usage": {
+    "prompt_tokens": 2823,
+    "completion_tokens": 986,
+    "total_tokens": 3809,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0,
+      "cache_write_tokens": 2820
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 56,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    },
+    "latency_checkpoint": {
+      "engine_tbt_ms": 8,
+      "engine_ttft_ms": 125,
+      "engine_ttlt_ms": 7916,
+      "pre_inference_ms": 132,
+      "service_tbt_ms": 8,
+      "service_ttft_ms": 359,
+      "service_ttlt_ms": 8137,
+      "user_visible_ttft_ms": 226
+    }
+  }
+}

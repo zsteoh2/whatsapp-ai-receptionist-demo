@@ -1,0 +1,231 @@
+{
+  "model": "gpt-5.6-luna",
+  "usage": {
+    "prompt_tokens": 1897,
+    "completion_tokens": 1190,
+    "total_tokens": 3087,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0,
+      "cache_write_tokens": 1894
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 23,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    },
+    "latency_checkpoint": {
+      "engine_tbt_ms": 7,
+      "engine_ttft_ms": 127,
+      "engine_ttlt_ms": 8042,
+      "pre_inference_ms": 122,
+      "service_tbt_ms": 7,
+      "service_ttft_ms": 478,
+      "service_ttlt_ms": 8341,
+      "user_visible_ttft_ms": 357
+    }
+  },
+  "cases": [
+    {
+      "id": 501,
+      "text": "Could you outline the main capabilities of the ORA business assistant?"
+    },
+    {
+      "id": 502,
+      "text": "What can ORA do for a business overall?"
+    },
+    {
+      "id": 503,
+      "text": "I’m new to ORA—what sort of things can this business assistant help with?"
+    },
+    {
+      "id": 504,
+      "text": "What does ORA actually do for businesses, beyond answering messages?"
+    },
+    {
+      "id": 505,
+      "text": "Would you mind explaining what the ORA business assistant is generally able to do?"
+    },
+    {
+      "id": 506,
+      "text": "I’m not entirely sure what ORA covers—could you give me an overview?"
+    },
+    {
+      "id": 507,
+      "text": "I’d love to get the broad picture, so what can ORA do for a business day to day?"
+    },
+    {
+      "id": 508,
+      "text": "What’s ORA able to do for a business, then? Just the overall gist, please."
+    },
+    {
+      "id": 509,
+      "text": "Sorry, I mean—what are ORA’s main business assistant capabilities?"
+    },
+    {
+      "id": 510,
+      "text": "What can the ORA assistant do for a business?"
+    },
+    {
+      "id": 511,
+      "text": "Can ORA provide answers based on documents, FAQs, or a product catalogue supplied by the business?"
+    },
+    {
+      "id": 512,
+      "text": "Can it use our documents, FAQs or catalogue to answer customers?"
+    },
+    {
+      "id": 513,
+      "text": "If a business gives ORA its own FAQs and product catalogue, can it answer from those?"
+    },
+    {
+      "id": 514,
+      "text": "Will ORA actually rely on our supplied documents and FAQs, or does it only use general information?"
+    },
+    {
+      "id": 515,
+      "text": "Might ORA be able to answer customer questions using our documents, FAQs, and product catalogue?"
+    },
+    {
+      "id": 516,
+      "text": "I’m wondering if ORA can learn from business documents or product information we provide."
+    },
+    {
+      "id": 517,
+      "text": "Can we give ORA our FAQs, product catalogue and other documents, and have it answer from them?"
+    },
+    {
+      "id": 518,
+      "text": "Can ORA use our own docs, FAQs and catalogue for replies, yeah?"
+    },
+    {
+      "id": 519,
+      "text": "Can it answer from—sorry, I mean, from the business’s supplied documents, FAQs or catalogue?"
+    },
+    {
+      "id": 520,
+      "text": "Can ORA answer questions using documents and product details from the business?"
+    },
+    {
+      "id": 521,
+      "text": "Could you explain ORA’s booking and calendar functionality, without making a booking?"
+    },
+    {
+      "id": 522,
+      "text": "Does ORA handle bookings and calendars?"
+    },
+    {
+      "id": 523,
+      "text": "Can ORA help a business manage appointments or its calendar?"
+    },
+    {
+      "id": 524,
+      "text": "How does ORA’s booking feature work, and does it connect with a calendar?"
+    },
+    {
+      "id": 525,
+      "text": "Would ORA happen to support bookings and calendar management?"
+    },
+    {
+      "id": 526,
+      "text": "I’m unsure about this—can ORA arrange or manage appointments through a calendar?"
+    },
+    {
+      "id": 527,
+      "text": "Can you tell me a bit about how ORA handles bookings and calendars?"
+    },
+    {
+      "id": 528,
+      "text": "Does ORA do bookings and calendar stuff, or no?"
+    },
+    {
+      "id": 529,
+      "text": "Can ORA manage bookings—or, sorry, can it at least work with a calendar?"
+    },
+    {
+      "id": 530,
+      "text": "Can ORA help with bookings and calendars?"
+    },
+    {
+      "id": 531,
+      "text": "Could you clarify whether payments in the demo involve real money, and how the test payments operate?"
+    },
+    {
+      "id": 532,
+      "text": "Are demo payments real money? How do tests work?"
+    },
+    {
+      "id": 533,
+      "text": "When I try a payment in the demo, is it real, or is there a special test process?"
+    },
+    {
+      "id": 534,
+      "text": "How can you call them payments if no money is taken? Are the demo transactions genuinely safe?"
+    },
+    {
+      "id": 535,
+      "text": "Would you be able to explain whether demo payments use real funds or a test system?"
+    },
+    {
+      "id": 536,
+      "text": "I’m a bit hesitant—do demo payments charge a real card, or are they only simulated?"
+    },
+    {
+      "id": 537,
+      "text": "Just wondering, when we run through the demo, are payments real or is it all a test setup?"
+    },
+    {
+      "id": 538,
+      "text": "Are demo payments real cash or just test ones? Wanna know before trying it."
+    },
+    {
+      "id": 539,
+      "text": "Do the demo payments use real money—or, sorry, are they only test transactions?"
+    },
+    {
+      "id": 540,
+      "text": "Are the payments in the demo real or fake tests?"
+    },
+    {
+      "id": 541,
+      "text": "What options are available for integrating ORA with existing software or APIs?"
+    },
+    {
+      "id": 542,
+      "text": "Can ORA integrate with our software or APIs?"
+    },
+    {
+      "id": 543,
+      "text": "I’m curious—how would ORA connect to systems a business already uses?"
+    },
+    {
+      "id": 544,
+      "text": "Can ORA integrate with existing software, or would we need to replace our current systems?"
+    },
+    {
+      "id": 545,
+      "text": "Could ORA be connected to our existing software and APIs, if suitable?"
+    },
+    {
+      "id": 546,
+      "text": "I’m not sure how this part works—can ORA link up with software we already have?"
+    },
+    {
+      "id": 547,
+      "text": "How does ORA fit in with the systems a business already has, like software and APIs?"
+    },
+    {
+      "id": 548,
+      "text": "Can ORA hook into our existing software or APIs, yeah?"
+    },
+    {
+      "id": 549,
+      "text": "Can it integrate with our current software—or, I mean, with our APIs as well?"
+    },
+    {
+      "id": 550,
+      "text": "Can ORA connect to software and APIs we already use?"
+    }
+  ]
+}

@@ -35,6 +35,7 @@ export const config = {
   },
   supabase: {
     url: env("SUPABASE_URL"),
+    publishableKey: env("SUPABASE_PUBLISHABLE_KEY"),
     serviceRoleKey: env("SUPABASE_SERVICE_ROLE_KEY"),
   },
   google: {
@@ -57,6 +58,7 @@ export function readiness() {
     openai: Boolean(config.openai.apiKey && config.openai.baseUrl),
     whatsapp: twilio || meta,
     supabase: Boolean(config.supabase.url && config.supabase.serviceRoleKey),
+    auth: Boolean(config.supabase.url && config.supabase.publishableKey),
     google: Boolean(config.google.clientId && config.google.clientSecret && config.google.calendarId),
     stripe: Boolean(config.stripe.secretKey?.startsWith("sk_test_") && config.stripe.webhookSecret),
   };

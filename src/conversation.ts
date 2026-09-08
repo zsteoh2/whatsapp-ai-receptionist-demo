@@ -8,7 +8,7 @@ import { FAQS, matchFaq } from "./faq.js";
 import type { IntentClassifier, LlmDecision } from "./llm.js";
 import {
   CALLBACK_REQUEST_MESSAGE, CLEANER_TEMPLATE_PENDING_MESSAGE, CLEANER_WELCOME_MESSAGE, EMERGENCY_MESSAGE, FOUNDER_CTA_MESSAGE, GENERAL_HANDOVER_MESSAGE, INTEGRATION_FAILURE_MESSAGE,
-  MEDICAL_HANDOVER_MESSAGE, ORA_BOOKING_MESSAGE, ORA_DEMO_CLOSING_MESSAGE, ORA_DEMO_POLICY_MESSAGE, ORA_DEMO_START_MESSAGE, ORA_HANDOVER_MESSAGE, ORA_INFO_MESSAGE, ORA_INTEGRATION_MESSAGE,
+  MEDICAL_HANDOVER_MESSAGE, ORA_BOOKING_MESSAGE, ORA_DEMO_CLOSING_MESSAGE, ORA_DEMO_JOURNEY_MESSAGE, ORA_DEMO_POLICY_MESSAGE, ORA_DEMO_START_MESSAGE, ORA_HANDOVER_MESSAGE, ORA_INFO_MESSAGE, ORA_INTEGRATION_MESSAGE,
   ORA_KNOWLEDGE_MESSAGE, ORA_PAYMENT_MESSAGE, ORA_TEMPLATE_PENDING_MESSAGE, POLICY_MESSAGE, UNKNOWN_HELP_MESSAGE, UNKNOWN_RETRY_MESSAGE,
   WELCOME_MESSAGE,
 } from "./messages.js";
@@ -16,6 +16,7 @@ import { detectSafety, type SafetyDecision } from "./safety.js";
 import type { Store } from "./store.js";
 import type { Booking, ClinicPackageId, Conversation, IncomingMessage, PackageId } from "./types.js";
 import type { MessageSender } from "./whatsapp.js";
+import { oraAnswers, type OraDecision } from "./ora.js";
 
 const nowIso = () => new Date().toISOString();
 const sessionTtlMs = 24 * 60 * 60 * 1000;
@@ -26,11 +27,13 @@ const generalQuestionPattern = /^\s*(?:general question|ask a general question)\
 const demoClosingPattern = /^\s*(?:thanks|thank you|that'?s all|done|finish(?:ed)?|no more questions?)\s*[!.?]*\s*$/i;
 const cleanerActivationPattern = /^\s*cleaner\s*$/i;
 const startDemoPattern = /^\s*(?:start demo|interactive demo|try demo)\s*[!.?]*\s*$/i;
+const demoProcessQuestionPattern = /\b(?:how|what|explain|describe|walk|talk|show)\b.*\b(?:process|journey|workflow|steps|demo)\b|\bhow\s+(?:does\s+)?(?:it|this)\s+works?\s*[!?]*\s*$|^\s*(?:so\s+)?demo\s*[!?]*\s*$/i;
 const navigationHelpPattern = /^\s*(?:can you help(?: me)?|what can you help with|show me the menu(?: please)?|i need some information|can i ask a question|not sure what i need(?: really)?|what are my options|hiya,? what can you do for me|where do i start|tell me what this chat does)\s*[!.?]*\s*$/i;
 const bookingPattern = /\b(book(?:ed|ing)?|schedule|reserve)\b|\b(?:pencil|slot|fit)\s+(?:me|us)\s+in\b|\b(?:make|need|want|arrange)\s+(?:an?\s+)?appointment\b/i;
 const negativeBookingPattern = /\b(?:don'?t|do not|not|can'?t|cannot)\s+(?:(?:want|trying|going|ready)\s+to\s+)?(?:book(?:ing)?|schedule|reserve|pencil(?:\s+(?:me|us))?\s+in)\b/i;
 const hypotheticalBookingPattern = /\bif i (?:were to|wanted to|did)\s+(?:book|schedule|reserve)\b/i;
 const questionPattern = /^\s*(what|how|when|where|why|which|is|are|can|could|do|does|will|would)\b/i;
+const oraCapabilityQuestionPattern = /\b(?:(?:can|could|will|would|do|does)\s+(?:ora|it|this|customers?|the assistant)\b|(?:what|how|when|where|why|which|is|are)\b)/i;
 const acceptPattern = /^\s*(yes|y|accept|agree|i agree)\s*[!.]*\s*$/i;
 const declinePattern = /^\s*(no|n|decline|cancel)\s*[!.]*\s*$/i;
 const conversationalYesPattern = /^\s*(yes(?: please)?|y|sure|ok(?:ay)?|please do|go on then)\s*[!.]*\s*$/i;
@@ -39,6 +42,7 @@ const namePattern = /^[\p{L}][\p{L} '\-]{1,59}$/u;
 const directNamePattern = /^[\p{L}][\p{L}'\-]*(?: [\p{L}][\p{L}'\-]*){0,3}$/u;
 const reservedNamePattern = /\b(yes|no|sure|okay|please|book|booking|appointment|package|hair|scalp|skin|wrinkle|botox|today|tomorrow|next|morning|afternoon|evening)\b/i;
 const dateHintPattern = /\b(today|tomorrow|next|monday|tuesday|wednesday|thursday|friday|saturday|sunday|morning|afternoon|evening|january|february|march|april|may|june|july|august|september|october|november|december|fortnight|week|\d{1,2}(?::\d{2})?\s*(?:am|pm))\b|\b20\d{2}-\d{2}-\d{2}\b|\b\d{1,2}[/.\-]\d{1,2}(?:[/.\-]\d{2,4})?\b/i;
+const hasDateHint = (text: string) => dateHintPattern.test(text.replace(/\bmay\s+(?:i|we|you)\b/gi, ""));
 const clockWordPattern = "one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|twenty-one|twenty-two|twenty-three";
 const impreciseTimePattern = /\b(?:around|about|roughly|approximately|ish|just|before|after|between|either|maybe|by|no later than|any time (?:from|until))\b/i;
 const weekdays: Record<string, number> = {
@@ -158,6 +162,9 @@ const extractExplicitDate = (text: string): DateTime | null => {
   return today.plus({ days: (target - today.weekday + 7) % 7 || 7 });
 };
 const extractExplicitLocalDateTime = (text: string) => {
+  text = text.replace(/\b(?:just to be clear|how about)\b/gi, "");
+  // An explicit restatement of the same clock resolves "by"; conflicting clocks remain ambiguous.
+  text = text.replace(/\bby\s+(\d{1,2}:\d{2}\s*(?:am|pm))\b(?=[^.!?]*\bexactly\s+\1\b)/gi, "at $1");
   const correction = [...text.matchAll(/\b(?:sorry|actually|change(?: it| that)? to|make that)\b/gi)].at(-1);
   if (correction?.index !== undefined) {
     const correctedText = text.slice(correction.index + correction[0].length);
@@ -265,7 +272,10 @@ export class ConversationEngine {
   }
 
   private async bookingStatus(conversation: Conversation) {
-    if (!conversation.bookingId) return "I can’t find an active test booking in this conversation. Reply BOOK to start one.";
+    if (!conversation.bookingId) {
+      await this.save(conversation);
+      return "I can’t find an active test booking in this conversation. Reply START DEMO to start one.";
+    }
     const booking = await this.store.getBooking(conversation.bookingId);
     if (!booking) return "I can’t find that test booking. Please ask the business owner for help.";
     if (booking.status === "confirmed" || booking.calendarEventId) {
@@ -328,7 +338,7 @@ export class ConversationEngine {
     if (conversation.state === "awaiting_name") return "Hello! 👋 We’re part-way through your test booking. What name would you like on it?";
     if (conversation.state === "awaiting_datetime") return "Hello! 👋 We’re part-way through your test booking. What date and time would you prefer?";
     if (conversation.state === "offering_booking") return "Hello! 👋 Would you like to make a test booking for the package we just discussed?";
-    if (conversation.state === "awaiting_policy") return `Hello! 👋 ${POLICY_MESSAGE}`;
+    if (conversation.state === "awaiting_policy") return `Hello! 👋 ${conversation.packageId === "ora_demo" ? ORA_DEMO_POLICY_MESSAGE : POLICY_MESSAGE}`;
     if (conversation.state === "awaiting_payment") return "Hello! 👋 Your test booking is waiting for payment. Complete the test payment using the link already sent, or reply STATUS to check it.";
     if (conversation.state === "confirmed") return "Hello! 👋 Your test booking is confirmed. Reply STATUS to see the booking details.";
     return GENERAL_HANDOVER_MESSAGE;
@@ -451,6 +461,60 @@ export class ConversationEngine {
     return `${reason} The next available appointment times are:\n${alternatives.map((slot, index) => `${index + 1}. ${formatSlot(slot)}`).join("\n")}\nTell me which date and time works best for you.`;
   }
 
+  private async respondOra(conversation: Conversation, text: string, normalizedText: string) {
+    let decision: OraDecision;
+    try {
+      decision = await this.classifier.classifyOra!(text, {
+        state: conversation.state, packageId: conversation.packageId,
+        customerName: conversation.customerName, requestedStart: conversation.requestedStart,
+        concernCategory: conversation.concernCategory,
+      });
+    } catch {
+      console.error("ora_classification_unavailable");
+      await this.save(conversation);
+      return "I couldn’t understand that message just now. Your progress is saved. Please try again, or reply START DEMO, STATUS, or CALLBACK.";
+    }
+    if (decision.handover !== "none") return this.handover(conversation, decision.handover);
+    if (decision.action === "status") return this.bookingStatus(conversation);
+    if (decision.action === "close") {
+      await this.save(conversation);
+      return ORA_DEMO_CLOSING_MESSAGE;
+    }
+    if (decision.topic) conversation.concernCategory = `ora:${decision.topic}`;
+    const answer = decision.topic ? oraAnswers[decision.topic] : "";
+    if (decision.action === "question" || decision.action === "unknown" && decision.topic) {
+      await this.save(conversation);
+      const next = conversation.packageId === "ora_demo" ? await this.greetingReply(conversation) : "";
+      return [answer || "Could you tell me a little more about what you’d like to know?", next].filter(Boolean).join("\n\n");
+    }
+    // The model cannot advance payment, confirmation, or consent states.
+    if (["awaiting_payment", "confirmed"].includes(conversation.state)) return this.bookingStatus(conversation);
+    if (["start_demo", "continue"].includes(decision.action) && conversation.packageId !== "ora_demo") {
+      conversation.packageId = "ora_demo";
+      conversation.state = "awaiting_name";
+      await this.save(conversation);
+      if (!decision.customerName && !extractExplicitLocalDateTime(normalizedText)) return ORA_DEMO_START_MESSAGE;
+    }
+    if (["start_demo", "continue", "details"].includes(decision.action) && conversation.packageId === "ora_demo") {
+      const proposedName = decision.customerName?.trim();
+      const customerName = proposedName && namePattern.test(proposedName)
+        && text.toLowerCase().includes(proposedName.toLowerCase()) ? proposedName : null;
+      const localDateTime = extractExplicitLocalDateTime(normalizedText);
+      const dateText = (customerName ? normalizedText.replace(new RegExp(customerName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i"), "") : normalizedText);
+      if (decision.action === "details" && !localDateTime && hasDateHint(dateText)) {
+        delete conversation.requestedStart;
+        conversation.state = "awaiting_datetime";
+      }
+      if (customerName || localDateTime) {
+        const reply = await this.advanceBooking(conversation, { ...emptyDecision(), wantsBooking: true, customerName, localDateTime });
+        return [answer, reply].filter(Boolean).join("\n\n");
+      }
+      return this.greetingReply(conversation);
+    }
+    await this.save(conversation);
+    return "Could you tell me a little more? I can explain ORA, walk through the demo, or help you continue your current booking.";
+  }
+
   async handleMessage(message: IncomingMessage): Promise<string | undefined> {
     if (!await this.store.markEventProcessed("meta", message.id)) return undefined;
     const storedConversation = await this.store.getConversation(message.from);
@@ -462,6 +526,14 @@ export class ConversationEngine {
     const text = message.text.trim();
     const normalizedText = normalizeInput(text);
 
+    // Recover sessions whose general-question selection previously cleared the step.
+    if (!this.clinicDemoEnabled && conversation.packageId === "ora_demo"
+      && ["new", "clarifying_once", "clarifying_twice"].includes(conversation.state)) {
+      conversation.state = conversation.bookingId ? "awaiting_payment"
+        : !conversation.customerName ? "awaiting_name"
+          : !conversation.requestedStart ? "awaiting_datetime" : "awaiting_policy";
+    }
+
     if (cleanerActivationPattern.test(text)) {
       conversation = { waId: message.from, state: "new", businessMode: "cleaner", updatedAt: nowIso() };
       await this.save(conversation);
@@ -470,7 +542,8 @@ export class ConversationEngine {
 
     if (!this.clinicDemoEnabled && conversation.businessMode !== "cleaner" && conversation.packageId !== "ora_demo"
       && !["awaiting_payment", "confirmed", "handover"].includes(conversation.state)) {
-      conversation = { waId: message.from, state: "new", updatedAt: nowIso() };
+      conversation = { waId: message.from, state: "new", updatedAt: nowIso(),
+        concernCategory: conversation.concernCategory?.startsWith("ora:") ? conversation.concernCategory : undefined };
     }
 
     if (/^\s*(restart|start over)\s*$/i.test(text)) {
@@ -485,12 +558,6 @@ export class ConversationEngine {
       return ORA_DEMO_START_MESSAGE;
     }
 
-    if (generalQuestionPattern.test(text)) {
-      conversation.state = "new";
-      await this.save(conversation);
-      return "Of course — what would you like to know? You can write it naturally.";
-    }
-
     const safety = detectSafety(text);
     if (safety) return this.handover(conversation, safety);
 
@@ -503,6 +570,25 @@ export class ConversationEngine {
     if (greetingPattern.test(text)) return this.greetingReply(conversation);
 
     if (conversation.state === "handover") return GENERAL_HANDOVER_MESSAGE;
+
+    if (generalQuestionPattern.test(text)) {
+      await this.save(conversation);
+      return "Of course — what would you like to know? You can write it naturally.";
+    }
+
+    if (!this.clinicDemoEnabled && conversation.businessMode !== "cleaner" && this.classifier.classifyOra
+      && !(conversation.packageId === "ora_demo" && conversation.state === "awaiting_policy"
+        && (acceptPattern.test(text) || declinePattern.test(text)))) {
+      return this.respondOra(conversation, text, normalizedText);
+    }
+
+    if (!this.clinicDemoEnabled && conversation.businessMode !== "cleaner" && demoProcessQuestionPattern.test(text)) {
+      await this.save(conversation);
+      const nextStep = conversation.packageId === "ora_demo"
+        ? await this.greetingReply(conversation)
+        : "Reply START DEMO whenever you want to try it.";
+      return `${ORA_DEMO_JOURNEY_MESSAGE}\n\n${nextStep}`;
+    }
 
     if (!this.clinicDemoEnabled && conversation.packageId === "ora_demo") {
       if (conversation.state === "awaiting_name") {
@@ -528,11 +614,12 @@ export class ConversationEngine {
       await this.save(conversation);
       if (conversation.businessMode === "cleaner") return CLEANER_TEMPLATE_PENDING_MESSAGE;
       if (demoClosingPattern.test(text)) return ORA_DEMO_CLOSING_MESSAGE;
-      if (/\b(?:knowledge|faq|questions?|information|polic(?:y|ies)|learn (?:my|the) business)\b/i.test(normalizedText)) return ORA_KNOWLEDGE_MESSAGE;
+      if (/\b(?:knowledge|faqs?|questions?|information|polic(?:y|ies)|learn (?:my|the) business)\b/i.test(normalizedText)) return ORA_KNOWLEDGE_MESSAGE;
       if (/\b(?:products?|services?|catalog(?:ue)?|prices?|stock|inventory)\b/i.test(normalizedText)) return ORA_KNOWLEDGE_MESSAGE;
-      if (/\b(?:calendar|availability|appointments?|bookings?)\b/i.test(normalizedText) && questionPattern.test(normalizedText)) return ORA_BOOKING_MESSAGE;
+      if (/\b(?:calendar|availability|appointments?|bookings?)\b/i.test(normalizedText)
+        && (questionPattern.test(normalizedText) || oraCapabilityQuestionPattern.test(normalizedText))) return ORA_BOOKING_MESSAGE;
       if (/\b(?:payments?|pay|deposit|checkout|stripe)\b/i.test(normalizedText)) return ORA_PAYMENT_MESSAGE;
-      if (/\b(?:integrat(?:e|es|ion)|connect|api|software|system|crm)\b/i.test(normalizedText)) return ORA_INTEGRATION_MESSAGE;
+      if (/\b(?:integrat(?:e|es|ions?)|connect|api|software|system|crm)\b/i.test(normalizedText)) return ORA_INTEGRATION_MESSAGE;
       if (/\b(?:human|handover|hand off|owner|person|staff|judgement)\b/i.test(normalizedText)) return ORA_HANDOVER_MESSAGE;
       return bookingPattern.test(normalizedText)
         ? ORA_TEMPLATE_PENDING_MESSAGE
@@ -622,7 +709,7 @@ export class ConversationEngine {
     const hasCompleteBookingSignals = Boolean(packageId && explicitCustomerName
       && localDateTime);
     if (conversation.state === "awaiting_package" && packageId && !questionPattern.test(text)
-      && !dateHintPattern.test(text) && text.split(/\s+/).length <= 5) {
+      && !hasDateHint(text) && text.split(/\s+/).length <= 5) {
       return this.advanceBooking(conversation, { ...emptyDecision(), wantsBooking: true, packageId });
     }
     if (conversation.state === "awaiting_name" && directNamePattern.test(text) && !reservedNamePattern.test(normalizedText)) {
@@ -633,7 +720,7 @@ export class ConversationEngine {
     }
     if (!bookingCollectionStates.includes(conversation.state as typeof bookingCollectionStates[number])
       && packageId && !bookingPattern.test(text) && (!questionPattern.test(text) || benignConcernPattern.test(text))
-      && !dateHintPattern.test(text) && (text.split(/\s+/).length <= 5 || benignConcernPattern.test(text))) {
+      && !hasDateHint(text) && (text.split(/\s+/).length <= 5 || benignConcernPattern.test(text))) {
       const reply = await this.explorePackage(conversation, packageId);
       return firstMessage ? `${WELCOME_MESSAGE}\n\n${reply}` : reply;
     }
@@ -650,7 +737,7 @@ export class ConversationEngine {
       delete conversation.packageId;
       delete conversation.concernCategory;
     }
-    if (dateHintPattern.test(normalizedText) && !localDateTime) delete conversation.requestedStart;
+    if (hasDateHint(normalizedText) && !localDateTime) delete conversation.requestedStart;
     decision = {
       ...decision,
       faqId: decision.faqId ?? faq?.id ?? null,

@@ -1,0 +1,83 @@
+{
+  "seed": 20260909,
+  "concurrency": 1,
+  "corpusFile": ".ai/tasks/active/2026-08-27-phase1-demo/ora-regional-results/corpus.json",
+  "sharedStoreIsolation": true,
+  "model": "gpt-5.6-luna",
+  "host": "api.relayrouter.ai",
+  "started": "2026-09-08T14:18:02.139Z",
+  "completed": 3,
+  "total": 3,
+  "passed": 3,
+  "modelCalls": 3,
+  "modelUnavailable": 0,
+  "behaviorFailures": 0,
+  "latencyMs": {
+    "p50": 4765,
+    "p95": 6426,
+    "max": 6426
+  },
+  "results": [
+    {
+      "id": 1769,
+      "kind": "knowledge",
+      "text": "Can it answer from our company material—our FAQs and catalogue, I mean?",
+      "region": "Singapore",
+      "persona": "self-correcting speaker",
+      "passed": true,
+      "ms": 6426,
+      "calls": 1,
+      "after": {
+        "waId": "random-1769",
+        "state": "confirmed",
+        "updatedAt": "2026-09-08T14:18:08.568Z",
+        "packageId": "ora_demo",
+        "customerName": "Jordan Vale Roberts",
+        "requestedStart": "2030-11-18T14:30:00.000Z",
+        "bookingId": "booking-1769",
+        "concernCategory": "ora:knowledge"
+      },
+      "bookingsAfter": "[{\"id\":\"booking-1769\",\"waId\":\"random-1769\",\"customerName\":\"Jordan Vale Roberts\",\"packageId\":\"ora_demo\",\"requestedStart\":\"2030-11-18T14:30:00.000Z\",\"depositPence\":100,\"status\":\"confirmed\",\"createdAt\":\"2026-09-08T14:18:02.142Z\",\"updatedAt\":\"2026-09-08T14:18:02.142Z\"}]"
+    },
+    {
+      "id": 2865,
+      "kind": "resume",
+      "text": "May we please continue with the booking, and could you let me know what is needed next?",
+      "region": "South Africa",
+      "persona": "polite indirect customer",
+      "passed": true,
+      "ms": 3421,
+      "calls": 1,
+      "after": {
+        "waId": "random-2865",
+        "state": "awaiting_datetime",
+        "updatedAt": "2026-09-08T14:18:11.989Z",
+        "packageId": "ora_demo",
+        "customerName": "Casey Lou Stone",
+        "concernCategory": "ora:booking"
+      },
+      "bookingsAfter": "[]"
+    },
+    {
+      "id": 1012,
+      "kind": "knowledge",
+      "text": "Can it use our docs and FAQs to answer customers?",
+      "region": "Canada",
+      "persona": "terse busy customer",
+      "passed": true,
+      "ms": 4765,
+      "calls": 1,
+      "after": {
+        "waId": "random-1012",
+        "state": "awaiting_payment",
+        "updatedAt": "2026-09-08T14:18:16.754Z",
+        "packageId": "ora_demo",
+        "customerName": "Riley Lee Davies",
+        "requestedStart": "2030-11-18T14:30:00.000Z",
+        "bookingId": "booking-1012",
+        "concernCategory": "ora:knowledge"
+      },
+      "bookingsAfter": "[{\"id\":\"booking-1012\",\"waId\":\"random-1012\",\"customerName\":\"Riley Lee Davies\",\"packageId\":\"ora_demo\",\"requestedStart\":\"2030-11-18T14:30:00.000Z\",\"depositPence\":100,\"status\":\"awaiting_payment\",\"createdAt\":\"2026-09-08T14:18:11.989Z\",\"updatedAt\":\"2026-09-08T14:18:11.989Z\"}]"
+    }
+  ]
+}

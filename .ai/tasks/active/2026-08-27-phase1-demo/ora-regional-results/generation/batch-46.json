@@ -1,0 +1,231 @@
+{
+  "model": "gpt-5.6-luna",
+  "usage": {
+    "prompt_tokens": 2237,
+    "completion_tokens": 1249,
+    "total_tokens": 3486,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0,
+      "cache_write_tokens": 2234
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 17,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    },
+    "latency_checkpoint": {
+      "engine_tbt_ms": 8,
+      "engine_ttft_ms": 164,
+      "engine_ttlt_ms": 10466,
+      "pre_inference_ms": 407,
+      "service_tbt_ms": 8,
+      "service_ttft_ms": 739,
+      "service_ttlt_ms": 11029,
+      "user_visible_ttft_ms": 331
+    }
+  },
+  "cases": [
+    {
+      "id": 2301,
+      "text": "Could you please explain how the human handover feature in ORA operates?"
+    },
+    {
+      "id": 2302,
+      "text": "How does ORA hand over chats to a human, as a feature?"
+    },
+    {
+      "id": 2303,
+      "text": "I am new to ORA—how does the option to hand the chat to a human work?"
+    },
+    {
+      "id": 2304,
+      "text": "What exactly happens when ORA uses its human handover feature?"
+    },
+    {
+      "id": 2305,
+      "text": "May I know how the human handover facility is supposed to work in ORA?"
+    },
+    {
+      "id": 2306,
+      "text": "I am not fully sure how it works—could you explain ORA's human handover option?"
+    },
+    {
+      "id": 2307,
+      "text": "Just checking, how does ORA pass a conversation to a human when that feature is used?"
+    },
+    {
+      "id": 2308,
+      "text": "How does the human handover feature work in ORA, pls?"
+    },
+    {
+      "id": 2309,
+      "text": "How does ORA hand over to a human—or rather, how is that feature meant to work?"
+    },
+    {
+      "id": 2310,
+      "text": "How does the human handover feature work?"
+    },
+    {
+      "id": 2311,
+      "text": "Could you outline the steps involved in an ORA demonstration, without initiating one?"
+    },
+    {
+      "id": 2312,
+      "text": "What are the demo steps? Just explain them, please."
+    },
+    {
+      "id": 2313,
+      "text": "I have not done a demo before. Could you tell me how it usually goes?"
+    },
+    {
+      "id": 2314,
+      "text": "Please explain the demonstration process step by step; I am not asking you to start it."
+    },
+    {
+      "id": 2315,
+      "text": "Would you kindly tell me what happens during a demo, before anything is arranged?"
+    },
+    {
+      "id": 2316,
+      "text": "I am a little unsure—could you explain the demo steps first?"
+    },
+    {
+      "id": 2317,
+      "text": "How does the demo work from beginning to end? I only want to understand the process for now."
+    },
+    {
+      "id": 2318,
+      "text": "Can u share the demo flow, step by step? Don’t start it yet."
+    },
+    {
+      "id": 2319,
+      "text": "Could you explain the demo procedure—or, sorry, just describe the steps without launching it?"
+    },
+    {
+      "id": 2320,
+      "text": "Please tell me the steps for a demo. Do not start it."
+    },
+    {
+      "id": 2321,
+      "text": "Before I decide, could you please explain the policy for demonstrations?"
+    },
+    {
+      "id": 2322,
+      "text": "What is the demo policy? I will decide after that."
+    },
+    {
+      "id": 2323,
+      "text": "Could you tell me the rules and conditions for having a demonstration?"
+    },
+    {
+      "id": 2324,
+      "text": "What is your demonstration policy, including any requirements or limitations?"
+    },
+    {
+      "id": 2325,
+      "text": "May I first understand the policy for a demonstration before making a decision?"
+    },
+    {
+      "id": 2326,
+      "text": "I am still considering it—could you explain the demo policy beforehand?"
+    },
+    {
+      "id": 2327,
+      "text": "Could you share how the demonstration policy works, so I can think it over?"
+    },
+    {
+      "id": 2328,
+      "text": "What’s the demo policy—any rules or conditions I should know before deciding?"
+    },
+    {
+      "id": 2329,
+      "text": "Could you tell me the demonstration policy, or rather the conditions, before I say yes or no?"
+    },
+    {
+      "id": 2330,
+      "text": "What is the policy for a demo? I want to know before deciding."
+    },
+    {
+      "id": 2331,
+      "text": "Please provide the shop's physical address and opening hours."
+    },
+    {
+      "id": 2332,
+      "text": "Shop address and timings, please."
+    },
+    {
+      "id": 2333,
+      "text": "Where is your shop located, and what time do you open?"
+    },
+    {
+      "id": 2334,
+      "text": "What are the actual prices at the shop, and who will be available to assist me?"
+    },
+    {
+      "id": 2335,
+      "text": "Could you kindly share the shop address and its opening hours?"
+    },
+    {
+      "id": 2336,
+      "text": "I am trying to plan a visit—may I know the shop location and timings?"
+    },
+    {
+      "id": 2337,
+      "text": "Could you tell me where the shop is, when it opens, and perhaps the prices too?"
+    },
+    {
+      "id": 2338,
+      "text": "Shop location + opening time pls, and actual rates if available."
+    },
+    {
+      "id": 2339,
+      "text": "Where is the shop—or, sorry, could you share its address and opening hours?"
+    },
+    {
+      "id": 2340,
+      "text": "What is the shop address and when is it open?"
+    },
+    {
+      "id": 2341,
+      "text": "You mentioned the business information earlier. Could you clarify where those details come from and whether they are supplied by the business?"
+    },
+    {
+      "id": 2342,
+      "text": "Those business details—where do they come from? Do you supply them?"
+    },
+    {
+      "id": 2343,
+      "text": "About the shop information you mentioned, how do you get it? Is it provided by the business?"
+    },
+    {
+      "id": 2344,
+      "text": "You gave some business details, but what is the source? Are you actually supplied that information?"
+    },
+    {
+      "id": 2345,
+      "text": "Regarding the information shared about the business, may I ask where it comes from or whether the business provides it?"
+    },
+    {
+      "id": 2346,
+      "text": "I am not quite sure about the details you mentioned—are they supplied by the business, or taken from somewhere else?"
+    },
+    {
+      "id": 2347,
+      "text": "The business information you just referred to is useful—where does it come from, and does the business send it to you?"
+    },
+    {
+      "id": 2348,
+      "text": "Those shop details u shared—source kya is it from the business itself or do u provide it?"
+    },
+    {
+      "id": 2349,
+      "text": "The business details you mentioned—where are they sourced, or rather, does the business supply them directly?"
+    },
+    {
+      "id": 2350,
+      "text": "Where does the business information you mentioned come from? Does the business provide it?"
+    }
+  ]
+}

@@ -18,7 +18,7 @@ Project name: ORA WhatsApp AI Receptionist Demo
 
 ## Current Objective
 
-Project objective: Deliver a polished, reusable ORA WhatsApp assistant demonstration. ORA is the only active customer-facing identity; industry-specific booking, payment, and calendar behavior will be activated only after approved business-template data is supplied.
+Project objective: Deliver a polished, reusable ORA assistant demonstration. ORA is the only active customer-facing identity; its generic interactive journey demonstrates booking, Calendar availability, a £1 Stripe test payment, confirmation, and Founder follow-up without claiming real business data. Industry-specific behavior will be activated only after approved business-template data is supplied.
 
 ## Non-Goals
 

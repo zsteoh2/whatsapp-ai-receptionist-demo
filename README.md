@@ -1,15 +1,17 @@
 # ORA WhatsApp AI Receptionist Demo
 
-ORA is a reusable WhatsApp business-assistant demonstration. ORA is now the only active customer-facing identity: it explains its capabilities, handles callback requests, and directs prospects to the Founder without exposing an industry-specific business template.
+ORA is a reusable business-assistant demonstration. ORA is the only active customer-facing identity: it explains its capabilities, runs a generic interactive booking and £1 Stripe Test Mode payment journey, handles callback requests, and directs prospects to the Founder without exposing an industry-specific business template.
 
 This is not a production business system. Use synthetic test data only. It does not provide professional advice or process real money.
 
 ## What is implemented
 
 - `GET /health`
+- `GET /api/me` (Supabase bearer token required)
 - Signed Twilio Sandbox and Meta webhook ingestion
 - Twilio Sandbox or WhatsApp Cloud API text replies
 - ORA capability information and safe pending-template replies
+- ORA-specific AI intent understanding using the existing model connection, with booking progress and last-topic context
 - A hidden Cleaner Demo selected only by sending the standalone command `cleaner`
 - Deterministic emergency, medical, complaint, under-18, and human-request handover
 - A retained, disabled Clinic regression template with OpenAI-compatible classification and stateful booking
@@ -19,8 +21,9 @@ This is not a production business system. Use synthetic test data only. It does 
 - WhatsApp and Stripe webhook idempotency
 - Supabase persistence with an in-memory local fallback
 - Clean ORA welcome menu and post-booking Founder call to action
+- A generic `START DEMO` journey: name, sample Calendar availability, demo policy, £1 Stripe test payment, confirmation, and Founder follow-up
 
-The old Clinic template is retained for regression only and is disabled by default. Do not set `ENABLE_CLINIC_DEMO=true` in Railway while it is offline. Until an approved business template is supplied, ORA will not invent services, prices, availability, or booking rules. The Founder CTA uses `07955 506757` and `hau@convertbydigital.com`; a Calendly link has not yet been supplied.
+The old Clinic template is retained for regression only and is disabled by default. Do not set `ENABLE_CLINIC_DEMO=true` in Railway while it is offline. Reply `START DEMO` to enter the explicitly synthetic `ORA Demo Appointment` journey. It uses a £1 Stripe test payment and sample Calendar rules; it does not claim to represent a real business or create a real appointment. Until an approved business template is supplied, ORA will not invent real services, prices, availability, or booking rules. The Founder CTA uses `07955 506757` and `hau@convertbydigital.com`; a Calendly link has not yet been supplied.
 
 Send exactly `cleaner` (case-insensitive, with no other words) to enter the Cleaner Demo. Mentioning cleaner in a normal sentence does not switch modes. The selected mode persists in bounded conversation memory for up to 24 hours; `START OVER` immediately returns to the main ORA demo. The Cleaner Demo is currently a safe presentation shell rather than a working quote or booking journey because its approved catalogue and operating rules have not been supplied.
 
@@ -37,7 +40,13 @@ Copy the non-secret settings from `.env.example` into `.env.local` and fill the 
 
 `ENABLE_CLINIC_DEMO` defaults to `false`. The `true` setting exists only to run the retained Clinic regression template and must not be enabled for the current ORA presentation.
 
-The demo uses the OpenAI-compatible VectorEngine endpoint at `https://api.vectorengine.cn/v1` through `OPENAI_BASE_URL`. Keep the API key only in `.env.local` or Railway Variables; the configured model is `gpt-5.6-luna`.
+The demo uses the OpenAI-compatible endpoint selected by `OPENAI_BASE_URL`. Keep the API key only in `.env.local` or Railway Variables; the configured model is `gpt-5.6-luna`. Local environment changes do not update Railway Variables automatically.
+
+In ORA mode, natural messages use a dedicated AI intent schema before keyword fallbacks. The model identifies questions, requests to try/resume the demo, supplied names, and handover/status requests. Replies use approved ORA copy; AI does not generate business facts, payment links or confirmations. Date/time values remain locally validated, and policy acceptance still requires YES. Current workflow fields and the last `ora:<topic>` value in `concern_category` provide bounded context without storing chat transcripts or requiring a database migration. Missing credentials retain the deterministic fallback; model errors preserve progress and ask the customer to retry. ORA model requests time out after 10 seconds.
+
+Run `npm run test:ora-semantic:live` to test the existing model with screenshot questions and a synthetic multi-turn journey. It uses real model quota but replaces Calendar, Stripe, storage and WhatsApp with local test adapters. `npm run check` verifies the SDK contract and state protections offline; `npm run test:ora-product` checks the deterministic fallback.
+
+Run `npm run test:ora-random:live` for 1,000 distinct seeded English inputs across 25 categories, with synthetic preloaded workflow states and eight concurrent workers. This calls the real configured model wherever normal bot routing requires it; deterministic safety shortcuts are counted separately through the model-call count. Case-level JSON reports, latency, behavior failures and model failures are saved under the active task's `ora-random-results` directory. `-- --generate-only` writes the corpus without API calls; `-- --replay=<report.json> --concurrency=2` retries only failures from a saved report at lower concurrency. Replay results are separate from first-pass scores. These are template-based randomized inputs, not 1,000 complete customer journeys or a guarantee of general English accuracy.
 
 The existing intermediary API key has already been placed in `.env.local`. `Key.txt` still contains the original copy and is ignored; delete that file manually after you have confirmed the application works if you no longer need the duplicate.
 
@@ -53,10 +62,15 @@ Then open `http://localhost:3000/health`. The response reports only configured/n
 
 1. Create a Supabase Free project.
 2. Open the SQL editor and run [`supabase/schema.sql`](supabase/schema.sql).
-3. Set `SUPABASE_URL` and the server-only `SUPABASE_SERVICE_ROLE_KEY` in `.env.local` and Railway.
-4. Never expose the service-role key to a browser or client application.
+3. Enable the required sign-in provider under **Authentication → Providers** and create the permitted user account.
+4. Set `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, and the server-only `SUPABASE_SERVICE_ROLE_KEY` in `.env.local` and Railway.
+5. Never expose the service-role key to a browser or client application. The publishable key is the only key intended for a public sign-in client.
 
 All tables have Row Level Security enabled and no client policies. The backend service role is the only intended caller.
+
+After signing in with a Supabase client, send its access token as `Authorization: Bearer <access_token>`. `GET /api/me` is the auth smoke test and returns only the authenticated user's ID and email. `GET /auth/google` uses the same guard. Health checks, provider webhooks, payment return pages, and the Google callback remain public because they are validated by provider signatures or signed state instead of a Supabase session.
+
+For the one-time Google setup, request `/auth/google` with the bearer header, copy the returned `Location` URL, and open that URL in a browser. A normal address-bar navigation cannot attach an `Authorization` header.
 
 Run the schema again on an existing project before deploying this version; its idempotent migration adds the nullable `business_mode` field used to remember Cleaner Demo selection.
 
@@ -66,7 +80,7 @@ Run the schema again on an existing project before deploying this version; its i
 2. Create a Web application OAuth client.
 3. Add `<APP_BASE_URL>/auth/google/callback` as an authorised redirect URI.
 4. Set `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`, and `GOOGLE_CALENDAR_ID`.
-5. After deployment, open `<APP_BASE_URL>/auth/google` once and complete consent.
+5. After deployment, request `<APP_BASE_URL>/auth/google` with an authenticated Supabase bearer token and complete consent.
 
 The OAuth callback stores the refresh token in the service-only `integration_secrets` table. `GOOGLE_REFRESH_TOKEN` can instead be supplied as a hosting secret and takes precedence.
 
@@ -151,3 +165,13 @@ The live dialogue command uses synthetic unusual phrasing and the configured LLM
 - No dashboard, CRM, reminders, voice notes, images, cancellation automation, or rescheduling automation
 - Background WhatsApp work runs in the Railway process; a durable queue belongs in a production phase
 - External provider setup and public webhook delivery require the account owner’s credentials and dashboards
+# Registered WhatsApp sender and abc menu
+
+Set `TWILIO_WHATSAPP_FROM=whatsapp:+15553632930` and
+`TWILIO_MENU_CONTENT_SID=HXc9e5fc1f1fe65f9d4e0801d6d7bb99c3` in the backend environment.
+The registered Sender's incoming webhook must POST to `APP_BASE_URL/webhooks/twilio/whatsapp`.
+The menu replaces only the engine's normal welcome; booking prompts, safety replies,
+and handovers remain intact. Menu-send rejection falls back to the normal text welcome.
+`book_appointment` starts the synthetic ORA demo, `service_enquiry` explains ORA knowledge,
+`general_question` / `ask_question` invite a question, and `request_callback` records a handoff.
+List Picker menus are for replies within the WhatsApp 24-hour window, not out-of-session payment notifications.
