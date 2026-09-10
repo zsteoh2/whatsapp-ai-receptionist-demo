@@ -81,3 +81,6 @@
 ## Requested latest-code publication
 - Prepared current main with ORA semantic routing, booking/safety fixes, existing pending Auth work, regression harnesses and synthetic evidence. No credential files included.
 - Revalidated build and tests; publishing via authenticated existing Git setup. Deployment and phone test remain separate verification steps.
+
+## 2026-09-10
+- Implemented requested 30-second ORA deadline and safe failure logs. Added 8-second Twilio acknowledgement/delayed REST response to support the longer model call; preserved fast TwiML/menu behavior. Verified delayed/duplicate behavior and existing checks.

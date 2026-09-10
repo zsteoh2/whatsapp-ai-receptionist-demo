@@ -2,8 +2,8 @@
   "$schema": "../schemas/active-task.schema.json",
   "taskId": "2026-08-27-phase1-demo",
   "stage": "verification",
-  "lastUpdated": "2026-09-08T14:28:22.5967232Z",
-  "currentGoal": "Publish reviewed latest ORA updates to GitHub main for user testing.",
-  "nextAction": "Verify hosting deploys latest GitHub commit with intended environment; user phone-tests demo, payment and STATUS.",
+  "lastUpdated": "2026-09-10T12:20:12.2782657Z",
+  "currentGoal": "Verify longer ORA model wait and delayed Twilio reply delivery.",
+  "nextAction": "Push/deploy verified local change and phone-test; inspect new error diagnostics if failure persists.",
   "blocked": false
 }

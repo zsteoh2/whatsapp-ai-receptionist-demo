@@ -118,21 +118,31 @@ export function createApp(deps = createDependencies()) {
     if (!verifyTwilioSignature(url, params, req.header("x-twilio-signature"))) return res.sendStatus(401);
     const message = extractTwilioIncomingMessage(params);
     if (!message) return res.status(200).type("text/xml").send(twimlResponse());
+    // Slow replies finish via REST after acknowledging the webhook before Twilio's deadline.
+    // Same-process work can be lost on restart; a durable queue is needed for production guarantees.
+    const acknowledgement = setTimeout(() => res.status(200).type("text/xml").send(twimlResponse()), 8_000);
     try {
       const reply = await deps.engine.handleMessage(message);
       if (reply === WELCOME_MESSAGE && config.twilio.menuContentSid && deps.sender.sendTemplate) {
         try {
           await deps.sender.sendTemplate(message.from, config.twilio.menuContentSid);
-          return res.status(200).type("text/xml").send(twimlResponse());
+          if (!res.headersSent) res.status(200).type("text/xml").send(twimlResponse());
+          return;
         } catch {
           console.error("twilio_menu_failed_using_text_fallback");
         }
+      }
+      if (res.headersSent) {
+        if (reply) await deps.sender.sendText(message.from, reply);
+        return;
       }
       return res.status(200).type("text/xml").send(twimlResponse(reply));
     } catch (error) {
       await deps.store.forgetEvent("meta", message.id).catch(() => undefined);
       console.error("twilio_whatsapp_message_failed", error instanceof Error ? error.name : "unknown_error");
-      return res.status(200).type("text/xml").send(twimlResponse());
+      if (!res.headersSent) res.status(200).type("text/xml").send(twimlResponse());
+    } finally {
+      clearTimeout(acknowledgement);
     }
   });
 

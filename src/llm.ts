@@ -53,7 +53,7 @@ export class OpenAiIntentClassifier implements IntentClassifier {
         { role: "user", content: text.slice(0, 2000) },
       ],
       response_format: { type: "json_schema", json_schema: { name: "ora_message_decision", strict: true, schema: oraSchema } },
-    }, { timeout: 10_000 });
+    }, { timeout: 30_000 });
     const content = response.choices[0]?.message.content;
     if (!content) throw new Error("No ORA classification");
     return parseOraDecision(content);

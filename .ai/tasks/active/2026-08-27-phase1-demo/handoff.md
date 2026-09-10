@@ -1,5 +1,12 @@
 # Handoff
 
+## Latest - Live WhatsApp outbound blocked by Meta account state
+- Read-only Twilio records show inbound Hi/Start over received and outgoing replies failed with 63112. Railway health is 200; registered sender says ONLINE but sending is blocked.
+- Official 63112 guidance: linked Meta business/WABA disabled or business verification pending. Exact underlying Meta reason not visible here.
+- Next: account owner checks Meta Security Center verification and WABA notifications/restrictions; resolve that account issue before phone retest. Do not try code/routing workarounds for provider restrictions.
+- No messages sent or production changes made during diagnosis; exact Railway commit not confirmed.
+
+
 ## Latest - User-requested GitHub release
 - Latest main release contents: ORA semantic understanding, booking/safety fixes, existing pending Supabase Auth guard, live regressions and synthetic test reports.
 - Fresh build and 37 offline tests pass; configured-secret/token scan passed. Local .env files and Key.txt remain ignored.
@@ -173,3 +180,12 @@
 - Process questions and So demo? explain the synthetic journey and retain progress; 34/34 checks and 1000/1000 ORA product cases pass.
 - User highlighted missing AI understanding: normal ORA paths bypass the Clinic-specific classifier. This patch does not implement semantic ORA dialogue.
 - Next: review/deploy this local fix with existing pending deployment work and phone-test both screenshots. Railway login blocker remains as previously recorded; not rechecked here.
+
+## Latest - 2026-09-10 intermittent classification
+- WhatsApp now returns the ORA classifier-exception fallback in the user screenshot. Exact local text extracted Teoh twice; Try again classified continue (3/3 sequential real model calls).
+- Production cause remains unknown because respondOra logs only ora_classification_unavailable. Inspect Railway logs/config and add safe error diagnostics if needed; do not attribute this to language failure or assume local configuration matches Railway.
+
+## Latest - Longer wait implemented locally
+- ORA 30s model deadline, safe failure diagnostics and corrected failure copy; Twilio 8s acknowledgement with delayed REST reply implemented. README/architecture updated.
+- Build and 38/38 regression tests passed, plus updated targeted log redaction test. 11s mock proves old model deadline no longer rejects and webhook completes before the reply; duplicate delivery suppressed.
+- Pending: push/deploy and real phone test. Existing Twilio outbound permissions must allow delayed replies. Original production error type is not yet known; inspect new diagnostics after deployment. Graph may be outdated (sourceCommit null).

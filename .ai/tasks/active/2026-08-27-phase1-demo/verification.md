@@ -195,3 +195,22 @@
 - Passed: authenticated remote check; origin/main matched local base c7fbfdbe3f73cde57faea8622ebcc16a6f355437.
 - Passed: context validator with zero errors and three existing metadata recommendations. Graph may be outdated.
 - Not run: Railway deployment verification or phone testing. GitHub push outcome is verified against the remote ref in this publication turn.
+
+## Live no-reply diagnosis - 2026-09-08
+- Passed read-only checks: actual registered sender is ONLINE; configured webhook points to the Railway production Twilio endpoint. Live /health HTTP 200, Supabase storage and model/WhatsApp/Calendar/Stripe readiness true; auth false. Health does not prove exact deployed commit.
+- Failed delivery: latest inbound Hi and Start over are received, with corresponding outbound API messages failing error 63112. Five recent outbound failures carry the same code. No messages were sent by this investigation.
+- Official Twilio error 63112 indicates linked Meta Business Portfolio/WABA disabled or business verification pending; exact Meta account reason unavailable. Sender ONLINE alone does not establish send permission.
+- Source: https://www.twilio.com/docs/api/errors/63112. Owner must inspect Meta Security Center/business verification and WABA notifications. No code/config changes or attempts to bypass provider restrictions.
+- Browser dashboard access timed out; Railway commit and Meta account details not verified.
+
+## 2026-09-10 - Intermittent semantic failure diagnosis
+- Screenshot fallback maps to respondOra classifier exception handler, not a normal unknown decision. Current handler discards error details; model deadline is 10 seconds with no retries.
+- Passed: three sequential real local-model calls using awaiting_name/ora_demo context: the exact screenshot name utterance twice extracted Teoh; Try again returned continue. Existing authorised RelayRouter/Luna credentials reused; no customer messages sent. Probe latency field was evaluated before awaiting and is invalid; no latency conclusion.
+- Not verified: Railway model configuration, runtime exception cause, or end-to-end production recovery. Local success does not establish production reliability.
+- Next: inspect Railway runtime/provider errors; distinguish timeout, HTTP rejection and parsing errors before changing retry behaviour. No source/config changes in this investigation.
+
+## 2026-09-10 - Longer ORA wait and webhook delivery
+- Passed npm run check: build and 38/38 tests, including an 11-second local mock model reply that exceeds the former deadline, early empty TwiML, saved Teoh name and exactly one REST reply despite duplicate webhook.
+- Passed targeted semantic regression after adding safe 429 log/redaction assertions (1/1).
+- Source: ORA deadline 30s without retry; Twilio fast replies retain TwiML, requests still pending at 8s acknowledge then send via REST. Failure copy identifies service trouble; logs expose category/status/elapsed only.
+- Not run: production deployment or phone delivery. Delayed replies require working outbound Twilio permissions, and same-process work can be lost on restart. Exact original production exception cause remains unverified.

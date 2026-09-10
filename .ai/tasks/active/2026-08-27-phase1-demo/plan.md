@@ -52,3 +52,8 @@ Ship the smallest reliable single-service Phase 1 implementation.
 - Fix shared safety false positives, modal/date ambiguity and exact-time discourse handling; clarify polite rescheduling and overlapping topic precedence.
 - Preserve frozen baseline, run offline safety/booking regressions and actual-model failed-case replay, then broader unchanged corpus regression.
 - Keep external provider latency separate from behavioral correctness; do not extend timeouts to hide failures.
+
+## 2026-09-10 - Extend model wait
+- User requested increasing the ORA wait after repeated production classifier exceptions. Increase 10s to 30s, retain zero automatic model retries, add safe status/category/elapsed diagnostics and honest service-failure copy.
+- Preserve quick TwiML replies; acknowledge slow requests after 8s and send the eventual result through existing Twilio REST sender to avoid webhook timeout. Same-process delayed work has no durable delivery guarantee.
+- Verify an 11s mock model response, early webhook acknowledgement, name extraction and duplicate suppression, plus failure-log redaction and existing regression suite.

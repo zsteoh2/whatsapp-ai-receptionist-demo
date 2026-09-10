@@ -65,7 +65,7 @@ test("ORA semantic decisions preserve context and cannot bypass booking validati
     async classify() { throw new Error("Clinic must not run"); },
     async classifyOra(_text, context) {
       calls++; contexts.push(structuredClone(context));
-      if (fail) throw new Error("model unavailable");
+      if (fail) throw Object.assign(new Error("private-provider-body"), { status: 429 });
       return decision;
     },
   }, calendar, new FakeCheckout(), new FakeSender(), false);
@@ -114,7 +114,17 @@ test("ORA semantic decisions preserve context and cannot bypass booking validati
   decision = { ...decision, action: "start_demo" };
   assert.match(await send("Let's give it a go") ?? "", /Interactive Demo started/);
   fail = true;
-  assert.match(await send("Anything else needed?") ?? "", /progress is saved/);
+  const previousLog = console.error;
+  const failureLogs: unknown[][] = [];
+  console.error = (...args: unknown[]) => { failureLogs.push(args); };
+  try {
+    assert.match(await send("Anything else needed?") ?? "", /trouble processing messages.*progress is saved/);
+    assert.equal(failureLogs[0]?.[0], "ora_classification_unavailable");
+    assert.equal((failureLogs[0]?.[1] as { kind: string }).kind, "rate_limit");
+    assert.doesNotMatch(JSON.stringify(failureLogs), /private-provider-body/);
+  } finally {
+    console.error = previousLog;
+  }
   assert.equal((await store.getConversation("semantic"))?.customerName, undefined);
   assert.equal((await store.getConversation("semantic"))?.state, "awaiting_name");
   fail = false;
@@ -1159,5 +1169,47 @@ test("abc menu sends once, handles selections, and falls back to text on send fa
     Object.assign(config.twilio, previous);
     config.appBaseUrl = oldUrl;
     await new Promise<void>((resolve) => server.close(() => resolve()));
+  }
+});
+
+test("slow ORA model survives the old deadline and replies once after webhook acknowledgement", async () => {
+  const previous = { url: config.appBaseUrl, token: config.twilio.authToken };
+  const model = createServer(async (_req, res) => {
+    await new Promise(resolve => setTimeout(resolve, 11_000));
+    res.setHeader("Content-Type", "application/json");
+    res.end(JSON.stringify({ choices: [{ message: { content: JSON.stringify({ action: "details", topic: null, customerName: "Teoh", handover: "none" }) } }] }));
+  });
+  await new Promise<void>(resolve => model.listen(0, "127.0.0.1", resolve));
+  const store = new MemoryStore();
+  const replies: string[] = [];
+  let delivered!: () => void;
+  const delivery = new Promise<void>(resolve => { delivered = resolve; });
+  const sender: MessageSender = { async sendText(_to, text) { replies.push(text); delivered(); } };
+  const classifier = new OpenAiIntentClassifier("offline-test-key", `http://127.0.0.1:${(model.address() as AddressInfo).port}/v1`);
+  const engine = new ConversationEngine(store, classifier, new FakeCalendar(), new FakeCheckout(), sender, false);
+  await engine.handleMessage({ id: "slow-start", from: "slow-user", text: "START DEMO" });
+  const server = createApp({ store, engine, sender, storeMode: "memory" }).listen(0, "127.0.0.1");
+  await new Promise<void>(resolve => server.once("listening", resolve));
+  config.appBaseUrl = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
+  config.twilio.authToken = "test-token";
+  const url = `${config.appBaseUrl}/webhooks/twilio/whatsapp`;
+  const params: Record<string, string> = { MessageSid: "slow-name", From: "slow-user", Body: "Hey ermmm how about teoh" };
+  const data = Object.keys(params).sort().reduce((value, key) => value + key + params[key], url);
+  const signature = createHmac("sha1", "test-token").update(data).digest("base64");
+  const post = () => fetch(url, { method: "POST", headers: { "x-twilio-signature": signature }, body: new URLSearchParams(params), signal: AbortSignal.timeout(15_000) });
+  let deadline: ReturnType<typeof setTimeout> | undefined;
+  try {
+    assert.equal(await (await post()).text(), twimlResponse());
+    assert.equal(replies.length, 0, "webhook must acknowledge before model finishes");
+    await Promise.race([delivery, new Promise((_, reject) => { deadline = setTimeout(() => reject(new Error("No delayed reply")), 25_000); })]);
+    assert.equal((await store.getConversation("slow-user"))?.customerName, "Teoh");
+    assert.equal(replies.length, 1);
+    assert.equal(await (await post()).text(), twimlResponse());
+    assert.equal(replies.length, 1, "duplicate webhook must not send another reply");
+  } finally {
+    clearTimeout(deadline);
+    config.appBaseUrl = previous.url;
+    config.twilio.authToken = previous.token;
+    await Promise.all([new Promise<void>(resolve => server.close(() => resolve())), new Promise<void>(resolve => model.close(() => resolve()))]);
   }
 });

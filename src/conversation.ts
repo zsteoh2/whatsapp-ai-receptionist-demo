@@ -463,16 +463,23 @@ export class ConversationEngine {
 
   private async respondOra(conversation: Conversation, text: string, normalizedText: string) {
     let decision: OraDecision;
+    const startedAt = Date.now();
     try {
       decision = await this.classifier.classifyOra!(text, {
         state: conversation.state, packageId: conversation.packageId,
         customerName: conversation.customerName, requestedStart: conversation.requestedStart,
         concernCategory: conversation.concernCategory,
       });
-    } catch {
-      console.error("ora_classification_unavailable");
+    } catch (error) {
+      const status = error && typeof error === "object" && "status" in error && typeof error.status === "number"
+        ? error.status : null;
+      const kind = error instanceof Error && error.name === "APIConnectionTimeoutError" ? "timeout"
+        : status === 429 ? "rate_limit"
+        : status === 401 || status === 403 ? "authentication_or_access"
+        : status !== null ? "http_error" : "connection_or_invalid_response";
+      console.error("ora_classification_unavailable", { kind, status, elapsedMs: Date.now() - startedAt });
       await this.save(conversation);
-      return "I couldn’t understand that message just now. Your progress is saved. Please try again, or reply START DEMO, STATUS, or CALLBACK.";
+      return "Sorry, I’m having trouble processing messages right now. Your progress is saved. Please resend your last message, or reply STATUS or CALLBACK.";
     }
     if (decision.handover !== "none") return this.handover(conversation, decision.handover);
     if (decision.action === "status") return this.bookingStatus(conversation);
