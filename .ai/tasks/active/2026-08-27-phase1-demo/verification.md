@@ -214,3 +214,11 @@
 - Passed targeted semantic regression after adding safe 429 log/redaction assertions (1/1).
 - Source: ORA deadline 30s without retry; Twilio fast replies retain TwiML, requests still pending at 8s acknowledge then send via REST. Failure copy identifies service trouble; logs expose category/status/elapsed only.
 - Not run: production deployment or phone delivery. Delayed replies require working outbound Twilio permissions, and same-process work can be lost on restart. Exact original production exception cause remains unverified.
+
+## 2026-09-14 - Railway recovery test and exact-date guard
+- Passed production configuration recovery: signed synthetic requests to the Railway Twilio webhook returned HTTP 200; START DEMO started the journey and two fresh sessions extracted the supplied name without the service-failure fallback. No real customer number was used.
+- Failed production flow: `Next Saturday at 11am` was misrouted to the ORA booking-capability answer in repeated/fresh sessions, so Calendar availability and policy were not reached.
+- Passed local fix: a focused regression forces question/booking from the classifier and proves an exact slot in awaiting_datetime bypasses that wrong label, reaches awaiting_policy and does not call the classifier.
+- Passed final `npm run check`: TypeScript build and 39/39 tests.
+- Passed `git diff --check` with only the existing Windows line-ending warnings.
+- Not run: deployment of this fix, post-deploy Railway replay, Stripe Checkout or payment confirmation.

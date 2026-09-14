@@ -583,6 +583,12 @@ export class ConversationEngine {
       return "Of course — what would you like to know? You can write it naturally.";
     }
 
+    if (!this.clinicDemoEnabled && conversation.businessMode !== "cleaner"
+      && conversation.packageId === "ora_demo" && conversation.state === "awaiting_datetime") {
+      const localDateTime = extractExplicitLocalDateTime(normalizedText);
+      if (localDateTime) return this.advanceBooking(conversation, { ...emptyDecision(), wantsBooking: true, localDateTime });
+    }
+
     if (!this.clinicDemoEnabled && conversation.businessMode !== "cleaner" && this.classifier.classifyOra
       && !(conversation.packageId === "ora_demo" && conversation.state === "awaiting_policy"
         && (acceptPattern.test(text) || declinePattern.test(text)))) {

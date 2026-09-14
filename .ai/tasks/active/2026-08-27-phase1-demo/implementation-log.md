@@ -84,3 +84,8 @@
 
 ## 2026-09-10
 - Implemented requested 30-second ORA deadline and safe failure logs. Added 8-second Twilio acknowledgement/delayed REST response to support the longer model call; preserved fast TwiML/menu behavior. Verified delayed/duplicate behavior and existing checks.
+
+## 2026-09-14
+- Verified the user's new model API/base URL through the production Railway webhook: START DEMO and AI name extraction recovered, but the model repeatedly labelled the bot's own exact date example as a booking-capability question.
+- Added one deterministic guard so an exact date/time advances an active ORA demo before semantic topic routing. Added a regression in which the classifier deliberately returns the wrong question decision.
+- No production deployment or GitHub publication performed; the verified two-file code fix remains local.

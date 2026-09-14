@@ -174,6 +174,31 @@ test("ORA date corrections preserve names, precise times and ambiguity boundarie
   assert.equal(store.bookings.size, 0);
 });
 
+test("ORA accepts an exact requested slot before the model can misroute it as a question", async () => {
+  const store = new MemoryStore();
+  let classifierCalls = 0;
+  const engine = new ConversationEngine(store, {
+    async classify() { throw new Error("Clinic must not run"); },
+    async classifyOra() {
+      classifierCalls += 1;
+      return { action: "question", topic: "booking", customerName: null, handover: "none" };
+    },
+  }, new FakeCalendar(), new FakeCheckout(), new FakeSender(), false);
+  await store.saveConversation({
+    waId: "ora-exact-slot", state: "awaiting_datetime", packageId: "ora_demo",
+    customerName: "Railway QA", updatedAt: new Date().toISOString(),
+  });
+
+  const reply = await engine.handleMessage({
+    id: "ora-exact-slot-1", from: "ora-exact-slot", text: "Next Saturday at 11am",
+  });
+
+  assert.match(reply ?? "", /Reply YES/i);
+  assert.equal(classifierCalls, 0);
+  assert.equal((await store.getConversation("ora-exact-slot"))?.state, "awaiting_policy");
+  assert.ok((await store.getConversation("ora-exact-slot"))?.requestedStart);
+});
+
 test("general questions preserve demo progress and process questions explain the journey", async () => {
   const store = new MemoryStore();
   let classifierCalls = 0;

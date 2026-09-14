@@ -1,5 +1,13 @@
 # Handoff
 
+## Latest - New model configuration works; exact-date routing fixed locally
+- Production Railway synthetic webhook checks after the user's API/base URL redeploy passed START DEMO and AI name extraction without the former service fallback. A fresh session extracted `Railway QA` in 6.7 seconds.
+- The next input, `Next Saturday at 11am`, reproducibly returned booking-capability copy instead of checking availability. The semantic model labelled the exact slot as a question, and respondOra returned before its deterministic date parser.
+- Local fix: while ORA is awaiting_datetime, a valid exact slot now advances through the existing booking validation before model topic routing. Questions without an exact slot still use the semantic path.
+- `npm run check` passes build and 39/39 tests; the new regression proves the exact slot advances even when the classifier would return question/booking. `git diff --check` passes.
+- No real customer number was used in the synthetic checks. No GitHub push or Railway deployment was performed for this fix.
+- Next: review, commit/push and deploy the two-file code change, then repeat the same production flow through Calendar availability and policy.
+
 ## Latest - Live WhatsApp outbound blocked by Meta account state
 - Read-only Twilio records show inbound Hi/Start over received and outgoing replies failed with 63112. Railway health is 200; registered sender says ONLINE but sending is blocked.
 - Official 63112 guidance: linked Meta business/WABA disabled or business verification pending. Exact underlying Meta reason not visible here.
